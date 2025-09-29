@@ -1,0 +1,10 @@
+[16-Aug-2023 14:46:41 UTC] PHP Fatal error:  Composer detected issues in your platform: Your Composer dependencies require a PHP version ">= 8.1.0". You are running 8.0.30. in /home4/news001/public_html/jamattu/vendor/composer/platform_check.php on line 24
+[07-Sep-2023 00:01:01 Asia/Kolkata] PHP Fatal error:  Cannot use temporary expression in write context in /home4/news001/public_html/jamattu/app/Http/Controllers/ShopController.php on line 701
+[07-Sep-2023 00:01:07 Asia/Kolkata] PHP Fatal error:  Cannot use temporary expression in write context in /home4/news001/public_html/jamattu/app/Http/Controllers/ShopController.php on line 701
+[07-Sep-2023 00:01:14 Asia/Kolkata] PHP Fatal error:  Cannot use temporary expression in write context in /home4/news001/public_html/jamattu/app/Http/Controllers/ShopController.php on line 701
+[07-Sep-2023 00:01:14 Asia/Kolkata] PHP Fatal error:  Cannot use temporary expression in write context in /home4/news001/public_html/jamattu/app/Http/Controllers/ShopController.php on line 701
+[07-Sep-2023 00:01:15 Asia/Kolkata] PHP Fatal error:  Cannot use temporary expression in write context in /home4/news001/public_html/jamattu/app/Http/Controllers/ShopController.php on line 701
+[07-Sep-2023 00:01:15 Asia/Kolkata] PHP Fatal error:  Cannot use temporary expression in write context in /home4/news001/public_html/jamattu/app/Http/Controllers/ShopController.php on line 701
+[07-Sep-2023 00:01:15 Asia/Kolkata] PHP Fatal error:  Cannot use temporary expression in write context in /home4/news001/public_html/jamattu/app/Http/Controllers/ShopController.php on line 701
+[07-Sep-2023 00:01:15 Asia/Kolkata] PHP Fatal error:  Cannot use temporary expression in write context in /home4/news001/public_html/jamattu/app/Http/Controllers/ShopController.php on line 701
+[07-Sep-2023 00:01:15 Asia/Kolkata] PHP Fatal error:  Cannot use temporary expression in write context in /home4/news001/public_html/jamattu/app/Http/Controllers/ShopController.php on line 701

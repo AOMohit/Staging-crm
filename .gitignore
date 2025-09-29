@@ -1,0 +1,9 @@
+*.zip
+*.rar
+*.7z
+crm-admin/.env
+crm-admin/storage/**
+crm-admin/vendor/**
+crm-user/.env
+crm-user/storage/**
+crm-user/vendor/**
