@@ -7,3 +7,5 @@ crm-admin/vendor/**
 crm-user/.env
 crm-user/storage/**
 crm-user/vendor/**
+*.sql
+*.pdf
