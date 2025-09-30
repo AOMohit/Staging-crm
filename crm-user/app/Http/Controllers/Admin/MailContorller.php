@@ -23,10 +23,12 @@ class MailContorller extends Controller
             $user = User::where('id', $enquiry->customer_id)->first();
           
         }
+
         if($type == 'registartion-user-mail'){
             $user = User::where('id', $enquiry->id)->first();
             $view = 'emails.user-registration';
             $subject = 'Thank you for registration | Adventures Overland';
+            
             $mailData = [
                 'first_name' => $user->first_name,
                 'last_name' => $user->last_name,
@@ -61,9 +63,11 @@ class MailContorller extends Controller
                
 
             ];
+        
             return FacadesMail::to($user->email)->send(new MailSystem($subject, $mailData, $view));
 
         }
+
         if ($type == 'registartion-mail') {
             
             $user = User::where('email', $enquiry['user_mail'])->first();
@@ -71,6 +75,7 @@ class MailContorller extends Controller
             $view = 'emails.registation-mail';
             $subject = 'New Registration from '.$user->first_name.' for ' . $enquiry['trip'] .' ! AO';
             $doc = ExtraDocuments::select('title','image','user_id')->where('user_id',$user->id)->get();
+            
             $mailData = [
                 'first_name' => $user->first_name,
                 'last_name' => $user->last_name,
@@ -105,7 +110,9 @@ class MailContorller extends Controller
                 'extra_doc'=> $doc
                
             ];
-            return FacadesMail::to($enquiry['admin_email'])->send(new MailSystem($subject, $mailData, $view));
+            
+            // return FacadesMail::to($enquiry['admin_email'])->send(new MailSystem($subject, $mailData, $view));
+            return FacadesMail::to("vageesh@adventuresoverland.com")->send(new MailSystem($subject, $mailData, $view));
         }
         // if($type == 'seeker-mail'){
         //     $user = User::where('id', $enquiry->id)->first();

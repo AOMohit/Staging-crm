@@ -417,7 +417,7 @@ class DashboardController extends Controller
 
     public function registrationSubmit(Request $request)
     {
-    
+        // dd($request->all());
         $data = User::where('email', $request->email)->first();
         $rules = [
             'email' => 'required',
@@ -587,6 +587,7 @@ class DashboardController extends Controller
                 $termsType = 0;
             }
             $user->terms_accepted = $termsType;
+            
             $user->save();
             Log::info('User profile updated or added for user ID: ' . $user->id, ['email' => $user->email]);
 
@@ -640,7 +641,9 @@ class DashboardController extends Controller
                     }
                 }
             }
+
             if(setting('mail_status') == 1){
+                
                 $tripName = $tripData->name;
                 $mail = new MailContorller();
                 $type = 'registartion-user-mail';
@@ -661,7 +664,11 @@ class DashboardController extends Controller
                 }
                 
             }
-            return redirect()->to('https://www.adventuresoverland.com/registration-thank-you/');
+            // return redirect()->to('https://www.adventuresoverland.com/registration-thank-you/');
+            return response()->json([
+                'success' => true,
+                // 'redirect' => 'https://www.adventuresoverland.com/registration-thank-you/'
+            ]);
         } 
         catch (\Exception $e) {
                 \Log::error('Registration error: '.$e->getMessage(), ['trace' => $e->getTraceAsString()]);
