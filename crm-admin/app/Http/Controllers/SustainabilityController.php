@@ -55,7 +55,6 @@ class SustainabilityController extends Controller
         // filter
 
         $data = $data->get();
-        
         $data->map(function ($item, $index) use ($date) {
             $optIn = TripCarbonInfo::where('trip_id', $item->id)->count();
             $item->created = date("M d, Y", strtotime($item->created_at));
@@ -77,9 +76,9 @@ class SustainabilityController extends Controller
             $item->pax = $pax;
             $item->opt_in = $optIn;
             $item->opt_out = $pax - $optIn;
-            $item->added_by = $item->admin->name;
+            $item->added_by = $item->admin->name??"";
         });
-        // dd($data);
+        
         return DataTables::of($data)->make(true);
     }
 

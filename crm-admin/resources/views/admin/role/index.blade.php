@@ -6,6 +6,7 @@
         <div class="card">
             <div class="card-datatable table-responsive pt-0">
                 <div class="p-3">
+                    @if(($permissions['roles_permission']->can_edit ?? false) || $user->role_id == 6)
                     <div class="dt-action-buttons text-end pt-3 pt-md-0">
                         <div class="dt-buttons btn-group flex-wrap">
 
@@ -15,6 +16,7 @@
                             </a>
                         </div>
                     </div>
+                    @endif
                 </div>
                 <table id="myDatatable" class="table table-bordered">
                     <thead>
@@ -56,6 +58,11 @@
 
 @section('script')
     <script>
+        var rolesPermissionCanView = {{ ($permissions['roles_permission']->can_view ?? false) ? 'true' : 'false' }};
+        var rolesPermissionCanEdit = {{ ($permissions['roles_permission']->can_edit ?? false) ? 'true' : 'false' }};
+        var rolesPermissionCanDelete = {{ ($permissions['roles_permission']->can_delete ?? false) ? 'true' : 'false' }};
+        var roleId = "{{ $user->role_id ?? '' }}";
+        
         $('th').css('white-space', 'nowrap');
 
         $(document).ready(function() {
@@ -94,17 +101,52 @@
                                 "{{ route('roles_permission.delete', ['id' => 'rowID', 'p_id' => 'rowPID']) }}";
                             routeDlt = routeDlt.replace('rowID', id);
                             routeDlt = routeDlt.replace('rowPID', p_id);
+                            
+                            var text = "";
+                            if (roleId == 6) {
+                                text = `
+                                    <div class="dropdown">
+                                        <button type="button" class="btn p-0 dropdown-toggle hide-arrow" data-bs-toggle="dropdown" aria-expanded="false">
+                                            <i class="mdi mdi-dots-vertical"></i>
+                                        </button>
+                                        <div class="dropdown-menu">
+                                            <a class="dropdown-item waves-effect" href="${routeEdit}">
+                                                <i class="mdi mdi-pencil-outline me-1"></i> Edit
+                                            </a>
+                                            <a class="dropdown-item waves-effect" data-bs-toggle="modal" onclick="deleteModal('${routeDlt}')" 
+                                                data-bs-target="#deleteModal" href="javascript:void(0)">
+                                                <i class="mdi mdi-trash-can-outline me-1"></i> Delete
+                                            </a>
+                                        </div>
+                                    </div>`;
+                            } 
+                            else if (rolesPermissionCanEdit || rolesPermissionCanDelete) {
+                                text = `
+                                    <div class="dropdown">
+                                        <button type="button" class="btn p-0 dropdown-toggle hide-arrow" data-bs-toggle="dropdown" aria-expanded="false">
+                                            <i class="mdi mdi-dots-vertical"></i>
+                                        </button>
+                                        <div class="dropdown-menu">`;
 
-                            var text = `<div class="dropdown">
-                                <button type="button" class="btn p-0 dropdown-toggle hide-arrow" data-bs-toggle="dropdown" aria-expanded="false">
-                                <i class="mdi mdi-dots-vertical"></i>
-                                </button>
-                                <div class="dropdown-menu" style="">
-                                <a class="dropdown-item waves-effect" href="${routeEdit}"><i class="mdi mdi-pencil-outline me-1"></i> Edit</a>
-                                <a class="dropdown-item waves-effect" data-bs-toggle="modal" onclick="deleteModal('${routeDlt}')"
-                                            data-bs-target="#deleteModal" href="javaScript:void(0)"><i class="mdi mdi-trash-can-outline me-1"></i> Delete</a>
-                                </div>
-                            </div>`;
+                                        if (rolesPermissionCanEdit) {
+                                            text += `
+                                                <a class="dropdown-item waves-effect" href="${routeEdit}">
+                                                    <i class="mdi mdi-pencil-outline me-1"></i> Edit
+                                                </a>`;
+                                        }
+
+                                        if (rolesPermissionCanDelete && row.trip_status !== "Completed") {
+                                            text += `
+                                                <a class="dropdown-item waves-effect" data-bs-toggle="modal" onclick="deleteModal('${routeDlt}')" 
+                                                    data-bs-target="#deleteModal" href="javascript:void(0)">
+                                                    <i class="mdi mdi-trash-can-outline me-1"></i> Delete
+                                                </a>`;
+                                        }
+
+                                text += `
+                                        </div>
+                                    </div>`;
+                            }
                             return text;
                         }
                     },

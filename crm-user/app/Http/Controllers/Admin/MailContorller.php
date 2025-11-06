@@ -111,8 +111,8 @@ class MailContorller extends Controller
                
             ];
             
-            // return FacadesMail::to($enquiry['admin_email'])->send(new MailSystem($subject, $mailData, $view));
-            return FacadesMail::to("vageesh@adventuresoverland.com")->send(new MailSystem($subject, $mailData, $view));
+            return FacadesMail::to($enquiry['admin_email'])->send(new MailSystem($subject, $mailData, $view));
+            // return FacadesMail::to("vageesh@adventuresoverland.com")->send(new MailSystem($subject, $mailData, $view));
         }
         // if($type == 'seeker-mail'){
         //     $user = User::where('id', $enquiry->id)->first();

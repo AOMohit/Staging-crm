@@ -22,6 +22,10 @@ use Illuminate\Support\Str;
 use App\Events\SendMailEvent;
 use App\Models\Country;
 use App\Models\Trip;
+// for all attchments download for a customer
+use Illuminate\Support\Facades\Storage;
+use File;
+use ZipArchive;
 
 class CustomerController extends Controller
 {
@@ -682,6 +686,65 @@ public function export()
                 
             }
        
+    }
+
+    public function downloadAttachments(Request $request)
+    {
+        $customer = Customer::find($request->customer_id);
+
+        if (!$customer) {
+            return response()->json(['error' => 'Customer not found'], 404);
+        }
+
+        $fields = [
+            'passport_front', 'passport_back',
+            'adhar_card', 'pan_gst',
+            'gst_certificate', 'profile', 'driving'
+        ];
+
+        $files = [];
+
+        $crmUserStorage = base_path('../crm-user/storage/app/public/'); // point to crm-user storage
+
+        foreach ($fields as $field) {
+            if (!empty($customer->$field)) {
+                $relativePath = ltrim(str_replace('public/', '', $customer->$field), '/');
+                $fullPath = $crmUserStorage . $relativePath;
+
+                if (file_exists($fullPath)) {
+                    $files[] = $fullPath;
+                } else {
+                    \Log::info("File not found: " . $fullPath);
+                }
+            }
+        }
+
+        if (empty($files)) {
+            return response()->json(['error' => 'No attachments found'], 404);
+        }
+
+        // Safe ZIP file name
+        $safeName = preg_replace('/[^A-Za-z0-9_\-]/', '_', $customer->first_name . '_' . $customer->last_name);
+        $zipFileName = $safeName . '_attachments.zip';
+        $zipPath = storage_path('app/temp/' . $zipFileName);
+
+        // Ensure temp directory exists
+        if (!File::exists(storage_path('app/temp'))) {
+            File::makeDirectory(storage_path('app/temp'), 0755, true);
+        }
+
+        // Create ZIP
+        $zip = new ZipArchive;
+        if ($zip->open($zipPath, ZipArchive::CREATE | ZipArchive::OVERWRITE) === TRUE) {
+            foreach ($files as $file) {
+                $zip->addFile($file, basename($file));
+            }
+            $zip->close();
+        } else {
+            return response()->json(['error' => 'Failed to create ZIP'], 500);
+        }
+
+        return response()->download($zipPath)->deleteFileAfterSend(true);
     }
     
 }

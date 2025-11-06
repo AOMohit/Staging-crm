@@ -102,10 +102,12 @@
                                 <label for="basic-default-fullname1">Ongoing Trip Report User Mail</label>
                                 <small>Eg:- abc@mail.com,def@mail.com</small>
                             </div>
-
+                            
+                            @if(($permissions['setting']->can_edit ?? false))
                             <div class="text-center">
                                 <button type="submit" class="btn btn-primary">Submit</button>
                             </div>
+                            @endif
                         </form>
                     </div>
                 </div>

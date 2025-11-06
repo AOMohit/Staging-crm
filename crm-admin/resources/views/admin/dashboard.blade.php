@@ -3,7 +3,7 @@
 @section('content')
     <div class="container-xxl flex-grow-1 container-p-y">
         <div class="row mb-2 d-flex justify-content-end">
-            <div class="col-2">
+            <div class="col-lg-2 col-md-6 col-sm-12">
                 <label for="">Filter</label>
                 <select id="filter" class="form-control">
                     <option value="">Select</option>
@@ -13,15 +13,15 @@
                     <option @if (request()->filter == 'Yearly') selected @endif value="Yearly">Yearly</option>
                 </select>
             </div>
-            <div class="col-2">
+            <div class="col-lg-2 col-md-6 col-sm-12">
                 <label for="">From</label>
                 <input value="{{ request()->input('from_date') }}" id="from_date" type="date" class="form-control">
             </div>
-            <div class="col-2">
+            <div class="col-lg-2 col-md-6 col-sm-12">
                 <label for="">To</label>
                 <input value="{{ request()->input('to_date') }}" id="to_date" type="date" class="form-control">
             </div>
-            <div class="col-2">
+            <div class="col-lg-2 col-md-3 col-sm-12">
                 <div class="row" style="margin-right: 4px;">
                     <button class="btn btn-warning mt-4" onclick="filterDashboard()">Filter</button>
                 </div>

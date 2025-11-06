@@ -9,6 +9,7 @@ use App\Models\State;
 use App\Models\Faq;
 use App\Models\Trip;
 use App\Models\ExtraDocuments;
+use App\Models\Customer;
 use App\Models\User;
 use App\Models\TripCarbonInfo;
 use App\Models\LoaltyPointsModel;
@@ -378,6 +379,7 @@ class DashboardController extends Controller
         $user->first_name = $request->first_name;
         $user->last_name = $request->last_name;
         $user->phone = $request->phone;
+        // $user->telephone_code = $request->telephone_code;
         $user->dob = $request->dob;
         $user->city = $request->city;
         $user->state = $request->state;
@@ -421,6 +423,7 @@ class DashboardController extends Controller
         $data = User::where('email', $request->email)->first();
         $rules = [
             'email' => 'required',
+            'telephone_code' => 'required',
             'phone' => 'required|numeric|digits_between:1,15',
             'state'=> 'required',
             'country'=> 'required',
@@ -434,10 +437,10 @@ class DashboardController extends Controller
             'emg_contact' => 'required|numeric|digits_between:1,15',
             't_size' => 'required',
             'medical_condition' => ['required', 'regex:/^[a-zA-Z\s]+$/'],
-            'passport_front' => 'mimes:pdf,jpg,jpeg,png|max:3072',
-            'profile' => (!empty($data->profile)) ? 'nullable|mimes:jpg,jpeg,png|max:3072' : 'required|mimes:pdf,jpg,jpeg,png|max:3072',
-            'pan_gst' => (!empty($data->pan_gst)) ? 'nullable|mimes:pdf,jpg,jpeg,png|max:3072' : 'mimes:pdf,jpg,jpeg,png|max:3072',
-            'gst_certificate' => (!empty($data->gst_certificate)) ? 'nullable|mimes:pdf,docx,doc,jpg,jpeg,png|max:3072' : 'mimes:pdf,doc,docx,jpg,jpeg,png|max:3072',
+            'passport_front' => 'mimes:pdf,jpg,jpeg,png|max:20480',
+            'profile' => (!empty($data->profile)) ? 'nullable|mimes:jpg,jpeg,png|max:20480' : 'required|mimes:pdf,jpg,jpeg,png|max:20480',
+            'pan_gst' => (!empty($data->pan_gst)) ? 'nullable|mimes:pdf,jpg,jpeg,png|max:20480' : 'mimes:pdf,jpg,jpeg,png|max:20480',
+            'gst_certificate' => (!empty($data->gst_certificate)) ? 'nullable|mimes:pdf,docx,doc,jpg,jpeg,png|max:20480' : 'mimes:pdf,doc,docx,jpg,jpeg,png|max:20480',
         ];
         if ($request->has('traveller_id')) {
             $rules['traveller_id'] = 'required';
@@ -457,6 +460,7 @@ class DashboardController extends Controller
             'last_name.required' => 'Last name is mandatory.',
             'traveller_id.required' => 'Traveller is mandatory.',
             'email.required' => 'We need your email address.',
+            'telephone_code.required' => 'We need your telephone Code',
             'phone.required' => 'Phone is mandatory.',
             'phone.digits' => 'Phone number must be exactly 10 digits.',
             'state.required' => 'State is mandatory.',
@@ -511,6 +515,7 @@ class DashboardController extends Controller
             }
             
             $user->phone = $request->phone;
+            $user->telephone_code = $request->telephone_code;
             $user->dob = $request->dob;
             $user->city = $request->city;
             $user->state = $request->state;
@@ -533,6 +538,7 @@ class DashboardController extends Controller
                 $file = $request->file('profile');
                 $user->profile = $file->store('public/image/user');
                 $originalNames['profile'] = $file->getClientOriginalName();
+
             }
             if ($request->hasFile('passport_front')) {
             
@@ -687,6 +693,49 @@ class DashboardController extends Controller
         $data->delete($request->id);
 
         echo 1;
+    }
+
+    public function removeDocsImage(Request $request)
+    {
+        try {
+            // Validate with customer_id instead of id
+            $request->validate([
+                'customer_id' => 'required|exists:customers,id',
+                'name' => 'required|string' // Column name from data-docname
+            ]);
+
+            $customerId = $request->customer_id;
+            $columnName = $request->name; // This is from data-docname attribute
+            
+            // Find the customer
+            // $customer = Customer::find($customerId);
+            $customer = \App\Models\Customer::find($customerId);
+            
+            if (!$customer) {
+                echo 0;
+                return;
+            }
+
+            // Get the image filename from the dynamic column
+            $imageFileName = $customer->{$columnName};
+            
+            if ($imageFileName) {
+                // Delete the physical file
+                if (Storage::disk('public')->exists('image/' . $imageFileName)) {
+                    Storage::disk('public')->delete('image/' . $imageFileName);
+                }
+                
+                // Set the column value to NULL
+                $customer->{$columnName} = null;
+                $customer->save();
+            }
+
+            echo 1;
+            
+        } catch (\Exception $e) {
+            \Log::error('Error removing customer document: ' . $e->getMessage());
+            echo 0;
+        }
     }
 
     public function summary(Request $request){

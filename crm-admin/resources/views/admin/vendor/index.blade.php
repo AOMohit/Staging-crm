@@ -6,10 +6,11 @@
         <div class="card">
             <div class="card-datatable table-responsive pt-0">
                 <div class="p-3">
+                    {{-- @if(($permissions['trip']->can_edit ?? false)) --}}
                     <div class="dt-action-buttons text-end pt-3 pt-md-0">
                         <div class="dt-buttons btn-group flex-wrap">
 
-                            <button class="btn btn-secondary  btn-label-primary me-2" data-bs-toggle="modal"
+                            <!-- <button class="btn btn-secondary  btn-label-primary me-2" data-bs-toggle="modal"
                                 data-bs-target="#basicModal">
                                 <i class="mdi mdi-tray-arrow-down me-sm-1"></i> Import
                             </button>
@@ -20,7 +21,7 @@
                                 aria-controls="DataTables_Table_0" type="button" aria-haspopup="dialog"
                                 aria-expanded="false"><span><i class="mdi mdi-export-variant me-sm-1"></i> <span
                                         class="d-none d-sm-inline-block">Export</span></span></span>
-                            </a>
+                            </a> -->
 
                             <a class="btn btn-secondary btn-primary text-white" href="{{ route('vendors.add') }}"
                                 tabindex="0"><span><i class="mdi mdi-plus me-sm-1"></i>
@@ -28,6 +29,7 @@
                             </a>
                         </div>
                     </div>
+                    {{-- @endif --}}
                 </div>
                 <table id="myDatatable" class="table table-bordered">
                     <thead>

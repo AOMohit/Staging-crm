@@ -5,7 +5,7 @@
         <!-- DataTable with Buttons -->
         <div class="card">
             <div class="card-datatable table-responsive pt-0">
-                <div class="p-3">
+                <!-- <div class="p-3">
                     <div class="dt-action-buttons text-end pt-3 pt-md-0">
                         <div class="dt-buttons btn-group flex-wrap">
 
@@ -18,7 +18,7 @@
 
                         </div>
                     </div>
-                </div>
+                </div> -->
                 <table id="myDatatable" class="table table-bordered">
                     <thead>
                         <tr>

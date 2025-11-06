@@ -28,9 +28,14 @@
                                         width="120" alt="{{ $data->first_name }}" />
                                 @endif
                                 <div class="user-info text-center">
-                                    <h4>{{ $data->first_name . ' ' . $data->last_name }} <a
+                                    <h4>{{ $data->first_name . ' ' . $data->last_name }} 
+                                        @if(($permissions['customer']->can_edit ?? false))
+                                        <a
                                             href="{{ route('customer.edit', $data->id) }}"><span
-                                                class="fa fa-pen"></span></a></h4>
+                                                class="fa fa-pen"></span>
+                                        </a>
+                                        @endif
+                                    </h4>
                                     <span class="badge bg-label-danger">{{ 'Customer' }}</span>
                                 </div>
                             </div>
@@ -292,7 +297,9 @@
                             </div>
                             <div class="tab-pane fade" id="navs-top-referrals" role="tabpanel">
                                 <div class="card-datatable table-responsive pt-0">
-                                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addReferalModal">Add Referral</button>
+                                    @if(($permissions['customer']->can_edit ?? false))
+                                        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addReferalModal">Add Referral</button>
+                                    @endif
                                     <table id="myDatatablereferal" class="table table-bordered">
                                         <thead>
                                             <tr>

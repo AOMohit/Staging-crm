@@ -128,35 +128,35 @@
                                             }
                                         @endphp
                                     @endforeach
+                                    @if(($permissions['booking']->can_edit ?? false))
+                                        @if ($checkRegForm)
+                                            <a target="_blank"
+                                                href="{{ env('USER_URL') . 'registration?token=' . $data->token . '&email=&trip_id=' . $data->trip_id . '&form_type=not_user' }}"
+                                                class="btn btn-success btn-sm">
+                                                Registration Form
+                                            </a>
+                                        @endif
 
-                                    @if ($checkRegForm)
-                                        <a target="_blank"
-                                            href="{{ env('USER_URL') . 'registration?token=' . $data->token . '&email=&trip_id=' . $data->trip_id . '&form_type=not_user' }}"
-                                            class="btn btn-success btn-sm">
-                                            Registration Form
+                                        <a href="{{ route('booking.new-trip', ['token' => $data->token]) }}"
+                                            class="btn btn-primary btn-sm">
+                                            Edit
                                         </a>
-                                    @endif
+                                        @if ($data->trip_status != 'Correction')
+                                            @if ($data->trip_status != 'Cancelled')
+                                                <a href="javaScript:void(0)" onclick="correctionConfirm()"
+                                                    class="btn btn-warning btn-sm">
+                                                    Need Correction
+                                                </a>
+                                            @endif
+                                        @endif
 
-                                    <a href="{{ route('booking.new-trip', ['token' => $data->token]) }}"
-                                        class="btn btn-primary btn-sm">
-                                        Edit
-                                    </a>
-                                    @if ($data->trip_status != 'Correction')
                                         @if ($data->trip_status != 'Cancelled')
-                                            <a href="javaScript:void(0)" onclick="correctionConfirm()"
-                                                class="btn btn-warning btn-sm">
-                                                Need Correction
+                                            <a href="javaScript:void(0)" onclick="cancelConfirm()"
+                                                class="btn btn-danger btn-sm">
+                                                Cancel Booking
                                             </a>
                                         @endif
                                     @endif
-
-                                    @if ($data->trip_status != 'Cancelled')
-                                        <a href="javaScript:void(0)" onclick="cancelConfirm()"
-                                            class="btn btn-danger btn-sm">
-                                            Cancel Booking
-                                        </a>
-                                    @endif
-
                                     <a href="{{ route('booking.activity', $data->id) }}"
                                         class="btn btn-warning text-white btn-sm">
                                         Activity Log </a>
@@ -306,8 +306,9 @@
                                         value="{{ env('USER_URL') .'seeker?&email=' . $travelers->email  }}">
 
                                             <input type="hidden" id="traveler-link-{{ $c_id }}"
-                                                value="https://www.adventuresoverland.com/booking-registration-form/">
-                                                <!-- {{ env('USER_URL') . 'registration?token=' . $data->token . '&email=' . $travelers->email . '&trip_id=' . $data->trip_id }} -->
+                                                value="{{ env('USER_URL') . 'registration?token=' . $data->token . '&email=' . $travelers->email . '&trip_id=' . $data->trip_id }}">
+                                                {{-- https://www.adventuresoverland.com/booking-registration-form/ --}}
+                                                <!-- -->
                                             <a href="javaScript:void(0)" data-bs-toggle="tooltip"
                                                 data-bs-placement="right" title="Registration Link"
                                                 onclick="copyData(this,{{ $c_id }})"
@@ -1123,13 +1124,26 @@
                                 </div>
                                 <div class="row">
                                     <div class="col-6">
-                                        Pan Card / GST Certificate :
+                                        Pan Card :
                                     </div>
                                     <div class="col-6">`;
                         if (customer.pan_gst) {
                             text +=
                                 `<a target="_blank" href="${customer.pan_gst}">Download</a> &nbsp;&nbsp;
                                 <a href="javaScript:void(0)" onclick="deleteUserMedia(${customer.id}, 'pan_gst')" class="text-danger">Delete</a>`;
+                        }
+                        text += `  </div>
+                                    <hr>
+                                </div>
+                                <div class="row">
+                                    <div class="col-6">
+                                        GST Certificate :
+                                    </div>
+                                    <div class="col-6">`;
+                        if (customer.gst_certificate) {
+                            text +=
+                                `<a target="_blank" href="${customer.gst_certificate}">Download</a> &nbsp;&nbsp;
+                                <a href="javaScript:void(0)" onclick="deleteUserMedia(${customer.id}, 'gst_certificate')" class="text-danger">Delete</a>`;
                         }
                         text += `
                                     </div>

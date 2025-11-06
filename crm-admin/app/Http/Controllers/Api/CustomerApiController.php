@@ -189,4 +189,93 @@ class CustomerApiController extends Controller
         return response()->json(['status' => 'success', 'message' => 'Member added successfully', 'member' => $data,],201);
     }
 
+    public function getMembers(Request $request)
+    {
+        try {
+            // Optional: filter by parent if provided
+            $query = Customer::query();
+
+            if ($request->has('parent')) {
+                $query->where('parent', $request->parent);
+            }
+
+            $members = $query->get();
+
+            if ($members->isEmpty()) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'No members found'
+                ], 404);
+            }
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Members retrieved successfully',
+                'members' => $members
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Something went wrong',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function getCustomers(Request $request)
+    {
+        try {
+            $query = Customer::query();
+
+            if ($request->has('id')) {
+                $customer = $query->where('id', $request->id)->first();
+
+                if (!$customer) {
+                    return response()->json([
+                        'status' => 'error',
+                        'message' => 'Customer not found'
+                    ], 404);
+                }
+
+                return response()->json([
+                    'status' => 'success',
+                    'message' => 'Customer retrieved successfully',
+                    'customer' => $customer
+                ], 200);
+            }
+
+            if ($request->has('email')) {
+                $query->where('email', $request->email);
+            }
+
+            if ($request->has('phone')) {
+                $query->where('phone', $request->phone);
+            }
+
+            $customers = $query->orderBy('id', 'desc')->get();
+
+            if ($customers->isEmpty()) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'No customers found'
+                ], 404);
+            }
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Customers retrieved successfully',
+                'customers' => $customers
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Something went wrong',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+
 }

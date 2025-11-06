@@ -9,7 +9,7 @@ class Trip extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['id', 'added_by', 'trip_type', 'name', 'start_date', 'end_date', 'price', 'duration_nights', 'continent', 'landscape', 'style', 'activity', 'overview', 'image', 'status', 'created_at', 'updated_at'];
+    protected $fillable = ['id', 'added_by', 'trip_type', 'booking_type', 'drive_tour_type', 'name', 'start_date', 'end_date', 'price', 'duration_nights', 'continent', 'landscape', 'style', 'activity', 'overview', 'image', 'status', 'created_at', 'updated_at'];
 
     public function admin(){
         return $this->belongsTo(User::class, 'added_by', 'id');

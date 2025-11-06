@@ -36,7 +36,7 @@
       color: #d60000;
       padding: 10px;
       border-radius: 8px;
-      text-align: center;
+      /* text-align: center; */
       margin-top: 20px;
       display: block; /* Ensure message is always displayed */
       visibility: visible; /* Ensure message is visible */
@@ -82,7 +82,13 @@
                 
                 <p>First of all, thank you for choosing us and becoming a part of <strong>Adventures Overland</strong> family.</p>
                 
-                <p>We are happy to confirm that the amount of <strong>INR {{ $data['paid_amt'] }}</strong> has been received and for the same, <strong>{{ $data['slot'] }} slots</strong> have been reserved for <strong>{{ $data['trip'] }}.</strong></p>
+                <p>We are happy to confirm that the amount of <strong>INR {{ $data['paid_amt'] }}</strong> has been received and for the same, <strong>{{ $data['slot'] }} 
+                  @if($data['slot'] > 1) 
+                    slots
+                  @else
+                    slot
+                  @endif
+                </strong> have been reserved for <strong>{{ $data['trip'] }}.</strong></p>
                 
                 <p>May we request you to fill the registration form:</p>
                 <div class="button-div" style=" margin-top: 10px; margin-bottom: 20px;">
@@ -95,7 +101,7 @@
                     
                     <!-- Flashing Message -->
                     <span class="flashing-message">
-                      Your booking will not be Confirmed till You Submit the Registration form
+                      Note: Your booking will not be Confirmed till You Submit the Registration form
                     </span>
 
                 </div> 

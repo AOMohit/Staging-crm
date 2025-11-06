@@ -98,6 +98,7 @@
                 </div>
                 <hr>
 
+                <!-- TAX SECTION -->
                 <div class="tax mt-3 border-bottoms pb-2">
                     <div id="tax_info">
 

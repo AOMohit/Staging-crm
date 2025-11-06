@@ -25,6 +25,7 @@
                         <form action="{{ route('trip.update') }}" method="post" enctype="multipart/form-data">
                             @csrf
                             <input type="hidden" name="id" value="{{ $data->id }}">
+                            <input type="hidden" name="booking_type" value="web">
                             <div class="row col-12">
                                 <div class="col-md-6">
                                     <div class="form-floating form-floating-outline mb-4">

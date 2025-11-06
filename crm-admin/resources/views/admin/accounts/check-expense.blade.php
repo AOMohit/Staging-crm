@@ -57,7 +57,7 @@
 
                         {{-- filter end --}}
 
-                        <div class="dt-action-buttons text-end pt-3 pt-md-0">
+                        <!-- <div class="dt-action-buttons text-end pt-3 pt-md-0">
                             <div class="dt-buttons btn-group flex-wrap">
 
                                 <a href="{{ route('accounts.export-check-expense') }}"
@@ -68,7 +68,7 @@
                                 </a>
 
                             </div>
-                        </div>
+                        </div> -->
                     </div>
                     <table id="myDatatable" class="table table-bordered">
                         <thead>

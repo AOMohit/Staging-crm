@@ -36,6 +36,8 @@ class TripApiController extends Controller
         $data->activity = $request->activity;
         $data->overview = $request->overview;
         $data->region_type = $request->region_type;
+        $data->booking_type = $request->booking_type;
+        $data->drive_tour_type = $request->drive_tour_type??'';
         $data->stationary_id = json_encode($request->stationary);
         $data->merchandise_id = json_encode($request->merchandise);
 
@@ -58,4 +60,55 @@ class TripApiController extends Controller
             'trip' => $data
         ], 201);
     }
+
+    public function getTrips(Request $request)
+    {
+        try {
+            $query = Trip::query();
+
+            if ($request->has('trip_type')) {
+                $query->where('trip_type', $request->trip_type);
+            }
+
+            if ($request->has('id')) {
+                $trip = $query->where('id', $request->id)->first();
+
+                if (!$trip) {
+                    return response()->json([
+                        'status' => 'error',
+                        'message' => 'Trip not found'
+                    ], 404);
+                }
+
+                return response()->json([
+                    'status' => 'success',
+                    'message' => 'Trip retrieved successfully',
+                    'trip' => $trip
+                ], 200);
+            }
+
+            $trips = $query->orderBy('id', 'desc')->get();
+
+            if ($trips->isEmpty()) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'No trips found'
+                ], 404);
+            }
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Trips retrieved successfully',
+                'trips' => $trips
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Something went wrong',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
 }

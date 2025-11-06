@@ -37,162 +37,80 @@ use Carbon\Carbon;
 
 class TripBookingController extends Controller
 {
-    // public function index(){
-    //     $admins = User::all();
-    //     $trips = Trip::where('status', '!=', 'Cancelled')->get();
-    //     $customers = Customer::where('parent', 0)->get();
-
-    //     $allBookingCount = TripBooking::where('trip_status','!=', 'Draft')->count();
-    //     $completedBookingCount = TripBooking::where('trip_status', 'Completed')->count();
-    //     $cancelledBookingCount = TripBooking::where('trip_status', 'Cancelled')->count();
-    //     $correctionBookingCount = TripBooking::where('trip_status', 'Correction')->count();
-    //     $draftBookingCount = TripBooking::where('trip_status', 'Draft')->count();
-
-    //     return view('admin.booking.index', compact('admins', 'trips', 'customers', 'allBookingCount', 'completedBookingCount', 'cancelledBookingCount', 'correctionBookingCount', 'draftBookingCount'));
-    // }
-    public function index()
-    {
+    public function index(){
         $admins = User::all();
         $trips = Trip::where('status', '!=', 'Cancelled')->get();
         $customers = Customer::where('parent', 0)->get();
 
-        $bookingCounts = TripBooking::selectRaw("
-                COUNT(CASE WHEN trip_status != 'Draft' THEN 1 END) as allBookingCount,
-                COUNT(CASE WHEN trip_status = 'Completed' THEN 1 END) as completedBookingCount,
-                COUNT(CASE WHEN trip_status = 'Cancelled' THEN 1 END) as cancelledBookingCount,
-                COUNT(CASE WHEN trip_status = 'Correction' THEN 1 END) as correctionBookingCount,
-                COUNT(CASE WHEN trip_status = 'Draft' THEN 1 END) as draftBookingCount
-            ")->first();
+        $allBookingCount = TripBooking::where('trip_status','!=', 'Draft')->count();
+        $completedBookingCount = TripBooking::where('trip_status', 'Completed')->count();
+        $cancelledBookingCount = TripBooking::where('trip_status', 'Cancelled')->count();
+        $correctionBookingCount = TripBooking::where('trip_status', 'Correction')->count();
+        $draftBookingCount = TripBooking::where('trip_status', 'Draft')->count();
 
-        return view('admin.booking.index', [
-            'admins' => $admins,
-            'trips' => $trips,
-            'customers' => $customers,
-            'allBookingCount' => $bookingCounts->allBookingCount,
-            'completedBookingCount' => $bookingCounts->completedBookingCount,
-            'cancelledBookingCount' => $bookingCounts->cancelledBookingCount,
-            'correctionBookingCount' => $bookingCounts->correctionBookingCount,
-            'draftBookingCount' => $bookingCounts->draftBookingCount,
-        ]);
+        return view('admin.booking.index', compact('admins', 'trips', 'customers', 'allBookingCount', 'completedBookingCount', 'cancelledBookingCount', 'correctionBookingCount', 'draftBookingCount'));
     }
 
     public function get(Request $request)
     {
 
-        // if($request->type == "all"){
-        //     $data = TripBooking::where('form_submited', 1)->orderBy('id', 'desc');
-        // }elseif($request->type == "completed"){
-        //     $data = TripBooking::where('trip_status', 'Completed')->orderBy('id', 'desc');
-        // }elseif($request->type == "cancelled"){
-        //     $data = TripBooking::where('trip_status', 'Cancelled')->orderBy('id', 'desc');
-        // }elseif($request->type == "correction"){
-        //     $data = TripBooking::where('trip_status', 'Correction')->orderBy('id', 'desc');
-        // }elseif($request->type == "draft"){
-        //     $data = TripBooking::where('trip_status', 'Draft')->orderBy('id', 'desc');
-        // }
-        $query = TripBooking::with(['admin', 'spoc', 'trip']) // eager load relations
-            ->orderBy('id', 'desc');
-            // Type filters
-        switch ($request->type) {
-            case "all":
-                $query->where('form_submited', 1);
-                break;
-            case "completed":
-                $query->where('trip_status', 'Completed');
-                break;
-            case "cancelled":
-                $query->where('trip_status', 'Cancelled');
-                break;
-            case "correction":
-                $query->where('trip_status', 'Correction');
-                break;
-            case "draft":
-                $query->where('trip_status', 'Draft');
-                break;
+        if($request->type == "all"){
+            $data = TripBooking::where('form_submited', 1)->orderBy('id', 'desc');
+        }elseif($request->type == "completed"){
+            $data = TripBooking::where('trip_status', 'Completed')->orderBy('id', 'desc');
+        }elseif($request->type == "cancelled"){
+            $data = TripBooking::where('trip_status', 'Cancelled')->orderBy('id', 'desc');
+        }elseif($request->type == "correction"){
+            $data = TripBooking::where('trip_status', 'Correction')->orderBy('id', 'desc');
+        }elseif($request->type == "draft"){
+            $data = TripBooking::where('trip_status', 'Draft')->orderBy('id', 'desc');
         }
 
-        // // filter
-        // if(isset($request->trip_id)){
-        //     $data->where('trip_id', $request->trip_id);
-        // }
-        // if(isset($request->status)){
-        //     $data->where('trip_status', $request->status);
-        // }
-        // if(isset($request->admin_id)){
-        //     $data->where('admin_id', $request->admin_id);
+        // filter
+        if(isset($request->trip_id)){
+            $data->where('trip_id', $request->trip_id);
+        }
+        if(isset($request->status)){
+            $data->where('trip_status', $request->status);
+        }
+        if(isset($request->admin_id)){
+            $data->where('admin_id', $request->admin_id);
 
             
-        // }
-        // if(isset($request->date)){
-        //     $data->whereDate('created_at', $request->date);
-        // }
-        // if(isset($request->invoice_status)){
-        //     if($request->invoice_status == "Sent"){
-        //         $data->where('invoice_status', "Sent");
-        //     }else{
-        //         $data->where('invoice_status', '!=' ,"Sent");
-        //     }
-        // }
-        // if(isset($request->trip_type)){
-        //     $data->whereHas('trip', function ($query) use($request) {
-        //         $query->where('trip_type', $request->trip_type);
-        //     });
-        // }
-        // if(isset($request->customer_name)){
-        //     $data->whereJsonContains('customer_id',"$request->customer_name");
-           
-        // }
-        // $dataCount = $data->count();
-
-        // // query speed purpose
-        // // filter
-        // $offset = 0;
-        // if (isset($_GET['start'])) {
-        //     $offset = $_GET['start'];
-        // }
-        // $length = 0;
-        // if (isset($_GET['length'])  && $_GET['length'] > 0) {
-        //     $length = $_GET['length'];
-        // }
-
-        // $data = $data->skip($offset)->take($length)->get();
-        // Filters
-        if ($request->trip_id) {
-            $query->where('trip_id', $request->trip_id);
         }
-        if ($request->status) {
-            $query->where('trip_status', $request->status);
+        if(isset($request->date)){
+            $data->whereDate('created_at', $request->date);
         }
-        if ($request->admin_id) {
-            $query->where('admin_id', $request->admin_id);
-        }
-        if ($request->date) {
-            $query->whereDate('created_at', $request->date);
-        }
-        if ($request->invoice_status) {
-            if ($request->invoice_status == "Sent") {
-                $query->where('invoice_status', "Sent");
-            } else {
-                $query->where('invoice_status', '!=', "Sent");
+        if(isset($request->invoice_status)){
+            if($request->invoice_status == "Sent"){
+                $data->where('invoice_status', "Sent");
+            }else{
+                $data->where('invoice_status', '!=' ,"Sent");
             }
         }
-        if ($request->trip_type) {
-            $query->whereHas('trip', function ($q) use ($request) {
-                $q->where('trip_type', $request->trip_type);
+        if(isset($request->trip_type)){
+            $data->whereHas('trip', function ($query) use($request) {
+                $query->where('trip_type', $request->trip_type);
             });
         }
-        if ($request->customer_name) {
-            $query->whereJsonContains('customer_id', $request->customer_name);
+        if(isset($request->customer_name)){
+            $data->whereJsonContains('customer_id',"$request->customer_name");
+           
         }
-    
-        // Count for DataTables
-        $dataCount = $query->count();
-    
-        // Pagination
-        $offset = $request->get('start', 0);
-        $length = $request->get('length', 10);
-    
-        $data = $query->skip($offset)->take($length)->get();
+        $dataCount = $data->count();
+
+        // query speed purpose
+        // filter
+        $offset = 0;
+        if (isset($_GET['start'])) {
+            $offset = $_GET['start'];
+        }
+        $length = 0;
+        if (isset($_GET['length'])  && $_GET['length'] > 0) {
+            $length = $_GET['length'];
+        }
+
+        $data = $data->skip($offset)->take($length)->get();
         // query speed purpose
 
         session()->put('booking_query', $data);
@@ -1322,8 +1240,7 @@ class TripBookingController extends Controller
         if($formSubmitedOldValue == 0){
             foreach(json_decode($booking->customer_id) as $traveler){
                 $customer = getCustomerById($traveler);
-                // $url = env('USER_URL') .'registration?token=' . $booking->token . '&email=' . $customer->email . '&trip_id=' . $booking->trip_id;
-                $url="https://127.0.0.1:8000/booking-registration-form/";
+                $url = env('USER_URL') .'registration?token=' . $booking->token . '&email=' . $customer->email . '&trip_id=' . $booking->trip_id;
                 // $url="https://www.adventuresoverland.com/booking-registration-form/";
                 $adminName = Auth::user()->name;
                 $data = [
@@ -1657,6 +1574,12 @@ class TripBookingController extends Controller
                     $tooltip = " ";
 
                     $traveler = getCustomerById($tt->c_id)->name;
+                    // if($data->payment_by_customer_id) {
+                    //     $traveler = getCustomerById($data->payment_by_customer_id)->name;
+                    // }else{
+                    //     $traveler = getCustomerById($tt->c_id)->name;
+                    // }
+                    // print_r($data->payment_by_customer_id); echo "Working";
                     if($data->payment_from == "Individual" && $data->payment_from_tax != null && $data->is_multiple_payment == 0){
                         if($data->payment_from_tax == "Auto"){
                             if($netCost > 1000000){
@@ -2990,6 +2913,11 @@ class TripBookingController extends Controller
             $data->pan_gst = env('USER_URL').'storage/app/'.$data->pan_gst;
         }else{
             $data->pan_gst = '';
+        }
+        if($data->gst_certificate){
+            $data->gst_certificate = env('USER_URL').'storage/app/'.$data->gst_certificate;
+        }else{
+            $data->gst_certificate = '';
         }
         if($data->adhar_card){
             $data->adhar_card = env('USER_URL').'storage/app/'.$data->adhar_card;

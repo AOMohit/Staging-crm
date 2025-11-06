@@ -1,4 +1,5 @@
 @extends('admin.inc.layout')
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 
 @section('content')
     <style>
@@ -65,7 +66,73 @@
         .tab-slider {
             display: none;
         }
-      
+
+        /* Sticky last column */
+        #myDatatableCustomer th:last-child,
+        #myDatatableCustomer td:last-child {
+            position: sticky;
+            right: 0;
+            background: #f0f0f0;
+            z-index: 11;
+            border-left: 1px solid #d1d1d1;
+            box-shadow: -2px 0 5px rgba(0, 0, 0, 0.05);
+            white-space: nowrap;
+        }
+
+        /* Hamburger button */
+        .dropdown .btn-light.btn-sm {
+            background-color: #e0e0e0;
+            color: #333;
+            border: none;
+            width: 36px;
+            height: 36px;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+            transition: background 0.2s;
+        }
+        .dropdown .btn-light.btn-sm:hover {
+            background-color: #ffffff;
+            color: #333;
+        }
+
+        /* Dropdown menu fix */
+        .dropdown-menu {
+            position: absolute !important;
+            top: auto !important;
+            bottom: 100% !important; /* open upward */
+            margin-bottom: 6px !important;
+            background-color: #f5f5f5;
+            border: 1px solid #d1d1d1;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+            z-index: 2000 !important;
+            min-width: 160px;
+            border-radius: 6px;
+            padding: 4px 0;
+            transform: translateY(0) !important;
+        }
+
+        /* Dropdown menu items */
+        .dropdown-menu .dropdown-item {
+            color: #6c6c6c !important;
+            font-weight: 400;
+            padding: 6px 12px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: background 0.2s, color 0.2s;
+        }
+        .dropdown-menu .dropdown-item:hover {
+            background-color: #e0e0e0;
+            color: #333 !important;
+        }
+
+        /* Prevent clipping in DataTable */
+        .dataTables_wrapper {
+            overflow: visible !important;
+        }
     </style>
 
     <div class="container-xxl flex-grow-1 container-p-y">
@@ -85,8 +152,7 @@
                         </label>
                         <b>Sold Out</b>
                     </div>
-                 
-                      @if($carbonInfo->isEmpty())
+                    @if($carbonInfo->isEmpty())
                         <div class="col-6"></div>
                       @else
                         <div class="col-6">
@@ -185,7 +251,7 @@
                                             @elseif(strtotime(date('Y-m-d')) >= strtotime($data->start_date) && strtotime(date('Y-m-d')) <= strtotime($data->end_date))
                                                 <span class="badge bg-secondary">Ongoing</span>
                                             @else
-                                                <span class="badge bg-warning">Upcoming</span>
+                                                <span class="badge bg-warning">Upcomming</span>
                                             @endif
                                         @endif
                                     </div>
@@ -367,12 +433,17 @@
                                             class="btn btn-info btn-sm"> <i class="mdi mdi-export-variant me-sm-1"></i>
                                             Export</a>
                                     </div>
+
+                                <!-- Flash message container -->
+                                <div id="datatable-flash-message" style="position: fixed; top: 70px; right: 20px; z-index: 9999;"></div>
+
                                 <div class="card-datatable table-responsive pt-0">
                                         <table id="myDatatableCustomer" class="table table-bordered">
                                             <thead>
                                                 <tr>
                                                     <th>Customer</th>
                                                     <th>Pax</th>
+                                                    <th>Paid</th>
                                                     <th>Total Amount</th>
                                                     <th>Pending Amount</th>
                                                     <th>Contact No.</th>
@@ -468,10 +539,10 @@
                                 </div>
                                 <div class="tab-pane fade" id="navs-top-vendors" role="tabpanel">
                                     <div class="card-datatable table-responsive pt-0">
-                                        <div class="text-end">
+                                         <div class="text-end">
                                             <a href="{{ route('trip.details.expense-report-downlaod', ['trip_id' => request()->id]) }}"
-                                                    class="btn btn-info btn-sm"> <i class="mdi mdi-export-variant me-sm-1"></i>
-                                                    Export</a>
+                                            class="btn btn-info btn-sm"> <i class="mdi mdi-export-variant me-sm-1"></i>
+                                            Export</a>
                                         </div>
 
                                         <table id="myDatatableVendor" class="table table-bordered">
@@ -661,76 +732,7 @@
         </div>
     </div>
     <!--/ DataTable with Buttons -->
-{{-- bulk certificate send Model --}}
-   <div class="modal fade" id="bulkCarbonCertificate" tabindex="-1" aria-hidden="true">
-            <div class="modal-dialog" role="document">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h4 class="modal-title" id="exampleModalLabel1">Import Data for Bulk Certificate</h4>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <form id="bulk-carbon-certificate"  method="POST" enctype="multipart/form-data">
-                        @csrf
-                          <input type="hidden" name="trip_id" id="trip_id" value="{{ request()->id }}">
-                        <div class="modal-body">
-                            <div id="carbon-import-errors" class="alert alert-danger d-none"></div>
-                            <div class="row">
-                                <div class="col mb-4 mt-2">
-                                    <div class="form-floating form-floating-outline">
-                                        <input type="file" name="file" class="form-control" placeholder="File"
-                                            accept=".xlsx" />
-                                        <label for="nameBasic">Upload File</label>
-                                    </div>
-                                
-                                </div>
-                            </div>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-label-secondary" data-bs-dismiss="modal">
-                                Close
-                            </button>
-                            <button type="submit" class="btn btn-primary">Upload</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
 
-    <!-- Modal for add carbon offset -->
-        <div class="modal fade" id="basicModal" tabindex="-1" aria-hidden="true">
-            <div class="modal-dialog" role="document">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h4 class="modal-title" id="exampleModalLabel1">Import Trip List</h4>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <form id="carbon-import-form"  method="POST" enctype="multipart/form-data">
-                        @csrf
-                          <input type="hidden" name="trip_id" id="trip_id" value="{{ request()->id }}">
-                        <div class="modal-body">
-                            <div id="carbon-import-errors" class="alert alert-danger d-none"></div>
-                            <div class="row">
-                                <div class="col mb-4 mt-2">
-                                    <div class="form-floating form-floating-outline">
-                                        <input type="file" name="file" class="form-control" placeholder="File"
-                                            accept=".xlsx" />
-                                        <label for="nameBasic">Upload File</label>
-                                    </div>
-                                    <a href="{{ route('trip.details.carbonSampleSheet',['trip_id' => request()->id]) }}">click here</a> to download sample file
-                                </div>
-                            </div>
-
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-label-secondary" data-bs-dismiss="modal">
-                                Close
-                            </button>
-                            <button type="submit" class="btn btn-primary">Upload</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
 
 
 
@@ -1185,51 +1187,6 @@
             </div>
         </div>
     </div>
-
-    <!-- Modal for Carbon Neutral Info Edit -->
-    <div class="modal fade" id="carbonNeutralModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-xl" role="document">
-            <div class="modal-content">
-                <div class="modal-header" style="background-color:#5256cc;">
-                    <h4 class="modal-title text-white " id="exampleModalLabel1" >
-                        Edit Carbon Neutral Info
-                        <p class="text-white" id="type" style="font-size:10px;"></p>
-                    </h4>
-                    <button type="button" class="btn-close bg-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                  
-                </div>
-                <div class="modal-body">
-                <div id="carbonNeutralContainer">
-                        <div style="overflow-x:auto;">
-                            <table id="carbonNeutralTable" class="table table-bordered">
-                                <thead>
-                                    <tr>
-                                        <th class="d-none">Id</th>
-                                        <th class="d-none">Trip Id </th>
-                                        <th>Trip Name</th>
-                                        <th>Customer first Name</th>
-                                        <th>Customer Last Name</th>
-                                        <th>Customer Email</th>
-                                        <th>Customer Phone</th>
-                                        <th>No of Trees</th>
-                                        <th>Carbon Emission</th>
-                                        <th>Total Distance</th>
-                                        <th>Car Sequence No</th>
-                                        <th data-col="car_name">Car Name</th>
-                                        
-                                    </tr>
-                                </thead>
-                                <tbody></tbody>
-                            </table>
-                        </div>
-                        <button class="btn btn-success fw-900 mt-4" style="font-weight:bold;font-size:10px;"onclick="addEditableRow()">Add Pending Customer</button>
-                        <button class="btn btn-primary fw-900 mt-4"  style=" font-weight:bold; font-size:10px;" onclick="saveEditableData()">Save</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
 @endsection
 
 @section('script')
@@ -1315,6 +1272,7 @@
     </script>
 
     <script>
+        var downloadAttachmentsUrl = "{{ route('customer.download.attachments') }}";
         var trip_id = "{{ request()->id }}";
         $('th').css('white-space', 'nowrap');
 
@@ -1329,6 +1287,19 @@
             getfilterdataAgent();
             getfilterdataRec();
         });
+
+        // Function to show flash messages
+        function showFlashMessage(message, type = 'danger', timeout = 5000) {
+            var html = `<div class="alert alert-${type} alert-dismissible fade show" role="alert">
+                            ${message}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>`;
+            $('#datatable-flash-message').append(html);
+
+            setTimeout(function() {
+                $('#datatable-flash-message .alert').first().alert('close');
+            }, timeout);
+        }
 
         function getfilterdataTraveler() {
 
@@ -1373,6 +1344,13 @@
                             return text;
                         }
                     },
+                    {   // trip paid amount
+                        name: 'paid',
+                        "render": function(data, type, row, meta) {
+                            var text = `₹${row.paid}`;
+                            return text;
+                        }
+                    },
                     {
                         name: 'total_amount',
                         "render": function(data, type, row, meta) {
@@ -1382,8 +1360,8 @@
                     },
                     {
                         name: 'pending_amount',
-                        "render": function(data, type, row, meta) {
-                            var text = `₹${row.pending_amount}`;
+                        render: function(data, type, row, meta) {
+                            var text = `₹${parseFloat(row.pending_amount).toFixed(2).replace(/\.00$/, '')}`;
                             return text;
                         }
                     },
@@ -1403,20 +1381,42 @@
                         data: 'admin_id',
                         name: 'admin_id'
                     },
+                    // {
+                    //     name: 'action',
+                    //     "render": function(data, type, row, meta) {
+                    //         var id = row.token;
+                    //         var routeView = "{{ route('booking.view', ['token' => 'rowID']) }}";
+                    //         routeView = routeView.replace('rowID', id);
+
+                    //         var routeEdit = "{{ route('booking.new-trip', ['token' => 'rowID']) }}";
+                    //         routeEdit = routeEdit.replace('rowID', id);
+
+                    //         var text =
+                    //             `<a target="_blank" class="btn btn-success btn-sm" href="${routeView}">View</a> &nbsp`;
+                    //         text +=
+                    //             `<a target="_blank" class="btn btn-warning btn-sm" href="${routeEdit}">Edit</a>`;
+                    //         return text;
+                    //     }
+                    // },
                     {
                         name: 'action',
                         "render": function(data, type, row, meta) {
                             var id = row.token;
-                            var routeView = "{{ route('booking.view', ['token' => 'rowID']) }}";
-                            routeView = routeView.replace('rowID', id);
+                            var routeView = "{{ route('booking.view', ['token' => 'rowID']) }}".replace('rowID', id);
+                            var routeEdit = "{{ route('booking.new-trip', ['token' => 'rowID']) }}".replace('rowID', id);
+                            var customer_id = row.customers[0].c_id;
 
-                            var routeEdit = "{{ route('booking.new-trip', ['token' => 'rowID']) }}";
-                            routeEdit = routeEdit.replace('rowID', id);
-
-                            var text =
-                                `<a target="_blank" class="btn btn-success btn-sm" href="${routeView}">View</a> &nbsp`;
-                            text +=
-                                `<a target="_blank" class="btn btn-warning btn-sm" href="${routeEdit}">Edit</a>`;
+                            var text = `
+                                <div class="dropdown">
+                                    <button class="btn btn-light btn-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <i class="bi bi-three-dots-vertical"></i>
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end">
+                                        <li><a class="dropdown-item text-success" target="_blank" href="${routeView}"><i class="bi bi-eye me-2"></i>View</a></li>
+                                        <li><a class="dropdown-item text-warning" target="_blank" href="${routeEdit}"><i class="bi bi-pencil-square me-2"></i>Edit</a></li>
+                                        <li><a class="dropdown-item text-primary download-attachments" href="#" data-id="${customer_id}"><i class="bi bi-download me-2"></i>Download Attachments</a></li>
+                                    </ul>
+                                </div>`;
                             return text;
                         }
                     },
@@ -1439,6 +1439,49 @@
                 },
             });
         }
+
+        // Download all attachments
+        $(document).off('click', '.download-attachments').on('click', '.download-attachments', function(e) {
+            e.preventDefault();
+            var customer_id = $(this).data('id');
+
+            // Show success flash immediately
+            showFlashMessage('Preparing download...', 'success', 3000);
+
+            $.ajax({
+                url: downloadAttachmentsUrl,
+                type: "POST",
+                data: { _token: "{{ csrf_token() }}", customer_id: customer_id },
+                xhrFields: { responseType: 'blob' },
+                success: function(data, status, xhr) {
+                    // Check if server returned JSON error instead of ZIP
+                    var contentType = xhr.getResponseHeader("content-type");
+                    if(contentType && contentType.indexOf("application/json") !== -1){
+                        var reader = new FileReader();
+                        reader.onload = function() {
+                            var response = JSON.parse(reader.result);
+                            showFlashMessage(response.error || 'Error downloading attachments', 'danger');
+                        };
+                        reader.readAsText(data);
+                        return;
+                    }
+
+                    // Otherwise, download ZIP normally
+                    var blob = new Blob([data], { type: 'application/zip' });
+                    var link = document.createElement('a');
+                    link.href = window.URL.createObjectURL(blob);
+                    link.download = 'attachments_customer_' + customer_id + '.zip';
+                    link.click();
+                },
+                error: function(xhr) {
+                    var message = 'Error downloading attachments.';
+                    if(xhr.responseJSON && xhr.responseJSON.error){
+                        message = xhr.responseJSON.error;
+                    }
+                    showFlashMessage(message, 'danger');
+                }
+            });
+        });
 
         function getfilterdataRooms() {
 
@@ -2303,242 +2346,4 @@
             });
         });
     </script>
-   
-    <script>
-        $(document).ready(function() {
-            $('#carbon-import-form').on('submit', function(e) {
-                    e.preventDefault();
-                    var formData = new FormData(this);
-                    // Hide previous errors
-                $('#carbon-import-errors').addClass('d-none').html('');
-                $.ajax({
-                        url: "{{ route('trip.details.carbonInfoImport')}}",
-                        type: 'POST',
-                        data: formData,
-                        processData: false,
-                        contentType: false,
-                        success: function(res) {
-                            if(res.status== true)
-                            {
-                                $('#basicModal').modal('hide');
-                               
-                                Toast.fire({
-                                    icon: "warning",
-                                    title: res.message,
-                                    timer: 5000, // 2 seconds
-                                    timerProgressBar: true,
-                                    didClose: () => {
-                                         location.reload();
-                                       
-                                    }
-                                });
-                            }
-                        },
-                        error: function(xhr) {
-                            // Show validation errors
-                            if(xhr.status === 404 && xhr.responseJSON && xhr.responseJSON.errors)
-                            {
-                                  Toast.fire({
-                                    icon: "warning",
-                                    title: xhr.responseJSON.errors
-                                });
-                            }
-                           
-                            if (xhr.status === 422 && xhr.responseJSON && xhr.responseJSON.errors) {
-                             
-                                var errors = xhr.responseJSON.errors;
-                               
-                                // Display errors in a user-friendly way
-                                var html = '<ul>';
-                                $.each(errors, function(key, msgs) {
-                                    $.each(msgs, function(i, msg) {
-                                        html += '<li>' + msg + '</li>';
-                                    });
-                                });
-                                html += '</ul>';
-                                $('#carbon-import-errors').removeClass('d-none').html(html);
-                            }
-                             else {
-                                // alert('Import failed: ' + (xhr.responseJSON?.message || 'Unknown error'));
-                            }
-                        }
-                });
-            });
-        });
-    </script>
-
-<script>
-
-    function editCarbonNeutralInfo(id) {
-        const trip_id=id; 
-        console.log(trip_id);
-        $.ajax({
-            url: "{{ route('trip.details.carboninfoData')}}",
-            type: 'GET',
-            data: { id: trip_id },
-           // ...existing code...
-            success: function(data) {
-                const tbody = $("#carbonNeutralTable tbody");
-                tbody.empty();
-                const driveType = data.drive_tour_type;
-                $('#type').text(driveType);
-                const showCarName = (driveType !== "Fly & Drive Road Trip");
-                console.log(showCarName);
-                data.carboninfoData.forEach((item, index) => {
-                    let row = `
-                        <tr>  
-                            <td contenteditable="true" class="editable d-none" data-name="id">${item.id ?? ''}</td>
-                            <td contenteditable="true" class="editable d-none" data-name="trip_id">${item.trip_id ?? ''}</td>
-                            <td class="" data-name="trip_name">${item.trip_name ?? ''}</td>
-                            <td class="" data-name="customer_first_name">${item.customer_first_name ?? ''}</td>
-                            <td class="" data-name="customer_last_name">${item.customer_last_name ?? ''}</td>
-                            <td class="" data-name="customer_email">${item.customer_email ?? ''}</td>
-                            <td class="" data-name="customer_email">${item.customer_phone ?? ''}</td>
-                            <td contenteditable="true" class="editable" data-name="no_of_trees">${item.no_of_trees ?? ''}</td>
-                            <td contenteditable="true" class="editable" data-name="total_distance">${item.total_distance ?? ''}</td>
-                            <td contenteditable="true" class="editable" data-name="carbon_emission">${item.carbon_emission ?? ''}</td>
-                            <td contenteditable="true" class="editable" data-name="car_sequence_number">${item.car_sequence_number ?? ''}</td>
-                    `;
-                    if (showCarName) {
-                        row += `<td contenteditable="true" class="editable" data-name="car_name">${item.car_name ?? ''}</td>`;
-                    }
-                    row += `</tr>`;
-                    tbody.append(row);
-                });
-                if (showCarName) {
-                  
-                    $('#carbonNeutralTable thead tr th[data-col="car_name"]').show();
-                } else {
-                  
-                    $('#carbonNeutralTable thead tr th[data-col="car_name"]').hide();
-                }
-
-                $('#carbonNeutralModal').modal('show');
-            }
-// ...existing code...
-        });
-    }
-    //carbon neutral new addtion
-    function addEditableRow() {
-    
-        const trip_id = "{{ request()->id }}";
-        let existingCustomers = [];
-        $("#carbonNeutralTable tbody tr").each(function() {
-            const email = $(this).find('td[data-name="customer_email"]').text().trim();
-            if(email) existingCustomers.push(email);
-        });
-
-      
-        $.ajax({
-            url: "{{ route('trip.details.get-new-carbon-customers') }}",
-            type: "POST",
-            data: {
-                _token: "{{ csrf_token() }}",
-                trip_id: trip_id,
-                existing_customers: existingCustomers
-            },
-            success: function(res) {
-                console.log(res);
-                if(res.length > 0) {
-                    alert(res.length);
-                    console.log(res);
-                    res.forEach(function(cust) {
-
-                        alert(cust);
-                        const row = `
-                            <tr>
-                                <td contenteditable="true" class="editable d-none" data-name="id">${cust.id ?? ''}</td>
-                                <td contenteditable="true" class="editable d-none" data-name="trip_id">${cust.trip_id ?? ''}</td>
-                                <td class="" data-name="trip_name">${cust.trip_name}</td>
-                                <td data-name="customer_first_name">${cust.customer_first_name ?? ''}</td>
-                                <td data-name="customer_last_name">${cust.customer_last_name ?? ''}</td>
-                                <td data-name="customer_email">${cust.customer_email ?? ''}</td>
-                                <td contenteditable="true" class="editable" data-name="no_of_trees"></td>
-                                <td contenteditable="true" class="editable" data-name="total_distance"></td>
-                                <td contenteditable="true" class="editable" data-name="carbon_emission"></td>
-                                <td contenteditable="true" class="editable" data-name="car_sequence_number"></td>
-                                <td contenteditable="true" class="editable" data-name="car_name"></td>
-                                <td><button onclick="removeRow(this)">Delete</button></td>
-                            </tr>
-                        `;
-                        $("#carbonNeutralTable tbody").append(row);
-                        $('#carbonNeutralModal').modal('show');
-
-                    });
-                } else {
-                  
-                    Toast.fire({
-                        icon: "warning",
-                        title: "NO Pending Customer To Add",
-                        timer: 5000,
-                        timerProgressBar: true,
-                    });
-                
-                }
-            }
-        });
-    }
-    function removeRow(button) {
-        $(button).closest("tr").remove();
-    }
-
-    $(document).on('input', '#carbonNeutralTable td.editable', function() {
-        $(this).closest('tr').addClass('edited');
-    });
-
-    function saveEditableData() {
-        const rows = [];
-        $("#carbonNeutralTable tbody tr.edited").each(function () {
-            const row = {};
-            $(this).find("td").each(function () {
-                const key = $(this).data("name");
-                const value = $(this).text().trim();
-                row[key] = value;
-            });
-            rows.push(row);
-        });
-
-        if(rows.length === 0) {
-            Toast.fire({
-                icon: "warning",
-                title: "No changes to save!",
-                timer: 3000,
-                timerProgressBar: true,
-            });
-            return;
-        }
-
-        $.ajax({
-            url: "{{ route('trip.details.update-carbon-neutral-data')}}",
-            type: 'POST',
-            data: {
-                _token: '{{ csrf_token() }}',
-                data: rows
-            },
-            success: function(response) {
-                if(response.status==true)
-                {
-                    Toast.fire({
-                        icon: "success",
-                        title: response.message,
-                        timer: 3000,
-                        timerProgressBar: true,
-                    });
-                   
-                }
-            
-                $('#carbonNeutralModal').modal('show');
-            },
-            error: function() {
-                Toast.fire({
-                        icon: "error",
-                        title: "Something went wrong while saving.",
-                        timer: 3000,
-                        timerProgressBar: true,
-                });
-            }
-        });
-    }
-</script>
-
 @endsection

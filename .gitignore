@@ -9,3 +9,10 @@ crm-user/storage/**
 crm-user/vendor/**
 *.sql
 *.pdf
+
+/vendor
+/node_modules
+/public/storage
+/storage/*.key
+.env
+*.tar.gz

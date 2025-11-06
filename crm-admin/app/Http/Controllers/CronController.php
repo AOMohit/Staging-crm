@@ -73,7 +73,7 @@ class CronController extends Controller
             if ($response->ok()) {
 
                 // Save the file temporarily
-                $tempFilePath = storage_path('app/public/Upcoming_Trip_Revenue_Report.xlsx');
+                $tempFilePath = storage_path('app/public/Trip_Revenue_Report.xlsx');
 
                 // Ensure the directory exists
                 if (!file_exists(dirname($tempFilePath))) {
@@ -91,7 +91,7 @@ class CronController extends Controller
                 ];
                 foreach($emails as $cEmail){
                     $cEmail = trim($cEmail);
-                    @event(new SendMailEvent("$cEmail", 'Weekly Upcoming Trip Revenue Report', 'emails.weekly-ongoing-trip-report', $dataMail));
+                    @event(new SendMailEvent("$cEmail", 'Weekly Revenue & Expense Report', 'emails.weekly-ongoing-trip-report', $dataMail));
                 }
 
                 // Clean up the temporary file after the email is sent
@@ -286,7 +286,7 @@ class CronController extends Controller
 
 
 
-     public function sendTodayExpenseReport()
+    public function sendTodayExpenseReport()
     {
         try {
             $today = Carbon::today();
@@ -572,153 +572,6 @@ class CronController extends Controller
             Log::error("Unexpected error in dailypartPaymentReport: " . $e->getMessage());
         }
     }
-
-    // public function sendDatedExpenseReport($date = null)
-    // {
-    //     try {
-	// 		$targetDate = null;
-	// 		if (!empty($date)) {
-	// 			try {
-	// 				$targetDate = Carbon::createFromFormat('d-m-Y', trim($date));
-	// 			} catch (\Throwable $e) {
-	// 				try {
-	// 					$targetDate = Carbon::createFromFormat('Y-m-d', trim($date));
-	// 				} catch (\Throwable $e2) {
-	// 					Log::warning('sendDatedExpenseReport: Invalid date format provided: ' . $date . '. Falling back to today.');
-	// 				}
-	// 			}
-	// 		}
-	// 		if (!$targetDate) {
-	// 			$targetDate = Carbon::today();
-	// 		}
-    //         $spreadsheet = new Spreadsheet();
-    //         $sheet = $spreadsheet->getActiveSheet();
-	// 		$sheet->setTitle('Expense ' . $targetDate->format('d M Y'));
-    //         $sheet->getStyle('A1:O1')->getFont()->setBold(true);
-
-    //         $headers = [
-    //             'Created Date', 'Trip Name', 'Vendor', 'Category', 'Service',
-    //             'Amount Due', 'Amount Paid', 'Pending Amount', 'Document', 'Comment',
-    //             'Payment Date', 'Vendor Company Name', 'Service Amount', 'Payment Mode', 'Added By',
-    //         ];
-
-    //         $data = [];
-    //         $data[] = $headers;
-
-	// 		$expenses = Expense::with(['trip', 'vendor', 'service', 'vendorService'])
-	// 			->whereDate('created_at', $targetDate)
-    //             ->orderBy('created_at', 'desc')
-    //             ->get();
-
-	// 		if ($expenses->isEmpty()) {
-	// 			Log::info("No expenses found for date: " . $targetDate->format('Y-m-d'));
-    //             return;
-    //         }
-
-    //         $histories = [];
-    //         foreach ($expenses as $expense) {
-    //             try {
-    //                 $histories[$expense->id] = ExpenseHistory::where('expense_id', $expense->id)->get();
-    //                 $expenseHistories = $histories[$expense->id] ?? collect();
-    //                 $history = $expenseHistories->first();
-
-    //                  $documentLink = $expense->docx
-    //                     ? '=HYPERLINK("' . asset('storage/app/' . $expense->docx) . '", "View")'
-    //                     : '-';
-
-    //                 $data[] = [
-    //                     Carbon::parse($expense->created_at)->format('d M Y'),
-    //                     $expense->trip->name ?? '-',
-    //                     $expense->vendor->first_name ?? '-',
-    //                     $expense->service->title ?? '-',
-    //                     $expense->vendorService->title ?? '-',
-    //                     $expense->total_amount ?? 0,
-    //                     $expense->paid_amount ?? 0,
-    //                     ($expense->total_amount ?? 0) - ($expense->paid_amount ?? 0),
-    //                     $documentLink,
-    //                     $expense->comment ?? '-',
-    //                     $history && $history->date ? Carbon::parse($history->date)->format('d M Y') : '-',
-    //                     $expense->vendor->company ?? '-',
-    //                     $history->amount ?? '-',
-    //                     $history->payment_mode ?? '-',
-    //                     $history && $history->admin ? $history->admin->name : '-'
-    //                 ];
-    //             } catch (\Throwable $e) {
-    //                 Log::error("Error processing expense ID {$expense->id}: " . $e->getMessage());
-    //             }
-    //         }
-
-    //         $sheet->fromArray($data, null, 'A1');
-    //         foreach (range('A', 'O') as $col) {
-    //             $sheet->getColumnDimension($col)->setAutoSize(true);
-    //         }
-
-    //         // Save file
-	// 		$directory = storage_path('app/admin/daily-add-expense-reports');
-    //         if (!file_exists($directory)) {
-    //             mkdir($directory, 0777, true);
-    //         }
-
-	// 		$fileName = 'expense_report_' . $targetDate->format('Y-m-d') . '.xlsx';
-    //         $filePath = $directory . '/' . $fileName;
-
-    //         try {
-    //             $writer = new Xlsx($spreadsheet);
-    //             $writer->save($filePath);
-    //         } catch (\Throwable $e) {
-    //             Log::error("Error saving spreadsheet file: " . $e->getMessage());
-    //             return;
-    //         }
-
-    //         $accountEmail = setting('account_mail');
-    //         $extraEmail   = "tarun@adventuresoverland.com";
-    //         $operationmail= setting('operation_mail');
-    //         $extraOperationMail = config('app.ExtraMail');
-
-    //         $emails = array_unique(
-    //                 array_merge(
-    //                     array_map('trim', explode(',', $accountEmail)),     
-    //                     [$extraEmail],                                       
-    //                     array_map('trim', explode(',', $operationmail)),    
-    //                     [$extraOperationMail]                                
-    //                 )
-    //             );
-
-	// 		$dataMail = [
-	// 			'attachment' => $filePath,
-	// 			'today' => $targetDate->format('d M Y'),
-	// 		];
-
-    //         foreach ($emails as $cEmail) {
-             
-    //             $cEmail = trim($cEmail);
-    //             if (!empty($cEmail)) {
-    //                 try {
-    //                     if (setting('mail_status') == 1) {
-	// 					@event(new SendMailEvent(
-	// 						$cEmail,
-	// 						'Expense Report - ' . $targetDate->format('d M Y'),
-	// 						'emails.today-expense-report',
-	// 						$dataMail
-	// 					));
-	// 					Log::info('Expense Report email sent to ' . $cEmail . ' for ' . $targetDate->format('Y-m-d'));
-    //                     }
-	// 				else {
-	// 					Log::info('Mail status is disabled, not sending email to ' . $cEmail . ' for ' . $targetDate->format('Y-m-d'));
-    //                     }
-    //                 } catch (\Throwable $e) {
-    //                     Log::error("Error sending email to {$cEmail}: " . $e->getMessage());
-    //                 }
-    //             }
-	// 		else {
-	// 			Log::warning('Email address is empty, skipping email for ' . $targetDate->format('Y-m-d'));
-    //             }
-    //         }
-
-    //     } catch (\Throwable $e) {
-	// 		Log::error('Unexpected error in sendDatedExpenseReport: ' . $e->getMessage());
-    //     }
-    // }
 
 
 }

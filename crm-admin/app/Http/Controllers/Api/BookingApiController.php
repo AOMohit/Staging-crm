@@ -31,8 +31,10 @@ class BookingApiController extends Controller
                 'payment_all_done_by_this'=>'nullable|integer',
                 'payment_by_customer_id'=>'nullable|integer',
                 'trip_costs' => 'required|array',
-                'sch_amount' => 'required|array',
-                'sch_date' => 'required|array',
+                // 'sch_amount' => 'required|array',
+                // 'sch_date' => 'required|array',
+                'sch_amount' => 'nullable|array',
+                'sch_date' => 'nullable|array',
                 'payment_type' => 'required|string',
                 'payment_amt' => 'required|numeric',
                 'payment_date' => 'required|date',
@@ -178,13 +180,15 @@ class BookingApiController extends Controller
         
 
         /** Scheduled Payment List */
-        $amount = $request->sch_amount;
-        $date = $request->sch_date;
-        $cmt = $request->sch_comment;
+        $amount = $request->sch_amount??[];
+        $date = $request->sch_date??[];
+        $cmt = $request->sch_comment??[];
         $arr = [];
-        foreach($amount as $key=>$amt){
-            $data = ['amount'=>$amt, 'date'=>$date[$key],'comment'=>$cmt[$key] ?? "NA"];
-            array_push($arr, $data);
+        if (!empty($amount)) {
+            foreach($amount as $key=>$amt){
+                $data = ['amount'=>$amt, 'date'=>$date[$key],'comment'=>$cmt[$key] ?? "NA"];
+                array_push($arr, $data);
+            }
         }
         $booking->sch_payment_list = json_encode($arr);
         /** End Scheduled Payment List */

@@ -6,10 +6,11 @@
         <div class="card">
             <div class="card-datatable table-responsive pt-0">
                 <div class="p-3">
+                    @if(($permissions['agent']->can_edit ?? false))
                     <div class="dt-action-buttons text-end pt-3 pt-md-0">
                         <div class="dt-buttons btn-group flex-wrap">
 
-                            <button class="btn btn-secondary  btn-label-primary me-2" data-bs-toggle="modal"
+                            <!-- <button class="btn btn-secondary  btn-label-primary me-2" data-bs-toggle="modal"
                                 data-bs-target="#basicModal">
                                 <i class="mdi mdi-tray-arrow-down me-sm-1"></i> Import
                             </button>
@@ -20,7 +21,7 @@
                                 aria-controls="DataTables_Table_0" type="button" aria-haspopup="dialog"
                                 aria-expanded="false"><span><i class="mdi mdi-export-variant me-sm-1"></i> <span
                                         class="d-none d-sm-inline-block">Export</span></span></span>
-                            </a>
+                            </a> -->
 
                             <a class="btn btn-secondary btn-primary text-white" href="{{ route('agent.add') }}"
                                 tabindex="0"><span><i class="mdi mdi-plus me-sm-1"></i>
@@ -28,6 +29,7 @@
                             </a>
                         </div>
                     </div>
+                    @endif
                 </div>
                 <table id="myDatatable" class="table table-bordered">
                     <thead>
@@ -105,6 +107,9 @@
 
 @section('script')
     <script>
+        var agentCanView = {{ ($permissions['agent']->can_view ?? false) ? 'true' : 'false' }};
+        var agentCanEdit = {{ ($permissions['agent']->can_edit ?? false) ? 'true' : 'false' }};
+        var agentCanDelete = {{ ($permissions['agent']->can_delete ?? false) ? 'true' : 'false' }};
         $('th').css('white-space', 'nowrap');
 
         $(document).ready(function() {
@@ -153,10 +158,25 @@
                                 </button>
                                 <div class="dropdown-menu" style="">
                                 <a class="dropdown-item waves-effect" href="${routeActivity}"><i class="mdi mdi-book-outline me-1"></i> Activity Log</a>
-                                <a class="dropdown-item waves-effect" href="${routeView}"><i class="mdi mdi-eye-outline me-1"></i> View</a>
-                                <a class="dropdown-item waves-effect" href="${routeEdit}"><i class="mdi mdi-pencil-outline me-1"></i> Edit</a>
-                                <a class="dropdown-item waves-effect" data-bs-toggle="modal" onclick="deleteModal('${routeDlt}')"
+                                `;
+                                if (agentCanView) {
+                                    text += `
+                                            <a class="dropdown-item waves-effect" href="${routeView}"><i class="mdi mdi-eye-outline me-1"></i> View</a>
+                                        `;
+                                }
+                                
+                                if (agentCanEdit) {
+                                    text += `
+                                            <a class="dropdown-item waves-effect" href="${routeEdit}"><i class="mdi mdi-pencil-outline me-1"></i> Edit</a>
+                                        `;
+                                }
+                                if (agentCanDelete && row.trip_status !== "Completed") {
+                                    text += `
+                                            <a class="dropdown-item waves-effect" data-bs-toggle="modal" onclick="deleteModal('${routeDlt}')"
                                             data-bs-target="#deleteModal" href="javaScript:void(0)"><i class="mdi mdi-trash-can-outline me-1"></i> Delete</a>
+                                        `;
+                                }
+                                text += `
                                 </div>
                             </div>`;
                             return text;

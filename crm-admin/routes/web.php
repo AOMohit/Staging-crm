@@ -26,7 +26,10 @@ use App\Http\Controllers\RelationshipController;
 use App\Http\Controllers\SustainabilityController;
 use App\Http\Controllers\AccountsController;
 use App\Http\Controllers\CarbonDonationController;
-
+// Forget password routes add here
+use App\Http\Controllers\Auth\ForgotPasswordController;
+use App\Http\Controllers\Auth\ResetPasswordController;
+// End code for here
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Middleware\CheckLogin;
@@ -62,6 +65,12 @@ Route::get('/', function () {
     return redirect()->route('login');
 })->name('/');
 
+// Add routes for forget password here
+Route::get('forgot-password', [ForgotPasswordController::class, 'showLinkRequestForm'])->name('password.request');
+Route::post('forgot-password', [ForgotPasswordController::class, 'sendResetLinkEmail'])->name('password.email');
+Route::get('reset-password/{token}', [ResetPasswordController::class, 'showResetForm'])->name('password.reset');
+Route::post('reset-password', [ResetPasswordController::class, 'reset'])->name('password.update');
+
 //================= cron jobs =================
 Route::get('tier', [CronController::class, 'customerTier'])->name('tier');
 Route::get('ongoing-trip-report', [CronController::class, 'ongoingTripReport'])->name('ongoing-trip-report');
@@ -80,9 +89,9 @@ Route::get('customer_registration_data', [TripController::class, 'customerRegist
 Route::get('ongoing_trip_pdf', [ReportController::class, 'ongoingTripPdf'])->name('ongoing_trip_pdf');
 // without any middleare
 
-
+Route::get('/offset', fn() => view('admin.carbon.realtime')); // without login using this route
 Route::middleware('CheckLogin')->group(function () {
-    Route::get('/offset', fn() => view('admin.carbon.realtime'));
+    // Route::get('/offset', fn() => view('admin.carbon.realtime'));
     Route::post('/offset', [CarbonDonationController::class, 'submit']);
 
     Route::get('/enquiries/unread-count', [ProfileController::class, 'unreadCount']);
@@ -212,6 +221,7 @@ Route::middleware('CheckLogin')->group(function () {
         Route::post('update', [CustomerController::class, 'update'])->name('update');
         Route::get('delete/{id}', [CustomerController::class, 'destroy'])->name('delete');
         Route::get('view/{id}', [CustomerController::class, 'view'])->name('view');
+        Route::post('download-attachments', [CustomerController::class, 'downloadAttachments'])->name('download.attachments');  // Download all attchments for a customer
         Route::get('activity/{id}', [CustomerController::class, 'activityPage'])->name('activity');
         Route::get('activity-get', [CustomerController::class, 'activity'])->name('activity-get');
 

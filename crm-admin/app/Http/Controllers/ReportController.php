@@ -797,168 +797,310 @@ class ReportController extends Controller
         $writer->save('php://output');
     }
 
+    // public function ongoingTrip()
+    // {
+    //     $currentDate = Carbon::today()->toDateString();
+
+    //         $bookings = TripBooking::whereNotIn('trip_status', ['Draft', 'Cancelled'])
+    //             ->whereHas('trip', function ($query) use ($currentDate) {
+    //             $query->where(function ($q) use ($currentDate) {
+    //                 $q->where('start_date', '<=', $currentDate)
+    //                     ->where('end_date', '>=', $currentDate);
+    //             })->orWhere(function ($q) use ($currentDate) {
+    //                 $q->where('start_date', '>', $currentDate);
+    //             });
+    //         })->get();
+
+    //     $uniqueTripWithSummary = [];
+
+    //     foreach ($bookings as $booking) {
+    //         $tripId = $booking->trip_id;
+    //         $tripType = $booking->trip->trip_type ?? 'Unknown';
+    //         $tripName = $booking->trip->name ?? 'Unknown';
+    //         $pax = getPaxFromTripId($tripId);
+
+    //     // $expenses = Expense::where('trip_id', $tripId)->sum('paid_amount');
+    //         $vendorPayments = Expense::where('trip_id', $tripId)->get();
+    //         // $totalVendorPaidAmount = $vendorPayments->sum('paid_amount');
+    //         // $totalVendorAmount = $vendorPayments->sum('total_amount');
+    //         // $pendingVendorPayment = $totalVendorAmount - $totalVendorPaidAmount;
+    //         $expensePaidAmount=0;
+    //         foreach ($vendorPayments as $payment) {
+    //             $expensePaidAmount = $expensePaidAmount + $payment->paid_amount ?? 0;
+    //         }
+    //         $total_sale = $booking->payable_amt ?? 0;
+    //         $expense_due = $total_sale * 70/100;
+      
+    //         $expense_pending = $expense_due - $expensePaidAmount;
+
+    //         $total_sale = $booking->payable_amt ?? 0;
+    //         $amountRec = $booking->payment_amt ?? 0;
+    //         $amountPending = 0;
+
+    //         // Handle part payments
+    //         $partPaymentLists = json_decode($booking->part_payment_list) ?? [];
+    //         if (!empty($partPaymentLists)) {
+    //             foreach ($partPaymentLists as $partPayment) {
+    //                 $amountRec += ($partPayment->amount ?? 0);
+    //             }
+    //         }
+
+    //         $amountPending = (float)$total_sale - (float)$amountRec;
+
+    //         // Group by trip type
+    //         if (!isset($uniqueTripWithSummary[$tripType])) {
+    //             $uniqueTripWithSummary[$tripType] = [];
+    //         }
+
+    //         // Store trip data grouped by trip type
+    //         if (!isset($uniqueTripWithSummary[$tripType][$tripId])) {
+    //             $uniqueTripWithSummary[$tripType][$tripId] = [
+    //                 'trip_id' => $tripId,
+    //                 'trip_name' => $tripName,
+    //                 'trip_type' => $tripType,
+    //                 'pax' => $pax,
+    //                 'total_sale' => $total_sale,
+    //                 'amount_collected' => $amountRec,
+    //                 'amount_pending' => $amountPending,
+    //                  'expense_due' => $expense_due,
+    //                 'expense_Paid_Amount' => $expensePaidAmount,
+    //                 'expense_pending' => $expense_pending,
+    //                 // 'vendor_due_payment' => $totalVendorAmount,
+    //                 // 'vendor_paid_amount' => $totalVendorPaidAmount,
+    //                 // 'vendor_amount' => $totalVendorAmount,
+    //                 // 'pending_vendor_amount' => $pendingVendorPayment,
+    //             ];
+    //         } else {
+    //             $uniqueTripWithSummary[$tripType][$tripId]['total_sale'] += $total_sale;
+    //             $uniqueTripWithSummary[$tripType][$tripId]['amount_collected'] += $amountRec;
+    //             $uniqueTripWithSummary[$tripType][$tripId]['amount_pending'] += $amountPending;
+    //             $uniqueTripWithSummary[$tripType][$tripId]['expense_due'] += $expense_due;
+    //             $uniqueTripWithSummary[$tripType][$tripId]['expense_Paid_Amount'] += $expensePaidAmount;
+    //             $uniqueTripWithSummary[$tripType][$tripId]['expense_pending'] += $expense_pending;
+    //             // $uniqueTripWithSummary[$tripType][$tripId]['vendor_due_payment'] = $totalVendorAmount;
+    //             // $uniqueTripWithSummary[$tripType][$tripId]['vendor_paid_amount'] = $totalVendorPaidAmount;
+    //             // $uniqueTripWithSummary[$tripType][$tripId]['pending_vendor_amount'] = $pendingVendorPayment;
+    //         }
+    //     }
+
+    //     // Create Excel File
+    //     $spreadsheet = new Spreadsheet();
+
+    //     foreach ($uniqueTripWithSummary as $tripType => $trips) {
+    //         $sheet = $spreadsheet->createSheet();
+    //         $sheet->setTitle(substr($tripType, 0, 30)); // Sheet name limit is 31 characters
+
+    //         // Header Row
+    //         $data = [['Trip Name', 'Trip Type', 'Pax', 'Sales Revenue', 'Amount Collected', 'Amount Pending', 'Expense Due', 'Expense Paid Amount', 'Expense Pending']];
+
+    //         $salesRevenue = 0;
+    //         $totalCollected = 0;
+    //         $totalPending = 0;
+    //         // $totalVendorAmount = 0;
+    //         $totalPax = 0;
+    //         $expense_due = 0;
+    //         $expense_paid  = 0;
+    //         $expense_pending = 0;
+    //         // $vendorPaidAmount = 0;
+    //         // $pendingVendorPayment = 0;
+
+    //         foreach ($trips as $trip) {
+    //             $data[] = [
+    //                 $trip['trip_name'],
+    //                 $trip['trip_type'],
+    //                 $trip['pax'],
+    //                 $trip['total_sale'],
+    //                 $trip['amount_collected'],
+    //                 $trip['amount_pending'],
+    //                 $trip['expense_due'],
+    //                 $trip['expense_Paid_Amount'], 
+    //                 $trip['expense_pending'],
+    //                 // $trip['vendor_due_payment'],
+    //                 // $trip['vendor_paid_amount'],
+    //                 // $trip['pending_vendor_amount'],
+    //             ];
+
+    //             // Sum up totals
+    //             $totalPax += $trip['pax'];
+    //             $salesRevenue += $trip['total_sale'];
+    //             $totalCollected += $trip['amount_collected'];
+    //             $totalPending += $trip['amount_pending'];
+    //             // $totalVendorAmount += $trip['vendor_due_payment'];
+    //             // $vendorPaidAmount += $trip['vendor_paid_amount'];
+    //             // $pendingVendorPayment += $trip['pending_vendor_amount'];
+    //              $expense_due += $trip['expense_due'];
+    //             $expense_paid += $trip['expense_Paid_Amount'];
+    //             $expense_pending += $trip['expense_pending'];
+
+    //         }
+
+    //         // Add total row
+    //         $data[] = ['Total', '',$totalPax, $salesRevenue, $totalCollected, $totalPending, $expense_due, $expense_paid, $expense_pending];
+
+    //         // Add data to sheet
+    //         $sheet->fromArray($data, null, 'A1');
+
+    //         // Auto size columns
+    //         foreach (range('A', 'H') as $columnID) {
+    //             $sheet->getColumnDimension($columnID)->setAutoSize(true);
+    //         }
+
+    //         // Style total row (bold)
+    //         $lastRow = count($data);
+    //         $sheet->getStyle("A{$lastRow}:H{$lastRow}")->getFont()->setBold(true);
+    //     }
+
+    //     // Remove the default sheet (if empty)
+    //     $spreadsheet->removeSheetByIndex(0);
+
+    //     // Generate and download the Excel file
+    //     $writer = new Xlsx($spreadsheet);
+    //     header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    //     header('Content-Disposition: attachment;filename="Upcoming-trips-revenue-report.xlsx"');
+    //     header('Cache-Control: max-age=0');
+
+    //     $writer->save('php://output');
+    // }
+
     public function ongoingTrip()
     {
-        $currentDate = Carbon::today()->toDateString();
+        $currentDate = Carbon::today();
 
-   $bookings = TripBooking::whereNotIn('trip_status', ['Draft', 'Cancelled'])
-            ->whereHas('trip', function ($query) use ($currentDate) {
-                $query->where(function ($q) use ($currentDate) {
-                    $q->where('start_date', '<=', $currentDate)
-                        ->where('end_date', '>=', $currentDate);
-                })->orWhere(function ($q) use ($currentDate) {
-                    $q->where('start_date', '>', $currentDate);
-                });
+        // Determine current financial year
+        $year = ($currentDate->month >= 4) ? $currentDate->year : $currentDate->year - 1;
+        $startFY = Carbon::create($year, 4, 1)->toDateString();
+        $endFY   = Carbon::create($year + 1, 3, 31)->toDateString();
+
+        // Fetch bookings overlapping financial year and not cancelled/draft
+        $bookings = TripBooking::whereNotIn('trip_status', ['Draft', 'Cancelled'])
+            ->whereHas('trip', function ($query) use ($startFY, $endFY) {
+                $query->where(function ($q) use ($startFY, $endFY) {
+                    $q->where('start_date', '<=', $endFY)
+                    ->where('end_date', '>=', $startFY);
+                })
+                ->where('name', '!=', 'Testing 10');
             })->get();
 
-        $uniqueTripWithSummary = [];
+        // Group bookings by trip_id
+        $tripsGrouped = [];
 
         foreach ($bookings as $booking) {
             $tripId = $booking->trip_id;
-            $tripType = $booking->trip->trip_type ?? 'Unknown';
-            $tripName = $booking->trip->name ?? 'Unknown';
-            $pax = getPaxFromTripId($tripId);
+            $trip = $booking->trip;
 
-        // $expenses = Expense::where('trip_id', $tripId)->sum('paid_amount');
-            $vendorPayments = Expense::where('trip_id', $tripId)->get();
-            // $totalVendorPaidAmount = $vendorPayments->sum('paid_amount');
-            // $totalVendorAmount = $vendorPayments->sum('total_amount');
-            // $pendingVendorPayment = $totalVendorAmount - $totalVendorPaidAmount;
-            $expensePaidAmount=0;
-            foreach ($vendorPayments as $payment) {
-                $expensePaidAmount = $expensePaidAmount + $payment->paid_amount ?? 0;
+            if (!isset($tripsGrouped[$tripId])) {
+                $tripsGrouped[$tripId] = [
+                    'trip_name' => $trip->name ?? 'Unknown',
+                    'trip_type' => $trip->trip_type ?? 'Unknown',
+                    'trip_status' => '', // will determine below
+                    'pax' => 0,
+                    'total_sale' => 0,
+                    'amount_collected' => 0,
+                    'amount_pending' => 0,
+                    'expense_due' => 0,
+                    'expense_paid' => 0,
+                    'expense_pending' => 0,
+                    'trip_start' => $trip->start_date,
+                    'trip_end' => $trip->end_date,
+                ];
             }
-            $total_sale = $booking->payable_amt ?? 0;
-            $expense_due = $total_sale * 70/100;
-      
-            $expense_pending = $expense_due - $expensePaidAmount;
 
-            $total_sale = $booking->payable_amt ?? 0;
+            // Aggregate pax
+            $tripsGrouped[$tripId]['pax'] = getPaxFromTripId($tripId);
+
+            // Aggregate sales
+            $totalSale = $booking->payable_amt ?? 0;
+            $tripsGrouped[$tripId]['total_sale'] += $totalSale;
+
+            // Aggregate payments
             $amountRec = $booking->payment_amt ?? 0;
-            $amountPending = 0;
-
-            // Handle part payments
-            $partPaymentLists = json_decode($booking->part_payment_list) ?? [];
-            if (!empty($partPaymentLists)) {
-                foreach ($partPaymentLists as $partPayment) {
-                    $amountRec += ($partPayment->amount ?? 0);
-                }
+            $partPayments = json_decode($booking->part_payment_list) ?? [];
+            foreach ($partPayments as $p) {
+                $amountRec += $p->amount ?? 0;
             }
+            $tripsGrouped[$tripId]['amount_collected'] += $amountRec;
+            $tripsGrouped[$tripId]['amount_pending'] += $totalSale - $amountRec;
 
-            $amountPending = (float)$total_sale - (float)$amountRec;
+            // Aggregate expenses
+            $expensePaidAmount = Expense::where('trip_id', $tripId)->sum('paid_amount') ?? 0;
+            $tripsGrouped[$tripId]['expense_paid'] = $expensePaidAmount;
+            $tripsGrouped[$tripId]['expense_due'] = $tripsGrouped[$tripId]['total_sale'] * 0.7;
+            $tripsGrouped[$tripId]['expense_pending'] = $tripsGrouped[$tripId]['expense_due'] - $expensePaidAmount;
 
-            // Group by trip type
-            if (!isset($uniqueTripWithSummary[$tripType])) {
-                $uniqueTripWithSummary[$tripType] = [];
-            }
-
-            // Store trip data grouped by trip type
-            if (!isset($uniqueTripWithSummary[$tripType][$tripId])) {
-                $uniqueTripWithSummary[$tripType][$tripId] = [
-                    'trip_id' => $tripId,
-                    'trip_name' => $tripName,
-                    'trip_type' => $tripType,
-                    'pax' => $pax,
-                    'total_sale' => $total_sale,
-                    'amount_collected' => $amountRec,
-                    'amount_pending' => $amountPending,
-                     'expense_due' => $expense_due,
-                    'expense_Paid_Amount' => $expensePaidAmount,
-                    'expense_pending' => $expense_pending,
-                    // 'vendor_due_payment' => $totalVendorAmount,
-                    // 'vendor_paid_amount' => $totalVendorPaidAmount,
-                    // 'vendor_amount' => $totalVendorAmount,
-                    // 'pending_vendor_amount' => $pendingVendorPayment,
-                ];
+            // Determine trip status
+            if (!empty($trip->end_date) && Carbon::parse($trip->end_date)->lt($currentDate)) {
+                $tripsGrouped[$tripId]['trip_status'] = 'Completed';
+            } elseif (!empty($trip->start_date) && !empty($trip->end_date) && Carbon::parse($trip->start_date)->lte($currentDate) && Carbon::parse($trip->end_date)->gte($currentDate)) {
+                $tripsGrouped[$tripId]['trip_status'] = 'Ongoing';
             } else {
-                $uniqueTripWithSummary[$tripType][$tripId]['total_sale'] += $total_sale;
-                $uniqueTripWithSummary[$tripType][$tripId]['amount_collected'] += $amountRec;
-                $uniqueTripWithSummary[$tripType][$tripId]['amount_pending'] += $amountPending;
-                $uniqueTripWithSummary[$tripType][$tripId]['expense_due'] += $expense_due;
-                $uniqueTripWithSummary[$tripType][$tripId]['expense_Paid_Amount'] += $expensePaidAmount;
-                $uniqueTripWithSummary[$tripType][$tripId]['expense_pending'] += $expense_pending;
-                // $uniqueTripWithSummary[$tripType][$tripId]['vendor_due_payment'] = $totalVendorAmount;
-                // $uniqueTripWithSummary[$tripType][$tripId]['vendor_paid_amount'] = $totalVendorPaidAmount;
-                // $uniqueTripWithSummary[$tripType][$tripId]['pending_vendor_amount'] = $pendingVendorPayment;
+                $tripsGrouped[$tripId]['trip_status'] = 'Upcoming';
             }
         }
 
-        // Create Excel File
+        // Create Excel
         $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('Trip Revenue Report');
 
-        foreach ($uniqueTripWithSummary as $tripType => $trips) {
-            $sheet = $spreadsheet->createSheet();
-            $sheet->setTitle(substr($tripType, 0, 30)); // Sheet name limit is 31 characters
+        // Header
+        $sheet->fromArray([['Trip Name', 'Trip Type', 'Trip Status', 'Pax', 'Sales Revenue', 'Amount Collected', 'Amount Pending', 'Total Expense (70% Revenue)', 'Amount Paid', 'Pending Amount']], NULL, 'A1');
 
-            // Header Row
-            $data = [['Trip Name', 'Trip Type', 'Pax', 'Sales Revenue', 'Amount Collected', 'Amount Pending', 'Expense Due', 'Expense Paid Amount', 'Expense Pending']];
+        $row = 2;
+        $grandTotals = [
+            'pax' => 0,
+            'total_sale' => 0,
+            'amount_collected' => 0,
+            'amount_pending' => 0,
+            'expense_due' => 0,
+            'expense_paid' => 0,
+            'expense_pending' => 0,
+        ];
 
-            $salesRevenue = 0;
-            $totalCollected = 0;
-            $totalPending = 0;
-            // $totalVendorAmount = 0;
-            $totalPax = 0;
-            $expense_due = 0;
-            $expense_paid  = 0;
-            $expense_pending = 0;
-            // $vendorPaidAmount = 0;
-            // $pendingVendorPayment = 0;
+        foreach ($tripsGrouped as $trip) {
+            $sheet->setCellValue("A{$row}", $trip['trip_name']);
+            $sheet->setCellValue("B{$row}", $trip['trip_type']);
+            $sheet->setCellValue("C{$row}", $trip['trip_status']);
+            $sheet->setCellValue("D{$row}", $trip['pax']);
+            $sheet->setCellValue("E{$row}", $trip['total_sale']);
+            $sheet->setCellValue("F{$row}", $trip['amount_collected']);
+            $sheet->setCellValue("G{$row}", $trip['amount_pending']);
+            $sheet->setCellValue("H{$row}", $trip['expense_due']);
+            $sheet->setCellValue("I{$row}", $trip['expense_paid']);
+            $sheet->setCellValue("J{$row}", $trip['expense_pending']);
 
-            foreach ($trips as $trip) {
-                $data[] = [
-                    $trip['trip_name'],
-                    $trip['trip_type'],
-                    $trip['pax'],
-                    $trip['total_sale'],
-                    $trip['amount_collected'],
-                    $trip['amount_pending'],
-                    $trip['expense_due'],
-                    $trip['expense_Paid_Amount'], 
-                    $trip['expense_pending'],
-                    // $trip['vendor_due_payment'],
-                    // $trip['vendor_paid_amount'],
-                    // $trip['pending_vendor_amount'],
-                ];
+            // Update grand totals
+            $grandTotals['pax'] += $trip['pax'];
+            $grandTotals['total_sale'] += $trip['total_sale'];
+            $grandTotals['amount_collected'] += $trip['amount_collected'];
+            $grandTotals['amount_pending'] += $trip['amount_pending'];
+            $grandTotals['expense_due'] += $trip['expense_due'];
+            $grandTotals['expense_paid'] += $trip['expense_paid'];
+            $grandTotals['expense_pending'] += $trip['expense_pending'];
 
-                // Sum up totals
-                $totalPax += $trip['pax'];
-                $salesRevenue += $trip['total_sale'];
-                $totalCollected += $trip['amount_collected'];
-                $totalPending += $trip['amount_pending'];
-                // $totalVendorAmount += $trip['vendor_due_payment'];
-                // $vendorPaidAmount += $trip['vendor_paid_amount'];
-                // $pendingVendorPayment += $trip['pending_vendor_amount'];
-                 $expense_due += $trip['expense_due'];
-                $expense_paid += $trip['expense_Paid_Amount'];
-                $expense_pending += $trip['expense_pending'];
-
-            }
-
-            // Add total row
-            $data[] = ['Total', '',$totalPax, $salesRevenue, $totalCollected, $totalPending, $expense_due, $expense_paid, $expense_pending];
-
-            // Add data to sheet
-            $sheet->fromArray($data, null, 'A1');
-
-            // Auto size columns
-            foreach (range('A', 'H') as $columnID) {
-                $sheet->getColumnDimension($columnID)->setAutoSize(true);
-            }
-
-            // Style total row (bold)
-            $lastRow = count($data);
-            $sheet->getStyle("A{$lastRow}:H{$lastRow}")->getFont()->setBold(true);
+            $row++;
         }
 
-        // Remove the default sheet (if empty)
-        $spreadsheet->removeSheetByIndex(0);
+        // Add grand total row
+        $sheet->setCellValue("A{$row}", 'Grand Total');
+        $sheet->setCellValue("D{$row}", $grandTotals['pax']);
+        $sheet->setCellValue("E{$row}", $grandTotals['total_sale']);
+        $sheet->setCellValue("F{$row}", $grandTotals['amount_collected']);
+        $sheet->setCellValue("G{$row}", $grandTotals['amount_pending']);
+        $sheet->setCellValue("H{$row}", $grandTotals['expense_due']);
+        $sheet->setCellValue("I{$row}", $grandTotals['expense_paid']);
+        $sheet->setCellValue("J{$row}", $grandTotals['expense_pending']);
+        $sheet->getStyle("A{$row}:J{$row}")->getFont()->setBold(true);
 
-        // Generate and download the Excel file
+        // Auto-size columns
+        foreach (range('A', 'J') as $col) {
+            $sheet->getColumnDimension($col)->setAutoSize(true);
+        }
+
+        // Output Excel
         $writer = new Xlsx($spreadsheet);
         header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-        header('Content-Disposition: attachment;filename="Upcoming-trips-revenue-report.xlsx"');
+        header('Content-Disposition: attachment;filename="Trip-Revenue-report.xlsx"');
         header('Cache-Control: max-age=0');
-
         $writer->save('php://output');
     }
 

@@ -135,6 +135,7 @@ class TripController extends Controller
                 'price' => ['required'],
                 'drive_tour_type' => ['required'],
                 'region_type' => ['required'],
+                'booking_type' => ['required'],
                 'relationManager' => ['required'],
             ],[
                 'drive_tour_type.required' => 'You have to choose one of them ', // Custom message
@@ -153,6 +154,7 @@ class TripController extends Controller
             $data->activity = $request->activity;
             $data->overview = $request->overview;
             $data->region_type = $request->region_type;
+            $data->booking_type = $request->booking_type;
             $data->stationary_id = json_encode($request->stationary);
             $data->merchandise_id = json_encode($request->merchandise);
             $data->drive_tour_type = $request->drive_tour_type;
@@ -359,6 +361,7 @@ class TripController extends Controller
             'end_date' => ['required'],
             'price' => ['required'],
             'region_type' => ['required'],
+            'booking_type' => ['required'],
             'relationManager' => ['required'],
             'drive_tour_type' => ['required'],
 
@@ -380,6 +383,7 @@ class TripController extends Controller
         $data->overview = $request->overview;
         $data->relation_manager_id = json_encode($request->relationManager);
         $data->region_type = $request->region_type;
+        $data->booking_type = $request->booking_type;
         $data->stationary_id = json_encode($request->stationary);
         $data->merchandise_id = json_encode($request->merchandise);
         $data->drive_tour_type = $request->drive_tour_type;
@@ -577,6 +581,7 @@ class TripController extends Controller
                 $pps = json_decode($item->part_payment_list);
                 foreach($pps as $cost){
                     $paidAmount += $cost->amount ?? 0;
+
                 }
             }
 
@@ -601,6 +606,7 @@ class TripController extends Controller
             $item->customers = $customerData;
             $item->members = $customerList;
             $item->total_amount = $item->payable_amt;
+            $item->paid = $paidAmount;   // trip paid amount
 
             $pending_amount = $item->payable_amt - $paidAmount;
             $item->pending_amount = $pending_amount;
@@ -1376,16 +1382,25 @@ class TripController extends Controller
     
       
         $headers = [
-            "id", "trip_name", "first_name", "last_name", "gender", "email", "telephone_code", "phone","profile","email_verified_at","address","city","country","state","pincode","dob","meal_preference","blood_group","profession","emg_contact","t_size","medical_condition","vaccination","tier","points","credit_note_wallet","referred_by","parent","relation","emg_name","something","have_road_trip","thrilling_exp","three_travel","three_place","passport_front","passport_back","pan_gst","adhar_card","driving","letest_trip","created_at","is_password_changed","updated_at","deleted_at"
+            "id", "trip_name", "first_name", "last_name", "gender", "email", "telephone_code", "phone","profile","email_verified_at","address","city","country","state","pincode","dob","meal_preference","blood_group","profession","emg_contact","t_size","medical_condition","vaccination","tier","points","credit_note_wallet","referred_by","parent","relation","emg_name","something","have_road_trip","thrilling_exp","three_travel","three_place","passport_front","passport_back","pan_gst","gst_certificate","adhar_card","driving","letest_trip","created_at","is_password_changed","updated_at","deleted_at"
         ];
     
         $sheet->fromArray([$headers], null, 'A1');
         $sheet->getStyle('A1:' . Coordinate::stringFromColumnIndex(count($headers)) . '1')->getFont()->setBold(true);
 
         $row = 2;
-    
+        $baseUrl = str_replace('crm-admin', 'crm-user', url('storage/app/')) . '/';
+        
         foreach ($customers as $customer) {
-         
+
+            $customer->profile = $customer->profile ? $baseUrl . $customer->profile : '';
+            $customer->passport_front = $customer->passport_front ? $baseUrl . $customer->passport_front : '';
+            $customer->passport_back = $customer->passport_back ? $baseUrl . $customer->passport_back : '';
+            $customer->pan_gst = $customer->pan_gst ? $baseUrl . $customer->pan_gst : '';
+            $customer->gst_certificate = $customer->gst_certificate ? $baseUrl . $customer->gst_certificate : '';
+            $customer->adhar_card = $customer->adhar_card ? $baseUrl . $customer->adhar_card : '';
+            $customer->driving = $customer->driving ? $baseUrl . $customer->driving : '';
+
             $latestTrip = Trip::where('id', $customer->letest_trip)->first();
             $latestTripName = $latestTrip ? $latestTrip->name : 'N/A';
 
@@ -1395,7 +1410,7 @@ class TripController extends Controller
                     $customer->address,$customer->city,$customer->country,$customer->state,$customer->pincode,$customer->dob,$customer->meal_preference,$customer->blood_group,$customer->profession,$customer->emg_contact,
                     $customer->t_size,$customer->medical_condition,$customer->vaccination,$customer->tier,$customer->points,$customer->credit_note_wallet,$customer->referred_by,$customer->parent,$customer->relation,
                     $customer->emg_name,$customer->something,$customer->have_road_trip,$customer->thrilling_exp,$customer->three_travel,$customer->three_place,$customer->passport_front,$customer->passport_back,
-                    $customer->pan_gst,$customer->adhar_card,$customer->driving,$latestTripName,date("d M, Y", strtotime($customer->created_at)),$customer->is_password_changed,date("d M, Y", strtotime($customer->updated_at)),
+                    $customer->pan_gst,$customer->gst_certificate,$customer->adhar_card,$customer->driving,$latestTripName,date("d M, Y", strtotime($customer->created_at)),$customer->is_password_changed,date("d M, Y", strtotime($customer->updated_at)),
                     date("d M, Y", strtotime($customer->deleted_at)),
                 ]
             ], null, 'A' . $row);
