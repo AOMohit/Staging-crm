@@ -1,29 +1,39 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Embeddable Carbon Calculator</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            padding: 10px;
-        }
-    </style>
-</head>
-<body>
-    <h3>Carbon Calculator</h3>
-    <form method="POST" action="/calculate" target="_self">
-        @csrf
-        <label>Distance (km):</label>
-        <input type="number" name="distance" required><br><br>
+@php
+  $amount  = 750;
+  $co2     = 42.5;
+  $trees   = 3;
+  $name    = '';
+  $email   = '';
+  $mobile  = '';
+  $expires = now()->addHours(2)->timestamp;
 
-        <label>Vehicle:</label>
-        <select name="vehicle_type">
-            <option value="car">Car</option>
-            <option value="bus">Bus</option>
-            <option value="train">Train</option>
-        </select><br><br>
+  $base   = rtrim(env('EMBED_ROOT'), '/'); // ngrok + subfolder
+  // ORDER matters — must match controller:
+  $params = http_build_query([
+      'amount'  => $amount,
+      'co2'     => $co2,
+      'trees'   => $trees,
+      'name'    => $name,
+      'email'   => $email,
+      'mobile'  => $mobile,
+      'expires' => $expires,
+  ]);
+  $sig = hash_hmac('sha256', $params, env('EMBED_SECRET'));
+  $iframeUrl = $base . '/donation/iframe?' . $params . '&signature=' . $sig;
+@endphp
 
-        <button type="submit">Calculate</button>
-    </form>
-</body>
-</html>
+<h3>Copy this iframe and paste on any website:</h3>
+<textarea style="width:100%;height:140px;">
+<iframe 
+  src="{{ $iframeUrl }}" 
+  style="width:100%;height:520px;border:0;border-radius:12px;overflow:hidden" 
+  allow="payment *; clipboard-write *">
+</iframe>
+</textarea>
+
+<p>Preview:</p>
+<iframe 
+  src="{{ $iframeUrl }}" 
+  style="width:100%;height:520px;border:0;border-radius:12px;overflow:hidden" 
+  allow="payment *; clipboard-write *">
+</iframe>

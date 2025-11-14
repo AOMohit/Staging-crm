@@ -10,7 +10,6 @@ use App\Models\Faq;
 use App\Models\Trip;
 use App\Models\ExtraDocuments;
 use App\Models\Customer;
-use Illuminate\Support\Facades\Storage;
 use App\Models\User;
 use App\Models\TripCarbonInfo;
 use App\Models\LoaltyPointsModel;
@@ -26,8 +25,6 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Cookie;
 use App\Http\Controllers\Session;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Validation\ValidationException;
 
 class DashboardController extends Controller
 {
@@ -493,17 +490,7 @@ class DashboardController extends Controller
             'gst_certificate.max' => 'GST certificate must not exceed 3MB.',
         ];
        
-        // $validated = $request->validate($rules, $messages);
-        $validator = Validator::make($request->all(), $rules, $messages);
-        if ($validator->fails()) {
-            $errors = $validator->errors()->all(); // returns array of all error messages
-            return response()->json([
-                'success' => false,
-                'message' => implode("\n", $errors), // send as single string for your JS
-                'errors' => $validator->errors()      // still keep structured errors if needed
-            ], 422);
-        }
-
+        $validated = $request->validate($rules, $messages);
         $tripData = Trip::where('id', $request->letest_trip)->first();
         try
         {
@@ -690,8 +677,8 @@ class DashboardController extends Controller
             ]);
         } 
         catch (\Exception $e) {
-            \Log::error('Registration error: '.$e->getMessage(), ['trace' => $e->getTraceAsString()]);
-            return redirect()->back()->with('error', 'Something went wrong. Please try again or contact support.');
+                \Log::error('Registration error: '.$e->getMessage(), ['trace' => $e->getTraceAsString()]);
+                return redirect()->back()->with('error', 'Something went wrong. Please try again or contact support.');
         }
        
     }

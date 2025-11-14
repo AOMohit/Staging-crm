@@ -28,6 +28,7 @@ use Illuminate\Support\Facades\Log;
 use Yajra\DataTables\DataTables;
 use Illuminate\Support\Facades\Auth;
 use App\Events\SendMailEvent;
+use App\Events\SendExpenseMailEvent;
 use App\Models\EmailActivity;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Carbon;
@@ -847,6 +848,100 @@ class TripController extends Controller
             }
         }
 
+        /**
+         * -------------------------
+         * SEND MAIL (Add / Edit)
+         * -------------------------
+         * Build the $mailData array and $mailData['attachment'] as an array of absolute paths.
+        */
+        try {
+            $isNew = !isset($request->expense_row_id);
+            $recipients = array_filter([ setting('account_mail'), setting('operation_mail') ]);
+
+            $tripName = 'Deleted';
+            if (!empty($data->trip_id)) {
+                $trip = Trip::find($data->trip_id);
+                if ($trip) {
+                    $tripName = $trip->name ?? ($trip->title ?? 'Deleted');
+                }
+            }
+
+            $vendorName = 'N/A';
+            if (!empty($data->vendor_id)) {
+                $vendor = Vendor::find($data->vendor_id);
+                if ($vendor) {
+                    $first = $vendor->first_name ?? '';
+                    $last = $vendor->last_name ?? '';
+                    $full = trim($first . ' ' . $last);
+                    $vendorName = $full !== '' ? $full : ($vendor->name ?? 'N/A');
+                }
+            }
+
+            $vendorServiceName = 'N/A';
+            if (!empty($data->vendor_service_id)) {
+                $vs = VendorService::find($data->vendor_service_id);
+                if ($vs) {
+                    $vendorServiceName = $vs->title ?? $vs->name ?? 'N/A';
+                }
+            }
+
+            $mailData = [
+                'action' => $isNew ? 'Expense Added' : 'Expense Edited',
+                'trip_name' => $tripName,
+                'expense_id' => $data->id,
+                'vendor_name' => $vendorName,
+                'vendor_service_name' => $vendorServiceName,
+                'total_amount' => $data->total_amount,
+                'comment' => $data->comment,
+                'today' => date('Y-m-d'),
+            ];
+
+            $attachments = [];
+            if (!empty($data->docx)) {
+                $storedPath = $data->docx;
+                try {
+                    $abs = Storage::path($storedPath);
+                } catch (\Throwable $e) {
+                    $abs = storage_path('app/' . ltrim($storedPath, '/'));
+                }
+
+                if (file_exists($abs)) {
+                    $attachments[] = $abs;
+                } else {
+                    $disk = config('filesystems.default');
+                    try {
+                        if ($disk === 's3' || Storage::disk('s3')->exists($storedPath)) {
+                            $tmpFile = sys_get_temp_dir() . '/' . basename($storedPath);
+                            $content = Storage::disk('s3')->get($storedPath);
+                            file_put_contents($tmpFile, $content);
+                            if (file_exists($tmpFile)) $attachments[] = $tmpFile;
+                        } else {
+                            if (strpos($storedPath, '/storage/') !== false) {
+                                $relative = substr($storedPath, strpos($storedPath, '/storage/') + strlen('/storage/'));
+                                $possible = storage_path('app/public/' . ltrim($relative, '/'));
+                                if (file_exists($possible)) $attachments[] = $possible;
+                            }
+                        }
+                    } catch (\Throwable $e) {
+                        \Log::error('Expense attachment error: '.$e->getMessage());
+                    }
+                }
+            }
+
+            if (!empty($attachments)) {
+                $mailData['attachment'] = $attachments;
+            }
+
+            $subject = ($isNew ? 'Expense Added - ' : 'Expense Edited - ') . ($mailData['trip_name'] ?? 'Trip');
+            // dd($mailData,$recipients);
+            foreach ($recipients as $to) {
+                event(new SendExpenseMailEvent($to, $subject, 'emails.expense-notification', $mailData));
+            }
+
+        } catch (\Throwable $e) {
+            \Log::error("Expense mail error: " . $e->getMessage());
+        }
+
         return redirect()->back()->with('success', 'Expense saved Successfully !!');
     }
 
@@ -914,12 +1009,136 @@ class TripController extends Controller
         return redirect()->back()->with('success', 'Payment Added Successfully !!');
     }
 
-    public function deleteExpense($id){
+    public function deleteExpense($id)
+    {
+        $exp = Expense::findOrFail($id);
+        $tripName = 'Deleted';
+        if (!empty($exp->trip_id)) {
+            $trip = Trip::find($exp->trip_id);
+            $tripName = $trip ? ($trip->name ?? ($trip->title ?? 'Deleted')) : 'Deleted';
+        }
+        $vendorName = 'N/A';
+        if (!empty($exp->vendor_id)) {
+            $vendor = Vendor::find($exp->vendor_id);
+            if ($vendor) {
+                $vendorName = trim(($vendor->first_name ?? '') . ' ' . ($vendor->last_name ?? '')) ?: ($vendor->name ?? 'N/A');
+            }
+        }
+        $vendorServiceName = 'N/A';
+        if (!empty($exp->vendor_service_id)) {
+            $vs = VendorService::find($exp->vendor_service_id);
+            if ($vs) $vendorServiceName = $vs->title ?? $vs->name ?? 'N/A';
+        }
+        $attachments = [];
+        $tempFilesCreated = [];
+        if (!empty($exp->docx)) {
+            $storedPath = $exp->docx;
 
-        $exp = Expense::find($id);
-        @unlink('storage/app/'.$exp->docx);
-        $expHis = ExpenseHistory::where('expense_id', $id)->delete();
+            $abs = null;
+            try {
+                $abs = Storage::path($storedPath);
+            } catch (\Throwable $e) {
+                $abs = storage_path('app/' . ltrim($storedPath, '/'));
+            }
+
+            if ($abs && file_exists($abs)) {
+                $tmpFile = sys_get_temp_dir() . '/' . uniqid('expense_attach_', true) . '_' . basename($storedPath);
+                if (@copy($abs, $tmpFile)) {
+                    $attachments[] = $tmpFile;
+                    $tempFilesCreated[] = $tmpFile;
+                    \Log::info("Expense delete: created temp copy for attachment: {$tmpFile}");
+                } else {
+                    \Log::warning("Expense delete: failed to copy local file {$abs} to temp {$tmpFile}");
+                }
+            } else {
+                try {
+                    $disk = config('filesystems.default');
+                    if ($disk === 's3' || Storage::disk('s3')->exists($storedPath)) {
+                        $tmpFile = sys_get_temp_dir() . '/' . uniqid('expense_attach_', true) . '_' . basename($storedPath);
+                        $content = Storage::disk('s3')->get($storedPath);
+                        if (file_put_contents($tmpFile, $content) !== false) {
+                            $attachments[] = $tmpFile;
+                            $tempFilesCreated[] = $tmpFile;
+                            \Log::info("Expense delete: downloaded S3 file to temp: {$tmpFile}");
+                        } else {
+                            \Log::warning("Expense delete: failed to write S3 file to temp: {$tmpFile}");
+                        }
+                    } else {
+                        if (strpos($storedPath, '/storage/') !== false) {
+                            $relative = substr($storedPath, strpos($storedPath, '/storage/') + strlen('/storage/'));
+                            $possible = storage_path('app/public/' . ltrim($relative, '/'));
+                            if (file_exists($possible)) {
+                                $tmpFile = sys_get_temp_dir() . '/' . uniqid('expense_attach_', true) . '_' . basename($possible);
+                                if (@copy($possible, $tmpFile)) {
+                                    $attachments[] = $tmpFile;
+                                    $tempFilesCreated[] = $tmpFile;
+                                    \Log::info("Expense delete: created temp copy from public storage: {$tmpFile}");
+                                }
+                            }
+                        }
+                    }
+                } catch (\Throwable $e) {
+                    \Log::error('Expense delete: error preparing remote attachment: ' . $e->getMessage());
+                }
+            }
+        }
+
+        ExpenseHistory::where('expense_id', $id)->delete();
+        if (!empty($exp->docx)) {
+            try {
+                if (Storage::exists($exp->docx)) {
+                    Storage::delete($exp->docx);
+                    \Log::info("Expense delete: deleted original storage file: {$exp->docx}");
+                } else {
+                    \Log::info("Expense delete: Storage::exists returned false for: {$exp->docx}");
+                }
+            } catch (\Throwable $e) {
+                \Log::warning('Expense delete: Could not delete stored docx via Storage::delete(): ' . $e->getMessage());
+            }
+
+            try {
+                if (!empty($abs) && file_exists($abs)) {
+                    @unlink($abs);
+                    \Log::info("Expense delete: unlinked absolute file: {$abs}");
+                }
+            } catch (\Throwable $e) {
+                \Log::warning('Expense delete: Could not unlink absolute file: ' . $e->getMessage());
+            }
+        }
+
         $exp->delete();
+        $mailData = [
+            'action' => 'Expense Deleted',
+            'trip_name' => $tripName,
+            'expense_id' => $id,
+            'vendor_name' => $vendorName,
+            'vendor_service_name' => $vendorServiceName,
+            'total_amount' => $exp->total_amount,
+            'comment' => $exp->comment,
+            'today' => date('Y-m-d'),
+        ];
+        if (!empty($attachments)) {
+            $mailData['attachment'] = $attachments;
+        }
+
+        $recipients = array_filter([ setting('account_mail'), setting('operation_mail') ]);
+        foreach ($recipients as $to) {
+            event(new \App\Events\SendExpenseMailEvent($to, 'Expense Deleted - ' . $tripName, 'emails.expense-notification', $mailData));
+        }
+
+        $queueConn = env('QUEUE_CONNECTION', 'sync');
+        if ($queueConn === 'sync' && !empty($tempFilesCreated)) {
+            foreach ($tempFilesCreated as $tmp) {
+                if (file_exists($tmp)) {
+                    @unlink($tmp);
+                    \Log::info("Expense delete: cleaned up temp file: {$tmp}");
+                }
+            }
+        } else {
+            if (!empty($tempFilesCreated)) {
+                \Log::info('Expense delete: temp files left for queued processing: ' . implode(', ', $tempFilesCreated));
+            }
+        }
 
         return redirect()->back()->with('success', 'Deleted Successfully !!');
     }

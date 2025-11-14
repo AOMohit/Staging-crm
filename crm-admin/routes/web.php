@@ -89,7 +89,14 @@ Route::get('customer_registration_data', [TripController::class, 'customerRegist
 Route::get('ongoing_trip_pdf', [ReportController::class, 'ongoingTripPdf'])->name('ongoing_trip_pdf');
 // without any middleare
 
-Route::get('/offset', fn() => view('admin.carbon.realtime')); // without login using this route
+Route::get('/offset', fn() => view('admin.carbon.realtime'));
+Route::get('/carbon-calculator', [CarbonDonationController::class, 'show'])->name('carbon.calculator');
+Route::post('/carbon-pay', [CarbonDonationController::class, 'payu'])->name('carbon.payu');
+// Route::post('/carbon-pay-response', [CarbonDonationController::class, 'payuResponse'])->name('carbon.payu-response');
+Route::match(['GET','POST'], '/carbon-pay-response', [CarbonDonationController::class, 'payuResponse'])->name('carbon.payu-response');
+Route::get('/donation/iframe', [CarbonDonationController::class, 'iframe'])->name('donation.iframe');
+Route::get('/donation/embed', function () { return view('admin.carbon.embed'); })->name('donation.embed');
+
 Route::middleware('CheckLogin')->group(function () {
     // Route::get('/offset', fn() => view('admin.carbon.realtime'));
     Route::post('/offset', [CarbonDonationController::class, 'submit']);

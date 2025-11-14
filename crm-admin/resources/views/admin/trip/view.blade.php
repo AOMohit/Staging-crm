@@ -101,8 +101,8 @@
         /* Dropdown menu fix */
         .dropdown-menu {
             position: absolute !important;
-            top: auto !important;
-            bottom: 100% !important; /* open upward */
+            /* top: auto !important; */
+            bottom: auto; /* open upward */
             margin-bottom: 6px !important;
             background-color: #f5f5f5;
             border: 1px solid #d1d1d1;
@@ -111,7 +111,7 @@
             min-width: 160px;
             border-radius: 6px;
             padding: 4px 0;
-            transform: translateY(0) !important;
+            /* transform: translateY(0) !important; */
         }
 
         /* Dropdown menu items */

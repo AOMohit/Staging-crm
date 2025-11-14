@@ -5,6 +5,8 @@ namespace App\Providers;
 use Illuminate\Auth\Events\Registered;
 use App\Events\SendMailEvent;
 use App\Listeners\SendMailListener;
+use App\Events\SendExpenseMailEvent;
+use App\Listeners\SendExpenseMailListener;
 use Illuminate\Auth\Listeners\SendEmailVerificationNotification;
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
 use Illuminate\Support\Facades\Event;
@@ -22,6 +24,9 @@ class EventServiceProvider extends ServiceProvider
         ],
         SendMailEvent::class => [
             SendMailListener::class,
+        ],
+        SendExpenseMailEvent::class => [
+            SendExpenseMailListener::class,
         ],
     ];
     /**

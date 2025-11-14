@@ -24,7 +24,7 @@
       backBtn.style.display = n === 1 ? 'none' : 'inline-block';
       nextBtn.style.display = n === totalSteps ? 'none' : 'inline-block';
       submitBtn.style.display = n === totalSteps ? 'inline-block' : 'none';
-      previewBtn.style.display = n === totalSteps ? 'none!important' : 'none!important';
+      previewBtn.style.display = n === totalSteps ? 'inline-block' : 'none';
       updateStepIndicator();
       window.scrollTo({top:0,behavior:'smooth'});
     }
@@ -95,6 +95,7 @@
       });
     });
 
+
     // Preview modal logic
     const backdrop = document.getElementById('previewBackdrop');
     const grid = document.getElementById('previewGrid');
@@ -129,6 +130,17 @@
     
       for (const [label, id] of fields) {
         const val = (document.getElementById(id)?.value || '').toString();
+
+        // Special handling for phone field with intl-tel-input
+        if (id === 'phone') {
+          const itiInstance = window.intlTelInputGlobals.getInstance(phoneInput);
+          if (itiInstance) {
+              const dialCode = '+' + itiInstance.getSelectedCountryData().dialCode;
+              const nationalNumber = phoneInput.value || '';
+              val = dialCode + ' ' + nationalNumber;
+          }
+        }
+
         const item = document.createElement('div');
         item.className = 'preview-item';
         item.innerHTML = `
@@ -330,110 +342,116 @@
       e.preventDefault();
       if(!validateStep(currentStep)) return;
 
+      const fullNumber = iti.getNumber();
+      const dialCode = '+' + iti.getSelectedCountryData().dialCode;
+      const nationalNumber = fullNumber.replace(dialCode, '');
+      codeInput.value = dialCode;
+      phoneInput.value = nationalNumber;
+      
       submitBtn.innerHTML = `<span style="display:inline-flex;align-items:center;gap:10px;">
         <div style="width:18px;height:18px;border:2px solid #fff;border-top:2px solid transparent;border-radius:50%;animation:spin 1s linear infinite"></div>
         Submitting...
       </span>`;
       submitBtn.disabled = true;
 
-    // OLD FLOW: AJAX form submit
-    const formData = new FormData(form);
+      // OLD FLOW: AJAX form submit
+      const formData = new FormData(form);
 
-    fetch(form.action, {
-        method: form.method,
-        body: formData,
-        headers: {
-            'X-Requested-With': 'XMLHttpRequest'
-        }
-    })
-    .then(response => response.json()) // Laravel must return JSON
-    .then(data => {
-        if (data.success) {
-            // NEW FLOW: Show success popup
-            setTimeout(() => {
-                const success = document.createElement('div');
-                success.style.cssText = `
-                position:fixed;
-                top:50%;
-                left:50%;
-                transform:translate(-50%,-50%);
-                background:rgba(255,255,255,.95);
-                backdrop-filter:blur(25px);
-                padding:28px;
-                border-radius:18px;
-                box-shadow:0 25px 70px rgba(79,51,37,.2);
-                border:1px solid var(--glass-border);
-                z-index:1000;
-                color:var(--text-primary);
-                text-align:center;
-                max-width:520px;
-                overflow-y:auto;
-                max-height:90vh;
-                `;
+      fetch(form.action, {
+          method: form.method,
+          body: formData,
+          headers: {
+              'X-Requested-With': 'XMLHttpRequest'
+          }
+      })
+      .then(response => response.json()) // Laravel must return JSON
+      .then(data => {
+          if (data.success) {
+              // NEW FLOW: Show success popup
+              setTimeout(() => {
+                  const success = document.createElement('div');
+                  success.style.cssText = `
+                  position:fixed;
+                  top:50%;
+                  left:50%;
+                  transform:translate(-50%,-50%);
+                  background:rgba(255,255,255,.95);
+                  backdrop-filter:blur(25px);
+                  padding:28px;
+                  border-radius:18px;
+                  box-shadow:0 25px 70px rgba(79,51,37,.2);
+                  border:1px solid var(--glass-border);
+                  z-index:1000;
+                  color:var(--text-primary);
+                  text-align:center;
+                  max-width:520px;
+                  overflow-y:auto;
+                  max-height:90vh;
+                  `;
 
-                // list of image fields you want to preview
-                const imageFields = [
-                  'passport_front',
-                  'passport_back',
-                  'pan_gst',
-                  'adhar_card',
-                  'driving',
-                  'gst_certificate',
-                  'profile'
-                ];
-  
-                // build image preview HTML
-                let imagesHTML = '';
-                imageFields.forEach(name => {
-                  const input = form.querySelector(`input[name="old_${name}"]`);
-                  if (input && input.value) {
-                    const fileName = input.value.split('/').pop();
-                    const imgPath = `/app/public/image/${fileName}`;
-                    imagesHTML += `
-                      <div style="display:inline-block;margin:6px;">
-                        <img src="${imgPath}" 
-                            alt="${name}" 
-                            style="width:60px;height:60px;object-fit:cover;border-radius:8px;border:1px solid #ddd;">
-                      </div>
-                    `;
-                  }
-                });
-                
-                success.innerHTML = `
-                  <div style="font-size:2.6rem;margin-bottom:8px">🎉</div>
-                  <h2 style="margin-bottom:8px;color:var(--primary);font-weight:700">Submitted!</h2>
-                  <p style="margin-bottom:18px;line-height:1.6">
-                    <b>You’re All Set!</b> - Thanks for Choosing the Road with Us. Our travel experts will be in touch shortly with the next steps.
-                  </p>
-                  <button 
-                    onclick="try{window.close()}catch(e){} 
-                            if(!window.closed){ window.location.href = window.location.href; }" 
-                    class="btn btn-primary">
-                    Close
-                  </button>
-                `;
-                document.body.appendChild(success);
+                  // list of image fields you want to preview
+                  const imageFields = [
+                    'passport_front',
+                    'passport_back',
+                    'pan_gst',
+                    'adhar_card',
+                    'driving',
+                    'gst_certificate',
+                    'profile'
+                  ];
+    
+                  // build image preview HTML
+                  let imagesHTML = '';
+                  imageFields.forEach(name => {
+                    const input = form.querySelector(`input[name="old_${name}"]`);
+                    if (input && input.value) {
+                      const fileName = input.value.split('/').pop();
+                      const imgPath = `/app/public/image/${fileName}`;
+                      imagesHTML += `
+                        <div style="display:inline-block;margin:6px;">
+                          <img src="${imgPath}" 
+                              alt="${name}" 
+                              style="width:60px;height:60px;object-fit:cover;border-radius:8px;border:1px solid #ddd;">
+                        </div>
+                      `;
+                    }
+                  });
+                  
+                  success.innerHTML = `
+                    <div style="font-size:2.6rem;margin-bottom:8px">🎉</div>
+                    <h2 style="margin-bottom:8px;color:var(--primary);font-weight:700">Submitted!</h2>
+                    <p style="margin-bottom:18px;line-height:1.6">
+                      Your expedition booking has been submitted. Our team will get in touch shortly.
+                    </p>
+                    <button 
+                      onclick="try{window.close()}catch(e){} 
+                              if(!window.closed){ window.location.href = window.location.href; }" 
+                      class="btn btn-primary">
+                      Close
+                    </button>
+                  `;
+                  document.body.appendChild(success);
 
-                submitBtn.innerHTML = 'Submit Application';
-                submitBtn.disabled = false;
+                  submitBtn.innerHTML = 'Submit Application';
+                  submitBtn.disabled = false;
 
-                // Optional: reset form
-                form.reset();
-                currentStep = 1;
-                showStep(currentStep);
-            }, 800);
-        } else {
-            // alert(data.message || "Something went wrong. Please try again.");
-            submitBtn.innerHTML = 'Submit Application';
-            submitBtn.disabled = false;
-        }
-    })
-    .catch(error => {
-        console.error(error);
-        // alert("Submission failed. Please try again.");
-        submitBtn.innerHTML = 'Submit Application';
-        submitBtn.disabled = false;
-    });
+                  // Optional: reset form
+                  form.reset();
+                  currentStep = 1;
+                  showStep(currentStep);
+              }, 800);
+          } else {
+              alert(data.message || "Something went wrong. Please try again.");
+              submitBtn.innerHTML = 'Submit Application';
+              submitBtn.disabled = false;
+          }
+      })
+      .catch(error => {
+          console.error(error);
+          alert("Submission failed. Please try again.");
+          submitBtn.innerHTML = 'Submit Application';
+          submitBtn.disabled = false;
+      });
 
     });
 

@@ -50,7 +50,7 @@
      border-radius:32px;
     border:1px solid rgba(255,178,36,.12);
      box-shadow:var(--shadow-elegant),inset 0 1px 0 rgba(255,255,255,.2);
-     overflow:visible;
+     overflow:hidden;
     position:relative 
 }
  .form-container::before{
@@ -450,12 +450,11 @@
     backdrop-filter:blur(18px);
     border:1px solid var(--glass-border);
     border-radius:18px;
-    max-width:950px!important;
+    max-width:720px;
     width:92%;
     padding:20px;
     box-shadow:0 25px 70px rgba(79,51,37,.2)
 }
-
  .modal header{
     display:flex;
     justify-content:space-between;
@@ -487,9 +486,6 @@
 }
 /* responsive */
  @media (max-width:768px){
-     
-     
-     
      .form-content{
         padding:36px 24px
     }
@@ -511,10 +507,9 @@
         height:50px;
         margin-right:0
     }
-    body .preview-grid {
-    display: block !important;
-    grid-template-columns: 1fr !important;
-  }
+     .preview-grid{
+        grid-template-columns:1fr
+    }
 }
 
 /*new section upload css*/
@@ -580,6 +575,7 @@
   right: 30px; 
   font-size: 36px; 
   color: #fff; cursor: pointer; }
+
 
 
 
@@ -659,19 +655,7 @@
 .remove { background: none; border: none; font-size: 28px; color: #666; cursor: pointer; padding: 4px; line-height: 1; }
 .remove:hover { color: #333; }
 .max-size { margin-top: 12px; font-size: 13px; color: #666; }
-
-
-.doc-col { 
- display: flex; 
- flex-direction: column; 
- align-items: left; 
- width: 48%; 
- }
-.doc-col h2 {
- margin: 10px 0 5px 0; 
- font-size: 16px; 
- font-weight: 600; 
- text-align: left; 
- }
-/*ends*/
 .form-rowss { display: flex; justify-content: space-between; flex-wrap: wrap; }
+.doc-col { display: flex; flex-direction: column; align-items: left; width: 48%; }
+.doc-col h2 { margin: 10px 0 5px 0; font-size: 16px; font-weight: 600; text-align: left; }
+.doc-colss h2 { margin: 10px 0 5px 0; font-size: 16px; font-weight: 600; text-align: left; }
