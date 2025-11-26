@@ -42,7 +42,6 @@
         $hasAtLeastOneValidStatus = $bookingInvoices->contains(function ($invoice) {
             return $invoice->invoice_status !== null && in_array($invoice->invoice_status, [0, 1]);
         });
-        $billingToIds = json_decode($data->billing_to, true) ?? [];
     @endphp
     <div class="container-xxl flex-grow-1 container-p-y">
         
@@ -128,35 +127,35 @@
                                             }
                                         @endphp
                                     @endforeach
-                                    @if(($permissions['booking']->can_edit ?? false))
-                                        @if ($checkRegForm)
-                                            <a target="_blank"
-                                                href="{{ env('USER_URL') . 'registration?token=' . $data->token . '&email=&trip_id=' . $data->trip_id . '&form_type=not_user' }}"
-                                                class="btn btn-success btn-sm">
-                                                Registration Form
-                                            </a>
-                                        @endif
 
-                                        <a href="{{ route('booking.new-trip', ['token' => $data->token]) }}"
-                                            class="btn btn-primary btn-sm">
-                                            Edit
+                                    @if ($checkRegForm)
+                                        <a target="_blank"
+                                            href="{{ env('USER_URL') . 'registration?token=' . $data->token . '&email=&trip_id=' . $data->trip_id . '&form_type=not_user' }}"
+                                            class="btn btn-success btn-sm">
+                                            Registration Form
                                         </a>
-                                        @if ($data->trip_status != 'Correction')
-                                            @if ($data->trip_status != 'Cancelled')
-                                                <a href="javaScript:void(0)" onclick="correctionConfirm()"
-                                                    class="btn btn-warning btn-sm">
-                                                    Need Correction
-                                                </a>
-                                            @endif
-                                        @endif
+                                    @endif
 
+                                    <a href="{{ route('booking.new-trip', ['token' => $data->token]) }}"
+                                        class="btn btn-primary btn-sm">
+                                        Edit
+                                    </a>
+                                    @if ($data->trip_status != 'Correction')
                                         @if ($data->trip_status != 'Cancelled')
-                                            <a href="javaScript:void(0)" onclick="cancelConfirm()"
-                                                class="btn btn-danger btn-sm">
-                                                Cancel Booking
+                                            <a href="javaScript:void(0)" onclick="correctionConfirm()"
+                                                class="btn btn-warning btn-sm">
+                                                Need Correction
                                             </a>
                                         @endif
                                     @endif
+
+                                    @if ($data->trip_status != 'Cancelled')
+                                        <a href="javaScript:void(0)" onclick="cancelConfirm()"
+                                            class="btn btn-danger btn-sm">
+                                            Cancel Booking
+                                        </a>
+                                    @endif
+
                                     <a href="{{ route('booking.activity', $data->id) }}"
                                         class="btn btn-warning text-white btn-sm">
                                         Activity Log </a>
@@ -305,15 +304,13 @@
                                         <input type="hidden" id="seeker-link-{{ $c_id }}"
                                         value="{{ env('USER_URL') .'seeker?&email=' . $travelers->email  }}">
 
-                                            <input type="hidden" id="traveler-link-{{ $c_id }}"
-                                                value="{{ env('USER_URL') . 'registration?token=' . $data->token . '&email=' . $travelers->email . '&trip_id=' . $data->trip_id }}">
-                                                {{-- https://www.adventuresoverland.com/booking-registration-form/ --}}
-                                                <!-- -->
-                                            <a href="javaScript:void(0)" data-bs-toggle="tooltip"
+                                         <input type="hidden" id="traveler-link-{{ $c_id }}" value="{{ env('USER_URL') . 'registration?token=' . $data->token . '&email=' . $travelers->email . '&trip_id=' . $data->trip_id }}">
+                                         <a href="javaScript:void(0)" data-bs-toggle="tooltip"
                                                 data-bs-placement="right" title="Registration Link"
                                                 onclick="copyData(this,{{ $c_id }})"
                                                 class="btn btn-outline-warning btn-xs font-size-14 cpy">Copy
                                             </a>
+                                          
                                         @endif
                                         <br>
                                     @endforeach
@@ -344,7 +341,7 @@
                                         <th scope="col">Room Type</th>
                                         <th scope="col">Room Category</th>
                                         <th scope="col">Payment From</th>
-                                        <th scope="col">Bill To</th>
+                                         <th scope="col">Bill To</th>
                                     </tr>
 
                                     <tr>
@@ -385,10 +382,10 @@
                                                 ( {{ getCustomerById($data->payment_by_customer_id)->name }})
                                             @endisset
                                         </td>
-                                         <td>
+                                        <td>
                                             @if ($data->billing_to)
                                                 @foreach (json_decode($data->billing_to) as $key => $rinfo)
-                                                    {{ getCustomerById($rinfo)->name ?? "-" }}
+                                                    {{ getCustomerById($rinfo)->name }}
                                                     @if (count(json_decode($data->billing_to)) - 1 == $key)
                                                         {{ '' }}
                                                     @else
@@ -881,10 +878,10 @@
 
 @section('script')
     <script>
-             window.onload = function () {
-                var selectedValue = document.getElementById("remarkSelect").value; 
-                viewUserInfo(selectedValue); // Call the function with the pre-filled value
-            };
+            //  window.onload = function () {
+            //     var selectedValue = document.getElementById("remarkSelect").value; 
+            //     viewUserInfo(selectedValue); // Call the function with the pre-filled value
+            // };
         function validateFileLimit(input) {
             const maxFiles = 5; // Maximum allowed files
             const fileLimitMessage = document.getElementById('file-limit-message');
@@ -1145,6 +1142,7 @@
                                 `<a target="_blank" href="${customer.gst_certificate}">Download</a> &nbsp;&nbsp;
                                 <a href="javaScript:void(0)" onclick="deleteUserMedia(${customer.id}, 'gst_certificate')" class="text-danger">Delete</a>`;
                         }
+                        
                         text += `
                                     </div>
                                     <hr>
@@ -1205,8 +1203,6 @@
                                     <hr>
                                 </div>`;
 
-                          
-                       
                         text += `
                                 <div class="row">
                                     <div class="col-6">
@@ -1269,5 +1265,17 @@
             navigator.clipboard.writeText(copyText.value);
             anchor.innerText = "Copied";
         }
+
+        document.addEventListener('mousedown', function(event) {
+            const modal = document.getElementById('customerDetailsModal');
+            const modalDialog = modal.querySelector('.modal-dialog');
+            if (modal.classList.contains('show') && !modalDialog.contains(event.target)) {
+                const bsModal = bootstrap.Modal.getInstance(modal);
+                if (bsModal) {
+                    bsModal.hide();
+                }
+            }
+        });
+
     </script>
 @endsection

@@ -19,15 +19,12 @@ Route::get('/', function () {
     return view('auth.login');
 });
 Route::get('registration', [DashboardController::class, 'registration'])->name('registration');
-Route::post('registrationSubmit', [DashboardController::class, 'registrationSubmit'])->name('registrationSubmit');
+Route::post('registration-submit', [DashboardController::class, 'registrationSubmit'])->name('registrationSubmit');
+Route::post('/dashboard/upload-booking-image', [DashboardController::class, 'uploadBookingImage'])->name('dashboard.uploadBookingImage');
 Route::post('removeImage', [DashboardController::class, 'removeImage'])->name('removeImage');
 Route::post('removeDocsImage', [DashboardController::class, 'removeDocsImage'])->name('removeDocsImage');
 Route::get('email', [DashboardController::class, 'email'])->name('email');
 Route::post('get-state', [DashboardController::class, 'getState'])->name('getState');
-Route::get('seeker', [DashboardController::class, 'seeker'])->name('seeker');
-Route::post('seekerFormSubmission', [DashboardController::class, 'seekerFormSubmission'])->name('seekerFormSubmission');
-
-
 
 // Route::get('/dashboard', function () {
 //     return view('dashboard');

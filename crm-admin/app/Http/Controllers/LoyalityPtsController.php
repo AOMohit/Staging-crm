@@ -59,13 +59,14 @@ class LoyalityPtsController extends Controller
     public function cashback()
     {
         $data = LoyalityPts::where('trans_page', 'TripBooking')->orderBy('id', 'Desc')->get();
-
+        
         $data->map(function ($item, $index) {
             $item->created = date("M d, Y H:i:s", strtotime($item->created_at));
             $item->name = ($item->customer ? $item->customer->first_name : '') . " " . ($item->customer ? $item->customer->last_name : '');
             $item->email = $item->customer->email ?? null;
             $item->admin_name = $item->admin->name ?? null;
         });
+        
         return DataTables::of($data)->make(true);
     }
 

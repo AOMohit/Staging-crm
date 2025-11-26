@@ -29,7 +29,7 @@
                                     </div>
                                     <div class="d-flex flex-wrap">
                                         <div>
-                                            <h6 class="mb-0">By: {{ $item->admin->name }}</h6>
+                                            <h6 class="mb-0">By: {{ $item->admin->name ?? '' }}</h6>
                                             <span class="text-muted">Action: {{ $item->page }}</span>
                                         </div>
                                     </div>

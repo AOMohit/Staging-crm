@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\Role;
 use App\Models\Permission;
-use App\Models\ModulePermission;
 use App\Models\User;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
@@ -126,25 +125,6 @@ class RoleController extends Controller
         $role->name = $request->name;
         $role->permission_id = $permission->id;
         $role->save();
-
-        // Add role permissions in modulepermission
-        $modules = [
-            'setting', 'roles_permission', 'staff', 'trip', 'booking', 'enquiry', 
-            'customer', 'agent', 'vendors', 'inventory_category', 'inventory', 
-            'report', 'loyalty', 'sustainability', 'accounts', 'birthdays'
-        ];
-
-        foreach ($modules as $module) {
-            if ($request->has($module)) {
-                \App\Models\ModulePermission::create([
-                    'role_id' => $role->id,
-                    'module_name' => $module,
-                    'can_view'   => $request->has($module.'_view') ? 1 : 0,
-                    'can_edit'   => $request->has($module.'_edit') ? 1 : 0,
-                    'can_delete' => $request->has($module.'_delete') ? 1 : 0,
-                ]);
-            }
-        }
         
         return redirect(route('roles_permission.index'))->with('success', 'Updated Successfully !!');
     }
@@ -156,8 +136,7 @@ class RoleController extends Controller
      */
     public function edit($id)
     {
-        // $data = Role::where('id', $id)->first();
-        $data = Role::with(['permission', 'modulePermissions'])->find($id);
+        $data = Role::where('id', $id)->first();
         return view('admin.role.edit', compact('data'));
     }
 
@@ -264,77 +243,27 @@ class RoleController extends Controller
         $role = Role::find($request->r_id);
         $role->name = $request->name;
         $role->save();
-
-        ModulePermission::where('role_id', $role->id)->delete();
-        $modules = [
-            'setting', 'roles_permission', 'staff', 'trip', 'booking', 'enquiry', 
-            'customer', 'agent', 'vendors', 'inventory_category', 'inventory', 
-            'report', 'loyalty', 'sustainability', 'accounts', 'birthdays'
-        ];
-
-        foreach ($modules as $module) {
-            if ($request->has($module)) {
-                ModulePermission::create([
-                    'role_id' => $role->id,
-                    'module_name' => $module,
-                    'can_view'   => $request->has($module.'_view') ? 1 : 0,
-                    'can_edit'   => $request->has($module.'_edit') ? 1 : 0,
-                    'can_delete' => $request->has($module.'_delete') ? 1 : 0,
-                ]);
-            }
-        }
         
         return redirect(route('roles_permission.index'))->with('success', 'Updated Successfully !!');
     }
     /**
      * Remove the specified resource from storage.
      */
-    // public function destroy($id, Request $request)
-    // {
-    //     $check = User::where('role_id', $id)->first();
-    //     if($check){
-    //         return redirect(route('roles_permission.index'))->with('warning', 'This Role is Assigned to a User!!');
-    //     }else{
-    //         $per = Permission::find($request->p_id);
-    //         $per->delete();
-
-    //         $role = Role::find($id);
-    //         $role->delete();
-    //         return redirect(route('roles_permission.index'))->with('success', 'Deleted Successfully!!');
-    //     }
-
-    //     return redirect(route('roles_permission.index'))->with('error', 'Somthing went Wrong!!');
-
-    // }
     public function destroy($id, Request $request)
     {
         $check = User::where('role_id', $id)->first();
-        if ($check) {
-            return redirect(route('roles_permission.index'))
-                ->with('warning', 'This Role is Assigned to a User!!');
-        }
+        if($check){
+            return redirect(route('roles_permission.index'))->with('warning', 'This Role is Assigned to a User!!');
+        }else{
+            $per = Permission::find($request->p_id);
+            $per->delete();
 
-        $role = Role::with(['permission', 'modulePermissions'])->find($id);
-
-        if (!$role) {
-            return redirect(route('roles_permission.index'))
-                ->with('error', 'Role not found!');
-        }
-
-        try {
-            ModulePermission::where('role_id', $role->id)->delete();
-            if ($role->permission) {
-                $role->permission->delete();
-            }
-
+            $role = Role::find($id);
             $role->delete();
-
-            return redirect(route('roles_permission.index'))
-                ->with('success', 'Role and related permissions deleted successfully!');
-        } catch (\Exception $e) {
-            return redirect(route('roles_permission.index'))
-                ->with('error', 'Something went wrong: ' . $e->getMessage());
+            return redirect(route('roles_permission.index'))->with('success', 'Deleted Successfully!!');
         }
-    }
 
+        return redirect(route('roles_permission.index'))->with('error', 'Somthing went Wrong!!');
+
+    }
 }

@@ -9,9 +9,4 @@ class TransferModel extends Model
 {
     protected $table = 'transfer_pts';
     use HasFactory;
-    protected $guarded = [];
-    public function customer()
-    {
-        return $this->belongsTo(User::class, 'customer_id', 'id');
-    }
 }

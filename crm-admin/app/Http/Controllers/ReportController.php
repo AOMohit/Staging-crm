@@ -801,8 +801,8 @@ class ReportController extends Controller
     // {
     //     $currentDate = Carbon::today()->toDateString();
 
-    //         $bookings = TripBooking::whereNotIn('trip_status', ['Draft', 'Cancelled'])
-    //             ->whereHas('trip', function ($query) use ($currentDate) {
+    //     $bookings = TripBooking::whereNotIn('trip_status', ['Draft', 'Cancelled'])
+    //         ->whereHas('trip', function ($query) use ($currentDate) {
     //             $query->where(function ($q) use ($currentDate) {
     //                 $q->where('start_date', '<=', $currentDate)
     //                     ->where('end_date', '>=', $currentDate);
@@ -810,28 +810,18 @@ class ReportController extends Controller
     //                 $q->where('start_date', '>', $currentDate);
     //             });
     //         })->get();
-
-    //     $uniqueTripWithSummary = [];
+    //         // dd($bookings);
+    //         $uniqueTripWithSummary = [];
+    //         $tripBookingCount = [];
 
     //     foreach ($bookings as $booking) {
     //         $tripId = $booking->trip_id;
+           
     //         $tripType = $booking->trip->trip_type ?? 'Unknown';
     //         $tripName = $booking->trip->name ?? 'Unknown';
     //         $pax = getPaxFromTripId($tripId);
-
-    //     // $expenses = Expense::where('trip_id', $tripId)->sum('paid_amount');
+        
     //         $vendorPayments = Expense::where('trip_id', $tripId)->get();
-    //         // $totalVendorPaidAmount = $vendorPayments->sum('paid_amount');
-    //         // $totalVendorAmount = $vendorPayments->sum('total_amount');
-    //         // $pendingVendorPayment = $totalVendorAmount - $totalVendorPaidAmount;
-    //         $expensePaidAmount=0;
-    //         foreach ($vendorPayments as $payment) {
-    //             $expensePaidAmount = $expensePaidAmount + $payment->paid_amount ?? 0;
-    //         }
-    //         $total_sale = $booking->payable_amt ?? 0;
-    //         $expense_due = $total_sale * 70/100;
-      
-    //         $expense_pending = $expense_due - $expensePaidAmount;
 
     //         $total_sale = $booking->payable_amt ?? 0;
     //         $amountRec = $booking->payment_amt ?? 0;
@@ -847,6 +837,7 @@ class ReportController extends Controller
 
     //         $amountPending = (float)$total_sale - (float)$amountRec;
 
+
     //         // Group by trip type
     //         if (!isset($uniqueTripWithSummary[$tripType])) {
     //             $uniqueTripWithSummary[$tripType] = [];
@@ -854,6 +845,7 @@ class ReportController extends Controller
 
     //         // Store trip data grouped by trip type
     //         if (!isset($uniqueTripWithSummary[$tripType][$tripId])) {
+          
     //             $uniqueTripWithSummary[$tripType][$tripId] = [
     //                 'trip_id' => $tripId,
     //                 'trip_name' => $tripName,
@@ -862,47 +854,32 @@ class ReportController extends Controller
     //                 'total_sale' => $total_sale,
     //                 'amount_collected' => $amountRec,
     //                 'amount_pending' => $amountPending,
-    //                  'expense_due' => $expense_due,
-    //                 'expense_Paid_Amount' => $expensePaidAmount,
-    //                 'expense_pending' => $expense_pending,
-    //                 // 'vendor_due_payment' => $totalVendorAmount,
-    //                 // 'vendor_paid_amount' => $totalVendorPaidAmount,
-    //                 // 'vendor_amount' => $totalVendorAmount,
-    //                 // 'pending_vendor_amount' => $pendingVendorPayment,
+                   
     //             ];
     //         } else {
     //             $uniqueTripWithSummary[$tripType][$tripId]['total_sale'] += $total_sale;
     //             $uniqueTripWithSummary[$tripType][$tripId]['amount_collected'] += $amountRec;
     //             $uniqueTripWithSummary[$tripType][$tripId]['amount_pending'] += $amountPending;
-    //             $uniqueTripWithSummary[$tripType][$tripId]['expense_due'] += $expense_due;
-    //             $uniqueTripWithSummary[$tripType][$tripId]['expense_Paid_Amount'] += $expensePaidAmount;
-    //             $uniqueTripWithSummary[$tripType][$tripId]['expense_pending'] += $expense_pending;
-    //             // $uniqueTripWithSummary[$tripType][$tripId]['vendor_due_payment'] = $totalVendorAmount;
-    //             // $uniqueTripWithSummary[$tripType][$tripId]['vendor_paid_amount'] = $totalVendorPaidAmount;
-    //             // $uniqueTripWithSummary[$tripType][$tripId]['pending_vendor_amount'] = $pendingVendorPayment;
+            
     //         }
     //     }
-
     //     // Create Excel File
     //     $spreadsheet = new Spreadsheet();
 
     //     foreach ($uniqueTripWithSummary as $tripType => $trips) {
+          
     //         $sheet = $spreadsheet->createSheet();
     //         $sheet->setTitle(substr($tripType, 0, 30)); // Sheet name limit is 31 characters
 
     //         // Header Row
-    //         $data = [['Trip Name', 'Trip Type', 'Pax', 'Sales Revenue', 'Amount Collected', 'Amount Pending', 'Expense Due', 'Expense Paid Amount', 'Expense Pending']];
+    //         $data = [['Trip Name', 'Trip Type', 'Pax', 'Sales Revenue', 'Amount Collected', 'Amount Pending']];
 
     //         $salesRevenue = 0;
     //         $totalCollected = 0;
     //         $totalPending = 0;
-    //         // $totalVendorAmount = 0;
+        
     //         $totalPax = 0;
-    //         $expense_due = 0;
-    //         $expense_paid  = 0;
-    //         $expense_pending = 0;
-    //         // $vendorPaidAmount = 0;
-    //         // $pendingVendorPayment = 0;
+         
 
     //         foreach ($trips as $trip) {
     //             $data[] = [
@@ -912,12 +889,7 @@ class ReportController extends Controller
     //                 $trip['total_sale'],
     //                 $trip['amount_collected'],
     //                 $trip['amount_pending'],
-    //                 $trip['expense_due'],
-    //                 $trip['expense_Paid_Amount'], 
-    //                 $trip['expense_pending'],
-    //                 // $trip['vendor_due_payment'],
-    //                 // $trip['vendor_paid_amount'],
-    //                 // $trip['pending_vendor_amount'],
+                   
     //             ];
 
     //             // Sum up totals
@@ -925,18 +897,14 @@ class ReportController extends Controller
     //             $salesRevenue += $trip['total_sale'];
     //             $totalCollected += $trip['amount_collected'];
     //             $totalPending += $trip['amount_pending'];
-    //             // $totalVendorAmount += $trip['vendor_due_payment'];
-    //             // $vendorPaidAmount += $trip['vendor_paid_amount'];
-    //             // $pendingVendorPayment += $trip['pending_vendor_amount'];
-    //              $expense_due += $trip['expense_due'];
-    //             $expense_paid += $trip['expense_Paid_Amount'];
-    //             $expense_pending += $trip['expense_pending'];
+
 
     //         }
 
     //         // Add total row
-    //         $data[] = ['Total', '',$totalPax, $salesRevenue, $totalCollected, $totalPending, $expense_due, $expense_paid, $expense_pending];
+    //         $data[] = ['Total', '',$totalPax, $salesRevenue, $totalCollected, $totalPending];
 
+        
     //         // Add data to sheet
     //         $sheet->fromArray($data, null, 'A1');
 
@@ -956,12 +924,12 @@ class ReportController extends Controller
     //     // Generate and download the Excel file
     //     $writer = new Xlsx($spreadsheet);
     //     header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-    //     header('Content-Disposition: attachment;filename="Upcoming-trips-revenue-report.xlsx"');
+    //     header('Content-Disposition: attachment;filename="Upcoming-Trip-Revenue-report.xlsx"');
     //     header('Cache-Control: max-age=0');
 
     //     $writer->save('php://output');
     // }
-
+    
     public function ongoingTrip()
     {
         $currentDate = Carbon::today();
@@ -1257,7 +1225,7 @@ class ReportController extends Controller
             $booking_status = $data->trip_status ?? 'N/A';
             $invoice_status = $data->invoice_status ?? 'N/A';
             $invoice_sent_date = $data->invoice_sent_date ?? 'N/A';
-            $spoc =  $data->admin->name ?? 'NA';
+            $spoc =  $data->admin->name ?? 'N/A';
         
 
             $expData[] = [
@@ -1289,6 +1257,47 @@ class ReportController extends Controller
     
         header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
         header('Content-Disposition: attachment;filename="Pending-invoices.xlsx"');
+        header('Cache-Control: max-age=0');
+
+        $writer->save('php://output');
+        exit;
+    }
+
+    public function customerTripExcel()
+    {
+        $bookings = \App\Models\TripBooking::whereNotIn('trip_status', ['Cancelled', 'Draft'])->with('trip')->get();
+
+        $data = [];
+        $data[] = ['Customer Name', 'Phone', 'Email', 'Trip Name'];
+
+        foreach ($bookings as $booking) {
+            $tripName = $booking->trip->name ?? 'N/A';
+            $customerIds = json_decode($booking->customer_id) ?? [];
+            foreach ($customerIds as $cid) {
+                $customer = \App\Models\Customer::find($cid);
+                if ($customer) {
+                    $data[] = [
+                        $customer->first_name . ' ' . $customer->last_name,
+                        ($customer->telephone_code ?? '') . ($customer->phone ?? ''),
+                        $customer->email ?? '',
+                        $tripName,
+                    ];
+                }
+            }
+        }
+
+        $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->fromArray($data, null, 'A1');
+
+        foreach (range('A', 'D') as $columnID) {
+            $sheet->getColumnDimension($columnID)->setAutoSize(true);
+        }
+
+        $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
+
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header('Content-Disposition: attachment;filename="customer-trip-list.xlsx"');
         header('Cache-Control: max-age=0');
 
         $writer->save('php://output');

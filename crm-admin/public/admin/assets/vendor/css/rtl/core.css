@@ -24381,8 +24381,6 @@ a.bg-vimeo:hover, a.bg-vimeo:focus {
   background-color: #0056b3;
   border-color: #0056b3;
 }
-
-
 /* add referral css */
 #emailSuggestions {
   position: relative;
@@ -24412,6 +24410,6 @@ a.bg-vimeo:hover, a.bg-vimeo:focus {
 }
 #expedition {
   width: 100%; /* Ensure full width */
-/* Higher than other elements */
+  /* Higher than other elements */
   position: relative; /* Ensure stacking context */
 }

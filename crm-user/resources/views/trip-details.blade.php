@@ -182,7 +182,7 @@
                                             </span><br>
                                         @endforeach
                                     </div>
-                                    <!--<div class="mt-4">-->
+                                    {{-- <!--<div class="mt-4">--> --}}
                                     <!--    <h5 class="text fw-bold font-size-14">Room Type</h5>-->
                                     <!--    <h5 class="text fw-bold font-size-14">{{ $data->room_type }}</h5>-->
                                     <!--</div>-->
@@ -261,13 +261,13 @@
                                 <h6 class="text fw-bold ">Summary</h6>
                                 <div class="row mt-5">
                                     <div class="col-md-6">
-
-                                        <div class="border-bottom mt-3">
-                                            <h6 class="fw-bold text font-size-14">Basic Package Cost</h6>
-                                            <div id="trip_cost">
+                                        <div class="border-bottom mt-3 d-flex justify-content-between">
+                                            <h6 class="fw-bold text font-size-14">Trip Cost</h6>
+                                            <div id="trip_price">
 
                                             </div>
                                         </div>
+                                        
                                         <div class="border-bottom mt-3">
                                             <h6 class="fw-bold text font-size-14">Discount</h6>
                                             <div id="discount_trip_cost">
@@ -275,6 +275,14 @@
 
                                             </div>
                                         </div>
+
+                                        <div class="border-bottom mt-3">
+                                            <h6 class="fw-bold text font-size-14">Basic Package Cost</h6>
+                                            <div id="trip_cost">
+
+                                            </div>
+                                        </div>
+                                       
 
                                         <div class="border-bottom mt-3">
                                             <h6 class="fw-bold text font-size-14">Points Redeemed</h6><br>
@@ -307,12 +315,18 @@
 
                                             </div>
                                         </div>
+                                        @if($data->tax_required == 1)
+                                        
+                                        @else
+                                            <div class="border-bottom mt-3">
+                                                <div id="tax_info">
 
-                                        <div class="border-bottom mt-3">
-                                            <div id="tax_info">
 
+                                                </div>
                                             </div>
-                                        </div>
+                                        
+                                        @endif
+
 
                                         <div class="border-bottom mt-3">
                                             <h6 class="fw-bold text font-size-14">Total Package Cost (incl taxes) - [C]
@@ -508,7 +522,7 @@
                         var package_c_data = data.package_c;
                         var extra_services_redeemable = data.extra_services_redeemable;
                         var vehicle_seat = data.vehicle_seat;
-                        var vehicle_type = data.vehicle_type;
+                        var vehical_type = data.vehical_type;
                         var carbon_infos = data.carbon_infos;
 
                         var total_trip_cost = 0;
@@ -536,6 +550,17 @@
                         var extra_service_list_redeem = "";
                         var carbon_infos_data = ``;
 
+
+                        
+
+
+                        trip_price = `<div class="d-flex justify-content-between">
+                                                   
+                                                    <h6 class="font-size-14">${formatter.format(real_trip_amt)}
+                                                    </h6>
+                                                </div>`;
+
+                        $("#trip_price").html(trip_price);
                         // Basic Package Cost
                         $.each(trip_costs, function(key, value) {
                             total_trip_cost += parseInt(value.cost);
@@ -615,7 +640,7 @@
                             if (value.room_type_amt) {
                                 total_trip_cost += parseInt(value.room_type_amt);
                                 room_info_data += `<div class="d-flex justify-content-between">
-                                                    <span class="gray font-size-12">Room Charges (${value.room_type}) ${value.room_cat && value.room_cat !== '' ? ' - ' + value.room_cat : ''}</span>
+                                                    <span class="gray font-size-12">Room Charges (${value.room_type})${value.room_cat && value.room_cat !== '' ? ' - ' + value.room_cat : ''} </span>
                                                 <h6 class="font-size-12">${formatter.format(value.room_type_amt)}</h6>
                                             </div>`;
                             }

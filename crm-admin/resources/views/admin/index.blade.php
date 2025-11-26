@@ -107,7 +107,6 @@
                         </div>
                     @endif
 
-
                     <form id="formAuthentication" class="mb-3" action="{{ route('login') }}" method="POST">
                         @csrf
                         <div class="form-floating form-floating-outline mb-3">
@@ -134,10 +133,12 @@
                                 <input class="form-check-input" type="checkbox" id="remember-me" />
                                 <label class="form-check-label" for="remember-me"> Remember Me </label>
                             </div>
-                            <!-- <a href="auth-forgot-password-cover.html" class="float-end mb-1"> -->
                             <a href="{{ route('password.request') }}" class="float-end mb-1">
                                 <span>Forgot Password?</span>
                             </a>
+                            {{-- <a href="auth-forgot-password-cover.html" class="float-end mb-1">
+                                <span>Forgot Password?</span>
+                            </a> --}}
                         </div>
                         <button class="btn btn-primary d-grid w-100">Sign in</button>
                     </form>

@@ -18,6 +18,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use App\Events\SendMailEvent;
 use App\Models\Country;
@@ -41,6 +42,7 @@ class CustomerController extends Controller
     {
         $data = Customer::whereNotNull('email')->where('email', '!=', "null")->orderBy('id', 'Desc');
         $dataCount = Customer::whereNotNull('email')->where('email', '!=', "null")->count();
+      
 
         // query speed purpose
         $searchVal = $_GET['search']['value'];
@@ -161,7 +163,7 @@ class CustomerController extends Controller
         // if(setting('mail_status') == 1){
         //     event(new SendMailEvent("$request->email", 'Your Account Login Details | Adventures Overland!', 'emails.login-details', $data));
         // }
-        // // mail
+        // mail
         
         if($request->popup){
             return redirect()->back()->with('success', 'Customer Added Successfully');
@@ -333,81 +335,81 @@ class CustomerController extends Controller
         return Response::download($sampleFilePath, 'sample-customer.xlsx', $headers);
     }
 
+    public function export()
+    {
+        $customers = Customer::all();
+    
+        $data = []; 
+        $data[] = [
+            'Email', 'Phone', 'First Name', 'Last Name','trip','Gender', 'DOB', 'Address', 'City', 'Country', 'State', 'Pincode',
+            'Meal Preference', 'Blood Group', 'Profession', 'Emergency Conatct Name', 'Emergency Contact Number', 'T-shirt Size',
+            'Medical Condition','Referred By','trip_count','Tier','Parent Name',
+            'Relation'    
+        ];
 
-// ...existing code...
-public function export()
-{
-    $customers = Customer::all();
-
-  
-    $data = [];
-    $data[] = [
-        'Email', 'Phone', 'First Name', 'Last Name', 'Gender', 'DOB', 'Address', 'City', 'Country', 'State', 'Pincode',
-        'Meal Preference', 'Blood Group', 'Profession', 'Emergency Conatct Name', 'Emergency Contact Number', 'T-shirt Size',
-        'Medical Condition', 'Referred By',
-        'Parent Name',
-        'Relation'    
-    ];
-
-    foreach ($customers as $customer) {
-        // Get Parent Name
-        $parentName = 'No Parent';
-        if ($customer->parent != 0) {
-            $parent = Customer::find($customer->parent);
-            if ($parent) {
-                $parentName = $parent->first_name . ' ' . $parent->last_name;
+        foreach ($customers as $customer) {
+            // Get Parent Name
+            $tripCount=getTripCountbyCustomerId($customer->id);
+            $tripname=gettripname($customer->id);
+            $parentName = 'No Parent';
+            if ($customer->parent != 0) {
+                $parent = Customer::find($customer->parent);
+                if ($parent) {
+                    $parentName = $parent->first_name . ' ' . $parent->last_name;
+                }
             }
+
+            $data[] = [
+                $customer->email,
+                "$customer->telephone_code"."$customer->phone",
+                $customer->first_name,
+                $customer->last_name,
+                $tripname,
+                $customer->gender,
+                $customer->dob,
+                $customer->address,
+                $customer->city,
+                $customer->country,
+                $customer->state,
+                $customer->pincode,
+                $customer->meal_preference,
+                $customer->blood_group,
+                $customer->profession,
+                $customer->emg_name,
+                $customer->emg_contact,
+                $customer->t_size,
+                $customer->medical_condition,
+                $customer->referred_by,
+                $customer->trip_count = $tripCount,
+                $customer->tier ?? 'N/A', // <-- Added
+                $parentName,               
+                $customer->relation ?? '',
+            ];
         }
 
-        $data[] = [
-            $customer->email,
-            "$customer->telephone_code"."$customer->phone",
-            $customer->first_name,
-            $customer->last_name,
-            $customer->gender,
-            $customer->dob,
-            $customer->address,
-            $customer->city,
-            $customer->country,
-            $customer->state,
-            $customer->pincode,
-            $customer->meal_preference,
-            $customer->blood_group,
-            $customer->profession,
-            $customer->emg_name,
-            $customer->emg_contact,
-            $customer->t_size,
-            $customer->medical_condition,
-            $customer->referred_by,
-            $parentName,                // <-- Added
-            $customer->relation ?? '',  // <-- Added
-        ];
+    
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+
+        // Add data to the spreadsheet
+        $sheet->fromArray($data, null, 'A1');
+
+        // Set auto column size for all columns
+        foreach(range('A', $sheet->getHighestColumn()) as $columnID) {
+            $sheet->getColumnDimension($columnID)->setAutoSize(true);
+        }
+
+        // Create a writer for XLSX format
+        $writer = new Xlsx($spreadsheet);
+
+        // Set headers for download
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header('Content-Disposition: attachment;filename="customers.xlsx"');
+        header('Cache-Control: max-age=0');
+
+        // Output the spreadsheet data to a file
+        $writer->save('php://output');
     }
-
-    // Create a new PhpSpreadsheet instance
-    $spreadsheet = new Spreadsheet();
-    $sheet = $spreadsheet->getActiveSheet();
-
-    // Add data to the spreadsheet
-    $sheet->fromArray($data, null, 'A1');
-
-    // Set auto column size for all columns
-    foreach(range('A', $sheet->getHighestColumn()) as $columnID) {
-        $sheet->getColumnDimension($columnID)->setAutoSize(true);
-    }
-
-    // Create a writer for XLSX format
-    $writer = new Xlsx($spreadsheet);
-
-    // Set headers for download
-    header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-    header('Content-Disposition: attachment;filename="customers.xlsx"');
-    header('Cache-Control: max-age=0');
-
-    // Output the spreadsheet data to a file
-    $writer->save('php://output');
-}
-// ...existing code...
 
     
     /**
@@ -431,17 +433,14 @@ public function export()
                 'last_name' => ['required', 'string', 'max:255'],
             ]);
         }else{
-          $rules = [
-            'first_name' => ['required', 'string', 'max:255'],
-            'last_name' => ['required', 'string', 'max:255'],
-            'gender' => ['required'],
-            'telephone_code' => ['required'],
-            'phone' => ['required', 'max:255', 'unique:customers,phone,' . $request->id],
-        ];
-        if ($request->filled('email')) {
-            $rules['email'] = ['required', 'email', 'max:255', 'unique:customers,email,' . $request->id];
-        }
-        $request->validate($rules);
+            $request->validate([
+                'first_name' => ['required', 'string', 'max:255'],
+                'last_name' => ['required', 'string', 'max:255'],
+                'email' => ['required', 'email', 'max:255', 'unique:customers,email,' . $request->id],
+                'phone' => ['required', 'max:255', 'unique:customers,phone,' . $request->id],
+                'gender' => ['required'],
+                'telephone_code' => ['required'],
+            ]);
         }
 
 
@@ -469,9 +468,14 @@ public function export()
         $data->emg_contact = $request->emg_contact;
         $data->t_size = $request->t_size;
         $data->medical_condition = $request->medical_condition;
-      
+        // $data->vaccination = $request->vaccination;
         $data->emg_name = $request->emg_name;
-      
+        // $data->something = $request->something;
+        // $data->have_road_trip = $request->have_road_trip;
+        // $data->thrilling_exp = $request->thrilling_exp;
+        // $data->three_travel = $request->three_travel;
+        // $data->three_place = $request->three_place;
+
 
         $action = Auth::user()->name ." has edited ";
         foreach($data->getDirty() as $field=>$value){
@@ -528,13 +532,14 @@ public function export()
     public function view($id)
     {
         $data = Customer::where('id', $id)->first();
+     
         $minorCheck = Customer::where('parent', $id)->count();
-          $avalPoints = LoyalityPts::where('customer_id', $data->id)
-            ->where('status', 'Approved')
-            ->get();
+        // $avalPoints = LoyalityPts::where('customer_id', $data->id)
+        //     ->where('status', 'Approved')
+        //     ->get();
 
-        $totalAmtPoint = $avalPoints->sum('trans_amt');
-        return view('admin.customers.view', compact('data', 'minorCheck','totalAmtPoint'));
+        // $totalAmtPoint = $avalPoints->sum('trans_amt');
+        return view('admin.customers.view', compact('data', 'minorCheck'));
     }
 
     public function activityPage($id)
@@ -563,6 +568,7 @@ public function export()
     // view
     public function trips(Request $request){
         $id = $request->customer_id;
+        // dd($id);
         $data = TripBooking::whereJsonContains('customer_id', "$id")->where('trip_status', '!=', 'Draft')->orderBy('id', 'Desc')->get();
         $data->map(function ($item, $index) use($id) {
             $item->created = date("M d, Y", strtotime($item->created_at));
@@ -573,7 +579,6 @@ public function export()
            
 
             $customers = json_decode($item->customer_id);
-            // dd($customers);
             $memTravel = "";
             foreach($customers as $customer){
                 $cus = getCustomerById($customer);
@@ -583,6 +588,7 @@ public function export()
                     $memTravel .= $cus->name ."(". $cus->relation . "), ";
                 }
             }
+          
 
             if(count($customers) > 1){
                 $item->members = $memTravel;
@@ -688,10 +694,69 @@ public function export()
        
     }
 
+    // public function downloadAttachments(Request $request)
+    // {
+    //     $customer = Customer::find($request->customer_id);
+
+    //     if (!$customer) {
+    //         return response()->json(['error' => 'Customer not found'], 404);
+    //     }
+
+    //     $fields = [
+    //         'passport_front', 'passport_back',
+    //         'adhar_card', 'pan_gst',
+    //         'gst_certificate', 'profile', 'driving'
+    //     ];
+
+    //     $files = [];
+
+    //     $crmUserStorage = base_path('../crm-user/storage/app/public/'); // point to crm-user storage
+
+    //     foreach ($fields as $field) {
+    //         if (!empty($customer->$field)) {
+    //             $relativePath = ltrim(str_replace('public/', '', $customer->$field), '/');
+    //             $fullPath = $crmUserStorage . $relativePath;
+
+    //             if (file_exists($fullPath)) {
+    //                 $files[] = $fullPath;
+    //             } else {
+    //                 \Log::info("File not found: " . $fullPath);
+    //             }
+    //         }
+    //     }
+
+    //     if (empty($files)) {
+    //         return response()->json(['error' => 'No attachments found'], 404);
+    //     }
+
+    //     // Safe ZIP file name
+    //     $safeName = preg_replace('/[^A-Za-z0-9_\-]/', '_', $customer->first_name . '_' . $customer->last_name);
+    //     $zipFileName = $safeName . '_attachments.zip';
+    //     $zipPath = storage_path('app/temp/' . $zipFileName);
+
+    //     // Ensure temp directory exists
+    //     if (!File::exists(storage_path('app/temp'))) {
+    //         File::makeDirectory(storage_path('app/temp'), 0755, true);
+    //     }
+
+    //     // Create ZIP
+    //     $zip = new ZipArchive;
+    //     if ($zip->open($zipPath, ZipArchive::CREATE | ZipArchive::OVERWRITE) === TRUE) {
+    //         foreach ($files as $file) {
+    //             $zip->addFile($file, basename($file));
+    //         }
+    //         $zip->close();
+    //     } else {
+    //         return response()->json(['error' => 'Failed to create ZIP'], 500);
+    //     }
+
+    //     return response()->download($zipPath)->deleteFileAfterSend(true);
+    // }
+
+
     public function downloadAttachments(Request $request)
     {
         $customer = Customer::find($request->customer_id);
-
         if (!$customer) {
             return response()->json(['error' => 'Customer not found'], 404);
         }
@@ -701,50 +766,77 @@ public function export()
             'adhar_card', 'pan_gst',
             'gst_certificate', 'profile', 'driving'
         ];
-
-        $files = [];
-
-        $crmUserStorage = base_path('../crm-user/storage/app/public/'); // point to crm-user storage
-
+        $crmUserStorage = base_path('../crm-user/storage/app/public/');
+        $includeTemplate = true;
+        $templateLocalPath = '/mnt/data/customers_registration_data.xlsx';
+        $filesToAdd = [];
         foreach ($fields as $field) {
             if (!empty($customer->$field)) {
                 $relativePath = ltrim(str_replace('public/', '', $customer->$field), '/');
-                $fullPath = $crmUserStorage . $relativePath;
-
-                if (file_exists($fullPath)) {
-                    $files[] = $fullPath;
+                $fullDiskPath = $crmUserStorage . $relativePath;
+                if (file_exists($fullDiskPath)) {
+                    $zipName = $field . '_' . basename($fullDiskPath);
+                    $filesToAdd[] = ['disk' => $fullDiskPath, 'zipName' => $zipName];
                 } else {
-                    \Log::info("File not found: " . $fullPath);
+                    \Log::info("Customer file not found: " . $fullDiskPath);
                 }
             }
         }
 
-        if (empty($files)) {
-            return response()->json(['error' => 'No attachments found'], 404);
-        }
-
-        // Safe ZIP file name
-        $safeName = preg_replace('/[^A-Za-z0-9_\-]/', '_', $customer->first_name . '_' . $customer->last_name);
-        $zipFileName = $safeName . '_attachments.zip';
-        $zipPath = storage_path('app/temp/' . $zipFileName);
-
-        // Ensure temp directory exists
-        if (!File::exists(storage_path('app/temp'))) {
-            File::makeDirectory(storage_path('app/temp'), 0755, true);
-        }
-
-        // Create ZIP
-        $zip = new ZipArchive;
-        if ($zip->open($zipPath, ZipArchive::CREATE | ZipArchive::OVERWRITE) === TRUE) {
-            foreach ($files as $file) {
-                $zip->addFile($file, basename($file));
+        $extraDocs = DB::table('extra_documents')->where('user_id', $request->customer_id)->get();
+        $counter = 1;
+        foreach ($extraDocs as $extra) {
+            $title = trim($extra->title ?? '');
+            $img = trim($extra->image ?? '');
+            if (empty($img)) {
+                continue;
             }
-            $zip->close();
-        } else {
-            return response()->json(['error' => 'Failed to create ZIP'], 500);
+            $relativePath = ltrim(str_replace('public/', '', $img), '/');
+            $fullDiskPath = $crmUserStorage . $relativePath;
+            if (file_exists($fullDiskPath)) {
+                $safeTitle = $title ? preg_replace('/[^A-Za-z0-9_\-]/', '_', $title) : 'extra_' . $counter;
+                $zipName = $safeTitle . '_' . basename($fullDiskPath);
+                $i = 1;
+                $uniqueZipName = $zipName;
+                while (in_array($uniqueZipName, array_column($filesToAdd, 'zipName'))) {
+                    $uniqueZipName = $safeTitle . '_' . $i . '_' . basename($fullDiskPath);
+                    $i++;
+                }
+                $filesToAdd[] = ['disk' => $fullDiskPath, 'zipName' => $uniqueZipName];
+                $counter++;
+            } else {
+                \Log::info("Extra doc file not found: " . $fullDiskPath);
+            }
         }
 
-        return response()->download($zipPath)->deleteFileAfterSend(true);
+        if ($includeTemplate && File::exists($templateLocalPath)) {
+            $filesToAdd[] = ['disk' => $templateLocalPath, 'zipName' => 'customers_registration_data.xlsx'];
+        }
+
+        if (empty($filesToAdd)) {
+            return response()->json(['error' => 'No files found to include in ZIP'], 404);
+        }
+
+        $safeName = preg_replace('/[^A-Za-z0-9_\-]/', '_', (($customer->first_name ?? '') . '_' . ($customer->last_name ?? '')));
+        $zipFileName = $safeName . '_attachments.zip';
+        $tempDir = storage_path('app/temp');
+        if (!File::exists($tempDir)) {
+            File::makeDirectory($tempDir, 0755, true);
+        }
+        $zipPath = $tempDir . DIRECTORY_SEPARATOR . $zipFileName;
+
+        $zip = new \ZipArchive();
+        if ($zip->open($zipPath, \ZipArchive::CREATE | \ZipArchive::OVERWRITE) !== TRUE) {
+            return response()->json(['error' => 'Failed to create ZIP archive'], 500);
+        }
+
+        foreach ($filesToAdd as $f) {
+            $zip->addFile($f['disk'], $f['zipName']);
+        }
+        $zip->close();
+        
+        return response()->download($zipPath, $zipFileName)->deleteFileAfterSend(true);
     }
+
     
 }

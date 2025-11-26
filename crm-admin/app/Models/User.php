@@ -48,11 +48,13 @@ class User extends Authenticatable
     public function role(){
         return $this->belongsTo(Role::class, 'role_id', 'id');
     }
-
-    // Call this method for send rest email
+    public function trips()
+    {
+        return $this->hasMany(Trip::class, 'relation_manager_id', 'id');
+    }
+    
     public function sendPasswordResetNotification($token)
     {
         $this->notify(new \App\Notifications\ResetPassword($token));
     }
-
 }

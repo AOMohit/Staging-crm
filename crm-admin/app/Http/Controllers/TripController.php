@@ -3,7 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Trip;
-use App\Models\CarbonInfo;
+use App\Models\TripImage; // Added TripImage model 25.11.2025
+
 use App\Models\User;
 use App\Models\Vehicle;
 use App\Models\Room;
@@ -24,14 +25,16 @@ use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
 use Yajra\DataTables\DataTables;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;         // Add Log facade       25.11.2025
+use Illuminate\Support\Facades\Storage;     // Add Storage facade   25.11.2025
 use App\Events\SendMailEvent;
 use App\Events\SendExpenseMailEvent;
 use App\Models\EmailActivity;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Carbon;
+
 
 use Illuminate\Support\Facades\Response;
 
@@ -45,7 +48,7 @@ class TripController extends Controller
         $trips = Trip::orderBy('id', 'Desc')->get();
         return view('admin.trip.index', compact('admins', 'trips'));
     }
-   
+
     public function get(Request $request)
     {
         $date = date("Y-m-d");
@@ -107,11 +110,11 @@ class TripController extends Controller
             }
       
             $item->relation_manager_names = $item->relation_manager_names ?? "";
+            
             $item->pax = getPaxFromTripId($item->id);
             $item->added_by = $item->admin->name ?? null;
 
         });
-
    
         return DataTables::of($data)->make(true);
     }
@@ -126,7 +129,7 @@ class TripController extends Controller
 
     public function store(Request $request)
     {
-      
+
     
             $request->validate([
                 'trip_type' => ['required', 'string', 'max:255'],
@@ -134,12 +137,13 @@ class TripController extends Controller
                 'start_date' => ['required'],
                 'end_date' => ['required'],
                 'price' => ['required'],
-                'drive_tour_type' => ['required'],
                 'region_type' => ['required'],
-                'booking_type' => ['required'],
+                'tree_no' => ['required'],
+                'donation_amt' => ['required'],
                 'relationManager' => ['required'],
-            ],[
-                'drive_tour_type.required' => 'You have to choose one of them ', // Custom message
+
+                // gallery images validation 25.11.2025
+                'images.*' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,webp', 'max:5120'],
             ]);
         try {
             $data = new Trip();
@@ -153,13 +157,12 @@ class TripController extends Controller
             $data->landscape = $request->landscape;
             $data->style = $request->style;
             $data->activity = $request->activity;
+            $data->tree_no = $request->tree_no;
+            $data->donation_amt = $request->donation_amt;
             $data->overview = $request->overview;
             $data->region_type = $request->region_type;
-            $data->booking_type = $request->booking_type;
             $data->stationary_id = json_encode($request->stationary);
             $data->merchandise_id = json_encode($request->merchandise);
-            $data->drive_tour_type = $request->drive_tour_type;
-
             if(!empty($request->relationManager)) {
                 $data->relation_manager_id = json_encode($request->relationManager);
             }
@@ -170,6 +173,19 @@ class TripController extends Controller
             }
 
             $data->save();
+
+            // Handling gallery images upload 25.11.2025
+            if ($request->hasFile('images')) {
+                foreach ($request->file('images') as $file) {
+                    if ($file && $file->isValid()) {
+                        $path = $file->store('admin/trip/gallery');
+                        TripImage::create([
+                            'trip_id' => $data->id,
+                            'image' => $path,
+                        ]);
+                    }
+                }
+            }
 
             // Activity Tracker
             $activity = new ActivityTracker();
@@ -362,10 +378,7 @@ class TripController extends Controller
             'end_date' => ['required'],
             'price' => ['required'],
             'region_type' => ['required'],
-            'booking_type' => ['required'],
             'relationManager' => ['required'],
-            'drive_tour_type' => ['required'],
-
 
         ]);
 
@@ -381,14 +394,13 @@ class TripController extends Controller
         $data->landscape = $request->landscape;
         $data->style = $request->style;
         $data->activity = $request->activity;
+        $data->tree_no = $request->tree_no;
+        $data->donation_amt = $request->donation_amt;
         $data->overview = $request->overview;
         $data->relation_manager_id = json_encode($request->relationManager);
         $data->region_type = $request->region_type;
-        $data->booking_type = $request->booking_type;
         $data->stationary_id = json_encode($request->stationary);
         $data->merchandise_id = json_encode($request->merchandise);
-        $data->drive_tour_type = $request->drive_tour_type;
-
 
         $data->status = $request->status;
         $data->added_by = Auth::user()->id;
@@ -405,6 +417,18 @@ class TripController extends Controller
 
         $data->save();
 
+        // handle newly uploaded gallery images (store on public)
+        if ($request->hasFile('images')) {
+            foreach ($request->file('images') as $file) {
+                if ($file && $file->isValid()) {
+                    $path = $file->store('admin/trip/gallery');
+                    TripImage::create([
+                        'trip_id' => $data->id,
+                        'image' => $path,
+                    ]);
+                }
+            }
+        }
 
         // Activity Tracker
         $activity = new ActivityTracker();
@@ -416,6 +440,35 @@ class TripController extends Controller
         // Activity Tracker
 
         return redirect(route('trip.index'))->with('success', 'Updated Successfully !!');
+    }
+
+    public function deleteImage(Request $request, $id)
+    {
+        try {
+            $img = TripImage::findOrFail($id);
+
+            if ($img->image) {
+                // delete from storage/app/<path>
+                $file = storage_path('app/' . $img->image);
+                if (file_exists($file)) {
+                    @unlink($file);
+                }
+            }
+
+            $img->delete();
+
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json(['success' => true]);
+            }
+
+            return redirect()->back()->with('success', 'Image deleted successfully.');
+        } catch (\Exception $e) {
+            Log::error('Failed to delete trip image: ' . $e->getMessage());
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json(['success' => false, 'message' => 'Failed to delete image'], 500);
+            }
+            return redirect()->back()->with('error', 'Failed to delete image.');
+        }
     }
 
     public function changeStatus(Request $request){
@@ -520,7 +573,7 @@ class TripController extends Controller
         $exp_paid = Expense::where('trip_id', $id)->sum('paid_amount');
         $data = Trip::find($id);
         $tripInfo = TripBooking::where('trip_id', $id)->where('form_submited', 1)->where('trip_status', '!=', 'Cancelled')->get();
-        $carbonInfo = CarbonInfo::where('trip_id', $id)->get();
+        // dd($tripInfo);
         $roomTypeSum = 0;
         $roomTypeAmtSum = 0;
         foreach($tripInfo as $ri){
@@ -528,11 +581,10 @@ class TripController extends Controller
                 foreach(json_decode($ri->room_info) as $roomData){
                     $roomTypeSum += $roomData->room_type;
                     $roomTypeAmtSum += $roomData->room_type_amt;
-                   
                 }
             }
         }
-    
+
         $vehicleSeat = 0;
         $vehicleSeatAmt = 0;
         foreach($tripInfo as $ri){
@@ -545,7 +597,7 @@ class TripController extends Controller
         }
         // $payableTripAmt = TripBooking::where('trip_status', '!=', 'Draft')->where('trip_id', $id)->sum('payable_amt');
         $payableTripAmt = $data->price * getCustomerCountByTripId($id);
-        return view('admin.trip.view', compact('data', 'ess', 'exp_total', 'exp_paid', 'payableTripAmt', 'vservices', 'roomTypeSum', 'roomTypeAmtSum', 'vehicleSeat', 'vehicleSeatAmt','tripInfo','carbonInfo'));
+        return view('admin.trip.view', compact('data', 'ess', 'exp_total', 'exp_paid', 'payableTripAmt', 'vservices', 'roomTypeSum', 'roomTypeAmtSum', 'vehicleSeat', 'vehicleSeatAmt'));
     }
 
     public function activityPage($id)
@@ -582,7 +634,6 @@ class TripController extends Controller
                 $pps = json_decode($item->part_payment_list);
                 foreach($pps as $cost){
                     $paidAmount += $cost->amount ?? 0;
-
                 }
             }
 
@@ -607,7 +658,8 @@ class TripController extends Controller
             $item->customers = $customerData;
             $item->members = $customerList;
             $item->total_amount = $item->payable_amt;
-            $item->paid = $paidAmount;   // trip paid amount
+            // $item->paid = $item->payment_amt;
+            $item->paid = $paidAmount;
 
             $pending_amount = $item->payable_amt - $paidAmount;
             $item->pending_amount = $pending_amount;
@@ -662,7 +714,7 @@ class TripController extends Controller
         $data = TripBooking::where('form_submited', 1)->where('trip_id', $trip_id)->where('trip_status', '!=', 'Cancelled')->orderBy('id', 'desc')->get();
 
         $data->map(function ($item, $index) {
-            $item->admin_id = $item->admin->name;
+            $item->admin_id = $item->admin->name ?? null;
             $customers = json_decode($item->customer_id);
             $customerData = [];
             foreach($customers as $c_id){
@@ -720,33 +772,89 @@ class TripController extends Controller
         return DataTables::of($data)->make(true);
     }
 
-    public function merchandise(Request $request){
+    // public function merchandise(Request $request){
+    //     $trip_id = $request->trip_id;
+    //     $data = TripBooking::where('trip_id', $trip_id)->whereNotIn('trip_status', ['Cancelled', 'Draft'])->orderBy('id', 'desc')->get();
+
+    //     $data->map(function ($item, $index) {
+    //         $customers = json_decode($item->customer_id);
+    //         $customerData = [];
+    //         // dd($customers);
+    //         foreach($customers as $c_id){
+    //             $item->created = date("d M, Y", strtotime($item->created_at));
+    //             $item->customers = getCustomerById($c_id)->name ?? null;
+    //             $item->address = getCustomerById($c_id)->address ?? null;
+    //             $item->address .= getCustomerById($c_id)->city ?? null;
+    //             $item->address .= getCustomerById($c_id)->state ?? null;
+    //             $item->address .= getCustomerById($c_id)->country ?? null;
+    //             $item->address .= getCustomerById($c_id)->pincode ?? null;
+
+    //             $item->trip_name = $item->trip->name;
+    //             $merchandiseData = "";
+    //             if($item->trip->merchandise_id){
+    //                 $stationaries = json_decode($item->trip->merchandise_id) ?? [""];
+    //                 foreach($stationaries as $merchandise_id){
+    //                     $st = getMerchandiseById($merchandise_id)->title ?? null;
+    //                     $merchandiseData .= $st. ", ";
+    //                 }
+    //             }
+
+    //             $item->size = getCustomerById($c_id)->t_size ?? null;
+    //             $item->qty = 1;
+    //             $item->gender = getCustomerById($c_id)->gender ?? null;
+    //             $item->merchandise_name = $merchandiseData;
+    //         }
+    //     });
+    //     // dd($data);
+    //     return DataTables::of($data)->make(true);
+    // }
+
+    public function merchandise(Request $request)
+    {
         $trip_id = $request->trip_id;
-        $data = TripBooking::where('trip_id', $trip_id)->whereNotIn('trip_status', ['Cancelled', 'Draft'])->orderBy('id', 'desc')->get();
+        $data = TripBooking::where('trip_id', $trip_id)
+            ->whereNotIn('trip_status', ['Cancelled', 'Draft'])
+            ->orderBy('id', 'desc')
+            ->get();
 
-        $data->map(function ($item, $index) {
-            $customers = json_decode($item->customer_id);
-            $customerData = [];
-            foreach($customers as $c_id){
-                $item->created = date("d M, Y", strtotime($item->created_at));
-                $item->customers = getCustomerById($c_id)->name ?? null;
-                $item->trip_name = $item->trip->name;
-                $merchandiseData = "";
-                if($item->trip->merchandise_id){
-                    $stationaries = json_decode($item->trip->merchandise_id) ?? [""];
-                    foreach($stationaries as $merchandise_id){
-                        $st = getMerchandiseById($merchandise_id)->title ?? null;
-                        $merchandiseData .= $st. ", ";
-                    }
+        $data->transform(function($item){
+            $item->created = date("d M, Y", strtotime($item->created_at));
+            $item->trip_name = $item->trip->name ?? null;
+            $item->merchandise_name = '';
+            if (!empty($item->trip->merchandise_id)) {
+                $ids = json_decode($item->trip->merchandise_id) ?: [];
+                $titles = [];
+                foreach ($ids as $mid) {
+                    $m = getMerchandiseById($mid);
+                    if (!empty($m->title)) $titles[] = $m->title;
                 }
-
-                $item->size = getCustomerById($c_id)->t_size ?? null;
-                $item->qty = 1;
-                $item->gender = getCustomerById($c_id)->gender ?? null;
-                $item->merchandise_name = $merchandiseData;
+                $item->merchandise_name = implode(', ', $titles);
             }
+
+            $customers = json_decode($item->customer_id) ?: [];
+            foreach ($customers as $c_id) {
+                $cust = getCustomerById($c_id);
+                if (!$cust) continue;
+
+                $item->customers = $cust->name ?? null;
+                $parts = [
+                    isset($cust->address) ? trim($cust->address) : '',
+                    isset($cust->city)    ? trim($cust->city)    : '',
+                    isset($cust->state)   ? trim($cust->state)   : '',
+                    isset($cust->country) ? trim($cust->country) : '',
+                    isset($cust->pincode) ? trim($cust->pincode) : '',
+                ];
+                $parts = array_values(array_filter($parts, fn($v) => $v !== ''));
+                $item->address = $parts ? implode(', ', $parts) : null;
+
+                $item->size = $cust->t_size ?? null;
+                $item->qty = 1;
+                $item->gender = $cust->gender ?? null;
+            }
+
+            return $item;
         });
-        // dd($data);
+
         return DataTables::of($data)->make(true);
     }
 
@@ -1009,6 +1117,15 @@ class TripController extends Controller
         return redirect()->back()->with('success', 'Payment Added Successfully !!');
     }
 
+    // public function deleteExpense($id){
+
+    //     $exp = Expense::find($id);
+    //     @unlink('storage/app/'.$exp->docx);
+    //     $expHis = ExpenseHistory::where('expense_id', $id)->delete();
+    //     $exp->delete();
+
+    //     return redirect()->back()->with('success', 'Deleted Successfully !!');
+    // }
     public function deleteExpense($id)
     {
         $exp = Expense::findOrFail($id);
@@ -1456,8 +1573,6 @@ class TripController extends Controller
         $writer->save('php://output');
     }
 
-
-
     public function exportMaster(Request $request)
     {
         // Fetch data from the Customer model
@@ -1609,9 +1724,8 @@ class TripController extends Controller
 
         $row = 2;
         $baseUrl = str_replace('crm-admin', 'crm-user', url('storage/app/')) . '/';
-        
-        foreach ($customers as $customer) {
 
+        foreach ($customers as $customer) {
             $customer->profile = $customer->profile ? $baseUrl . $customer->profile : '';
             $customer->passport_front = $customer->passport_front ? $baseUrl . $customer->passport_front : '';
             $customer->passport_back = $customer->passport_back ? $baseUrl . $customer->passport_back : '';
@@ -1619,7 +1733,7 @@ class TripController extends Controller
             $customer->gst_certificate = $customer->gst_certificate ? $baseUrl . $customer->gst_certificate : '';
             $customer->adhar_card = $customer->adhar_card ? $baseUrl . $customer->adhar_card : '';
             $customer->driving = $customer->driving ? $baseUrl . $customer->driving : '';
-
+         
             $latestTrip = Trip::where('id', $customer->letest_trip)->first();
             $latestTripName = $latestTrip ? $latestTrip->name : 'N/A';
 
@@ -1655,77 +1769,162 @@ class TripController extends Controller
     }
     
 
+    // public function merchandiseExport(Request $request)
+    // {
+    //     // Fetch data from the Customer model
+
+    //     $trip_id = $request->trip_id;
+    //     $mData = TripBooking::where('form_submited', 1)->where('trip_id', $trip_id)->whereNotIn('trip_status', ['Cancelled', 'Draft'])->orderBy('id', 'desc')->get();
+    //     if($mData)
+    //     {
+    //           return redirect()->back()->with('warning', 'No Merchandise Data Found .');
+    //     }
+    //     $mData->map(function ($item, $index) {
+    //         $customers = json_decode($item->customer_id);
+    //         $customerData = [];
+    //         foreach($customers as $c_id){
+    //             $item->created = date("d M, Y", strtotime($item->created_at));
+    //             $item->customers = getCustomerById($c_id)->name ?? null;
+    //             $item->trip_name = $item->trip->name;
+    //             $merchandiseData = "";
+    //             if($item->trip->merchandise_id){
+    //                 $stationaries = json_decode($item->trip->merchandise_id) ?? [""];
+    //                 foreach($stationaries as $merchandise_id){
+    //                     $st = getMerchandiseById($merchandise_id)->title ?? null;
+    //                     $merchandiseData .= $st. ", ";
+    //                 }
+    //             }
+
+    //             $item->size = getCustomerById($c_id)->t_size ?? null;
+    //             $item->qty = 1;
+    //             $item->gender = getCustomerById($c_id)->gender ?? null;
+    //             $item->merchandise_name = $merchandiseData;
+    //         }
+    //     });
+
+    //     // Prepare data for export
+    //     $data = [];
+    //     $data[] = ["Trip Type",	"Date",	"Traveller Name",	"Merchandise Type",	"Size",	"Qty",	"Gender"];
+
+    //     foreach ($mData as $customer) {
+    //         $data[] = [
+    //             $customer->trip_name,
+    //             $customer->created,
+    //             $customer->customers,
+    //             $customer->merchandise_name,
+    //             $customer->size,
+    //             $customer->qty,
+    //             $customer->gender,
+    //         ];
+    //     }
+
+    //     // Create a new PhpSpreadsheet instance
+    //     $spreadsheet = new Spreadsheet();
+    //     $sheet = $spreadsheet->getActiveSheet();
+
+    //     // Add data to the spreadsheet
+    //     $sheet->fromArray($data, null, 'A1');
+
+    //     // Set auto column size for all columns
+    //     foreach(range('A', 'Z') as $columnID) {
+    //         $sheet->getColumnDimension($columnID)->setAutoSize(true);
+    //     }
+
+    //     // Create a writer for XLSX format
+    //     $writer = new Xlsx($spreadsheet);
+
+    //     // Set headers for download
+    //     header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    //     header('Content-Disposition: attachment;filename="merchandise.xlsx"');
+    //     header('Cache-Control: max-age=0');
+
+    //     // Output the spreadsheet data to a file
+    //     $writer->save('php://output');
+    // }
     public function merchandiseExport(Request $request)
     {
-        // Fetch data from the Customer model
-
         $trip_id = $request->trip_id;
-        $mData = TripBooking::where('form_submited', 1)->where('trip_id', $trip_id)->whereNotIn('trip_status', ['Cancelled', 'Draft'])->orderBy('id', 'desc')->get();
-        if($mData)
-        {
-              return redirect()->back()->with('warning', 'No Merchandise Data Found .');
+
+        $bookings = TripBooking::where('form_submited', 1)
+            ->where('trip_id', $trip_id)
+            ->whereNotIn('trip_status', ['Cancelled', 'Draft'])
+            ->orderBy('id', 'desc')
+            ->get();
+
+        if ($bookings->isEmpty()) {
+            return redirect()->back()->with('warning', 'No Merchandise Data Found.');
         }
-        $mData->map(function ($item, $index) {
-            $customers = json_decode($item->customer_id);
-            $customerData = [];
-            foreach($customers as $c_id){
-                $item->created = date("d M, Y", strtotime($item->created_at));
-                $item->customers = getCustomerById($c_id)->name ?? null;
-                $item->trip_name = $item->trip->name;
-                $merchandiseData = "";
-                if($item->trip->merchandise_id){
-                    $stationaries = json_decode($item->trip->merchandise_id) ?? [""];
-                    foreach($stationaries as $merchandise_id){
-                        $st = getMerchandiseById($merchandise_id)->title ?? null;
-                        $merchandiseData .= $st. ", ";
-                    }
+
+        $rows = [];
+        $rows[] = ["Trip Type", "Date", "Traveller Name", "Address", "Merchandise Type", "Size", "Qty", "Gender"];
+
+        foreach ($bookings as $item) {
+            $created = date("d M, Y", strtotime($item->created_at));
+            $trip_name = $item->trip->name ?? null;
+
+            $merchandise_name = '';
+            if (!empty($item->trip->merchandise_id)) {
+                $ids = json_decode($item->trip->merchandise_id) ?: [];
+                $titles = [];
+                foreach ($ids as $mid) {
+                    $m = getMerchandiseById($mid);
+                    if (!empty($m->title)) $titles[] = $m->title;
                 }
-
-                $item->size = getCustomerById($c_id)->t_size ?? null;
-                $item->qty = 1;
-                $item->gender = getCustomerById($c_id)->gender ?? null;
-                $item->merchandise_name = $merchandiseData;
+                $merchandise_name = implode(', ', $titles);
             }
-        });
 
-        // Prepare data for export
-        $data = [];
-        $data[] = ["Trip Type",	"Date",	"Traveller Name",	"Merchandise Type",	"Size",	"Qty",	"Gender"];
+            $customers = json_decode($item->customer_id) ?: [];
+            foreach ($customers as $c_id) {
+                $cust = getCustomerById($c_id);
+                if (!$cust) continue;
 
-        foreach ($mData as $customer) {
-            $data[] = [
-                $customer->trip_name,
-                $customer->created,
-                $customer->customers,
-                $customer->merchandise_name,
-                $customer->size,
-                $customer->qty,
-                $customer->gender,
-            ];
+                $name = $cust->name ?? null;
+
+                $parts = [
+                    isset($cust->address) ? trim($cust->address) : '',
+                    isset($cust->city)    ? trim($cust->city)    : '',
+                    isset($cust->state)   ? trim($cust->state)   : '',
+                    isset($cust->country) ? trim($cust->country) : '',
+                    isset($cust->pincode) ? trim($cust->pincode) : '',
+                ];
+                $parts = array_values(array_filter($parts, fn($v) => $v !== ''));
+                $address = $parts ? implode(', ', $parts) : null;
+
+                $size = $cust->t_size ?? null;
+                $qty = 1;
+                $gender = $cust->gender ?? null;
+
+                $rows[] = [
+                    $trip_name,
+                    $created,
+                    $name,
+                    $address,
+                    $merchandise_name,
+                    $size,
+                    $qty,
+                    $gender,
+                ];
+            }
         }
 
-        // Create a new PhpSpreadsheet instance
         $spreadsheet = new Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
-
-        // Add data to the spreadsheet
-        $sheet->fromArray($data, null, 'A1');
-
-        // Set auto column size for all columns
-        foreach(range('A', 'Z') as $columnID) {
+        $sheet->fromArray($rows, null, 'A1');
+        foreach (range('A', 'Z') as $columnID) {
             $sheet->getColumnDimension($columnID)->setAutoSize(true);
         }
-
-        // Create a writer for XLSX format
         $writer = new Xlsx($spreadsheet);
 
-        // Set headers for download
+        if (ob_get_length()) {
+            ob_end_clean();
+        }
+
         header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
         header('Content-Disposition: attachment;filename="merchandise.xlsx"');
         header('Cache-Control: max-age=0');
 
-        // Output the spreadsheet data to a file
         $writer->save('php://output');
+        exit;
     }
 
     public function stationaryExport(Request $request)
@@ -2060,329 +2259,7 @@ class TripController extends Controller
         return redirect()->back()->with('success', 'Payment Saved Successfully !!');
     }
 
-
-    // carbon export file code 
-  
-    public function carbonsample(Request $request)
-    {
-        $trip_id = $request->trip_id;
-
-  
-        $trip = \App\Models\Trip::find($trip_id);
-        $driveTourType = $trip->drive_tour_type ?? '';
-        if (empty($driveTourType)) {
-            return redirect()->back()->with('warning', 'Drive Tour Type is not set for this trip.');
-        }
-
-        $headers = [
-            "Trip Name",
-            "Customer First Name",
-            "Customer Last Name",
-            "Customer Email",
-            "Customer Phone",
-            "No of Trees",
-            "Total Distance",
-            "Carbon Emission",
-            "Car Sequence No"
-        ];
-
-        // Agar Self Drive Tour hai toh car columns bhi add karo
-        if ($driveTourType == 'Self Drive Road Trip') {
-            $headers[] = "Car Name";
-        }
-
-        $data = [];
-        $data[] = $headers;
-
-        $bookings = \App\Models\TripBooking::with(['trip'])
-            ->where('form_submited', 1)
-            ->where('trip_id', $trip_id)
-            ->orderBy('id', 'desc')
-            ->get();
-
-      
-        if ($bookings->isEmpty()) {
-            return redirect()->back()->with('warning', 'There is no booking for this trip.');
-        }
-
-        foreach ($bookings as $booking) {
-            $tripName = $booking->trip->name ?? '';
-            $tripId = $booking->trip_id;
-            $customers = json_decode($booking->customer_id, true);
-
-            if (is_array($customers)) {
-                foreach ($customers as $customerId) {
-                    $customer = \App\Models\Customer::find($customerId);
-                    $firstName = $customer->first_name ?? '';
-                    $lastName = $customer->last_name ?? '';
-                    $email = $customer->email ?? '';
-                    $phone = $customer->phone ?? '';
-
-                    $row = [
-                        $tripName,
-                        $firstName,
-                        $lastName,
-                        $email,
-                        $phone,
-                        null, 
-                        null, 
-                        null,  
-                        null
-                    ];
-
-                 
-                    if ($driveTourType == 'Self Drive Road Trip') {
-                        $row[] = null; 
-                    }
-
-                    $data[] = $row;
-                }
-            }
-        }
-
-        $spreadsheet = new Spreadsheet();
-        $sheet = $spreadsheet->getActiveSheet();
-        $sheet->fromArray($data, null, 'A1');
-
-        $columnCount = count($headers);
-        for ($col = 1; $col <= $columnCount; $col++) {
-            $columnLetter = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($col);
-            $sheet->getColumnDimension($columnLetter)->setAutoSize(true);
-        }
-
-        $writer = new Xlsx($spreadsheet);
-        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-        header('Content-Disposition: attachment; filename="carbon-sample.xlsx"');
-        header('Cache-Control: max-age=0');
-        $writer->save('php://output');
-        exit;
-    }
-   
-    public function carbonInfoImport(Request $request)
-    {
-
-        $messages = [
-            'file.required' => 'Please upload an Excel file.',
-            'file.mimes' => 'Only xlsx or xls  and csv files are allowed.',
-        
-        ];
-
-        $validator = \Validator::make($request->all(), [
-            'file' => 'required|mimes:xlsx,xls,csv'
-        ], $messages);
-
-        if ($validator->fails()) {
-            if ($request->ajax()) {
-                return response()->json(['status' => false,'errors' => $validator->errors()], 422);
-            }
-        }
-        $trip = \App\Models\Trip::find($request->trip_id);
-        $drivetype = $trip->drive_tour_type ?? '';
-          if (empty($drivetype)) {
-             return response()->json(['status' => 404, 'errors' => 'Drive Tour Type is not set for this trip.'], 404);
-        }
-
-        if ($request->hasFile('file')) {
-            $isSelfDrive = $trip->drive_tour_type === 'Self Drive Road Trip';
-
-            $file = $request->file('file');
-            $spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load($file);
-            $sheet = $spreadsheet->getActiveSheet();
-            $highestRow = $sheet->getHighestDataRow();
-
-            //Dynamic expected headers
-            $expectedHeaders = [
-                'A1' => 'Trip Name',
-                'B1' => 'Customer First Name',
-                'C1' => 'Customer Last Name',
-                'D1' => 'Customer Email',
-                'E1' => 'Customer Phone', 
-                'F1' => 'No of Trees',
-                'G1' => 'Total Distance',
-                'H1' => 'Carbon Emission',
-                'I1' => 'Car Sequence No',
-            ];
-
-            if ($isSelfDrive) {
-                $expectedHeaders['J1'] = 'Car Name';
-            }
-
-            // Header validation
-            $headerErrors = [];
-            foreach ($expectedHeaders as $cell => $expected) {
-                $value = trim($sheet->getCell($cell)->getValue());
-                if (strtolower($value) !== strtolower($expected)) {
-                    $headerErrors[] = "Expected '$expected' in $cell but found '$value'";
-                }
-            }
-
-            if (!empty($headerErrors)) {
-                \Log::error('Carbon Import Header Errors', $headerErrors);
-
-                $friendlyMessage = "File structure is incorrect. Please use the correct template with all required columns or download the sample.";
-                if ($request->ajax()) {
-                    return response()->json([
-                        'status' => false,
-                        'errors' => ['headers' => [$friendlyMessage]]
-                    ], 422);
-                }
-            }
-
-            $rowErrors = [];
-
-            for ($row = 2; $row <= $highestRow; ++$row) {
-                $tripName       = trim($sheet->getCell('A' . $row)->getValue());
-                $firstName      = trim($sheet->getCell('B' . $row)->getValue());
-                $lastName       = trim($sheet->getCell('C' . $row)->getValue());
-                $email          = trim($sheet->getCell('D' . $row)->getValue());
-                $phone          = trim($sheet->getCell('E' . $row)->getValue());
-                $noOfTrees      = trim($sheet->getCell('F' . $row)->getValue());
-                $totalDistance  = trim($sheet->getCell('G' . $row)->getValue());
-                $carbonEmission = trim($sheet->getCell('H' . $row)->getValue());
-                $carSeqNo       = trim($sheet->getCell('I' . $row)->getValue());
-                $carName        = $isSelfDrive ? trim($sheet->getCell('J' . $row)->getValue()) : null;
-               
-
-                // Validation
-                $missingFields = [];
-                if (empty($tripName)) $missingFields[] = 'Trip Name';
-                if (empty($firstName)) $missingFields[] = 'Customer First Name';
-                if (empty($lastName)) $missingFields[] = 'Customer Last Name';
-                // if (empty($email)) $missingFields[] = 'Customer Email';
-                if (empty($noOfTrees)) $missingFields[] = 'No of Trees';
-                if (empty($totalDistance)) $missingFields[] = 'Total Distance';
-                if (empty($carbonEmission)) $missingFields[] = 'Carbon Emission';
-                if ($isSelfDrive && empty($carName)) $missingFields[] = 'Car Name';
-
-                if (!empty($missingFields)) {
-                    $rowErrors[] = "Missing fields are there  - " . implode(', ', $missingFields);
-                    continue;
-                }
-
-                // if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-                //     $rowErrors[] = "Row $row: Invalid email address.";
-                //     continue;
-                // }
-
-            
-                \App\Models\CarbonInfo::create([
-                    'trip_id'             => $request->trip_id,
-                    'trip_name'           => $tripName,
-                    'customer_first_name' => $firstName,
-                    'customer_last_name'  => $lastName,
-                    'customer_email'      => $email,
-                    'customer_phone'      => $phone,
-                    'no_of_trees'         => $noOfTrees,
-                    'total_distance'      => $totalDistance,
-                    'carbon_emission'     => $carbonEmission,
-                    'car_sequence_number' => $carSeqNo,
-                    'car_name'            => $carName,
-                ]);
-            }
-
-            if (!empty($rowErrors)) {
-                $firstError = $rowErrors[0];
-                if ($request->ajax()) {
-                    return response()->json(['status' => false, 'errors' => ['sheet' => [$firstError]]], 422);
-                }
-                // return redirect()->back()->withErrors(['sheet' => [$firstError]]);
-            }
-
-            if ($request->ajax()) {
-                return response()->json(['status' => true, 'message' => 'Carbon info imported successfully!']);
-            }
-
-        }
-
-        return response()->json(['status' => false, 'erros' => 'No file uploaded.!']);
-    
-    }
-
-    public function getcarboninfoData(Request $request){
-        $checkdrivetype=Trip::where('id',$request->id)->first();
-        $drivetype=$checkdrivetype->drive_tour_type;
-        $carboninfoData= CarbonInfo::where('trip_id', $request->id)->get();
-         return response()->json(['carboninfoData' => $carboninfoData,'drive_tour_type' => $drivetype]);
-    }
-
-    public function UpdatecarbonNeutralData(Request $request)
-    {
-
-      
-        foreach ($request->data as $entry) {
-            if (!empty($entry['id'])) {
-                CarbonInfo::where('id', $entry['id'])->update([
-                    'trip_id' => $entry['trip_id'],
-                    'trip_name' => $entry['trip_name'],
-                    'customer_first_name' => $entry['customer_first_name'],
-                    'customer_last_name' => $entry['customer_last_name'],
-                    'customer_email' => $entry['customer_email'],
-                    'no_of_trees' => $entry['no_of_trees'],
-                    'total_distance' => $entry['total_distance'],
-                    'carbon_emission' => $entry['carbon_emission'],
-                    'car_sequence_number' => $entry['car_sequence_number'],
-                    'car_name' => $entry['car_name'] ?? null,
-                ]);
-                return response()->json(['status' => true,'message' => "Update Sucessfully"], 200);
-            } else {
-                CarbonInfo::create([
-                    'trip_id' => $entry['trip_id'],
-                    'trip_name' => $entry['trip_name'],
-                    'customer_first_name' => $entry['customer_first_name'],
-                    'customer_last_name' => $entry['customer_last_name'],
-                    'customer_email' => $entry['customer_email'],
-                    'no_of_trees' => $entry['no_of_trees'],
-                    'total_distance' => $entry['total_distance'],
-                    'carbon_emission' => $entry['carbon_emission'],
-                    'car_sequence_number' => $entry['car_sequence_number'],
-                    'car_name' => $entry['car_name'] ?? null,
-                ]);
-                return response()->json(['status' => true,'message' => "New Added Sucessfully"], 200);
-
-            }
-        }
-
-      
-    }
-
-    public function getNewCarbonCustomers(Request $request)
-    {
-        $trip_id = $request->trip_id;
-        $trip =Trip::find($trip_id);
-        $trip_name = $trip ? $trip->name : '';
-        $existing_emails = $request->existing_customers ?? [];
-
-        $bookings = TripBooking::where('trip_id', $trip_id)->with('customer')->get();
-    
-        $carbonCustomers = CarbonInfo::where('trip_id', $trip_id)->pluck('customer_email')->toArray();
-        $alreadyAdded = array_unique(array_merge($carbonCustomers, $existing_emails));
-     
-        $newCustomers = [];
-        foreach ($bookings as $booking) {
-            $customerIds = json_decode($booking->customer_id, true);
-            if (is_array($customerIds)) {
-                foreach ($customerIds as $customerId) {
-                    $customer = \App\Models\Customer::find($customerId);
-                    if ($customer && !in_array($customer->email, $alreadyAdded) &&!empty($customer->email)) 
-                    {
-                        $newCustomers[] = [
-                             'trip_id'    => $trip_id,
-                             'trip_name'  => $trip_name,
-                             'customer_first_name' => $customer->first_name,
-                             'customer_last_name'  => $customer->last_name,
-                             'customer_email'      => $customer->email,
-                             'customer_contact'    => $customer->phone,
-                        ];
-                        $alreadyAdded[] = $customer->email;
-                    }
-                }
-            }
-        }
-
-        return response()->json($newCustomers);
-    }
-
-    // expense report download
+     // expense report download
     public function expenseReportDownload(Request $request)
     {
       
@@ -2466,164 +2343,6 @@ class TripController extends Controller
         
         $writer->save('php://output');
         exit;
-    }
-
-    // New Expense Report Download method
-    public function sendDatedExpenseReport(\Illuminate\Http\Request $request, $date = null)
-    {
-        try {
-            if (empty($date)) {
-                $date = $request->query('date');
-            }
-			$targetDate = null;
-			if (!empty($date)) {
-				try {
-					$targetDate = Carbon::createFromFormat('d-m-Y', trim($date));
-				} catch (\Throwable $e) {
-					try {
-						$targetDate = Carbon::createFromFormat('Y-m-d', trim($date));
-					} catch (\Throwable $e2) {
-						Log::warning('sendDatedExpenseReport: Invalid date format provided: ' . $date . '. Falling back to today.');
-					}
-				}
-			}
-			if (!$targetDate) {
-				$targetDate = Carbon::today();
-			}
-            $spreadsheet = new Spreadsheet();
-            $sheet = $spreadsheet->getActiveSheet();
-			$sheet->setTitle('Expense ' . $targetDate->format('d M Y'));
-            $sheet->getStyle('A1:O1')->getFont()->setBold(true);
-
-            $headers = [
-                'Created Date', 'Trip Name', 'Vendor', 'Category', 'Service',
-                'Amount Due', 'Amount Paid', 'Pending Amount', 'Document', 'Comment',
-                'Payment Date', 'Vendor Company Name', 'Service Amount', 'Payment Mode', 'Added By',
-            ];
-
-            $data = [];
-            $data[] = $headers;
-
-			$expenses = Expense::with(['trip', 'vendor', 'service', 'vendorService'])
-				->whereDate('created_at', $targetDate)
-                ->orderBy('created_at', 'desc')
-                ->get();
-
-            if ($expenses->isEmpty()) {
-                Log::info("No expenses found for date: " . $targetDate->format('Y-m-d'));
-                if ($request->ajax() || $request->query('ajax')) {
-                    return response('No expense records found for ' . $targetDate->format('d M Y'), 404);
-                }
-                return redirect()->back()->with('error', 'No expense records found for ' . $targetDate->format('d M Y'));
-            }
-
-            $histories = [];
-            foreach ($expenses as $expense) {
-                try {
-                    $histories[$expense->id] = ExpenseHistory::where('expense_id', $expense->id)->get();
-                    $expenseHistories = $histories[$expense->id] ?? collect();
-                    $history = $expenseHistories->first();
-
-                     $documentLink = $expense->docx
-                        ? '=HYPERLINK("' . asset('storage/app/' . $expense->docx) . '", "View")'
-                        : '-';
-
-                    $data[] = [
-                        Carbon::parse($expense->created_at)->format('d M Y'),
-                        $expense->trip->name ?? '-',
-                        $expense->vendor->first_name ?? '-',
-                        $expense->service->title ?? '-',
-                        $expense->vendorService->title ?? '-',
-                        $expense->total_amount ?? 0,
-                        $expense->paid_amount ?? 0,
-                        ($expense->total_amount ?? 0) - ($expense->paid_amount ?? 0),
-                        $documentLink,
-                        $expense->comment ?? '-',
-                        $history && $history->date ? Carbon::parse($history->date)->format('d M Y') : '-',
-                        $expense->vendor->company ?? '-',
-                        $history->amount ?? '-',
-                        $history->payment_mode ?? '-',
-                        $history && $history->admin ? $history->admin->name : '-'
-                    ];
-                } catch (\Throwable $e) {
-                    Log::error("Error processing expense ID {$expense->id}: " . $e->getMessage());
-                }
-            }
-
-            $sheet->fromArray($data, null, 'A1');
-            foreach (range('A', 'O') as $col) {
-                $sheet->getColumnDimension($col)->setAutoSize(true);
-            }
-
-            // Save file
-			$directory = storage_path('app/admin/daily-add-expense-reports');
-            if (!file_exists($directory)) {
-                mkdir($directory, 0777, true);
-            }
-
-			$fileName = 'expense_report_' . $targetDate->format('Y-m-d') . '.xlsx';
-            $filePath = $directory . '/' . $fileName;
-
-            try {
-                $writer = new Xlsx($spreadsheet);
-                $writer->save($filePath);
-            } catch (\Throwable $e) {
-                Log::error("Error saving spreadsheet file: " . $e->getMessage());
-                return response('Failed to generate report file', 500);
-            }
-
-            $accountEmail = setting('account_mail');
-            $extraEmail   = "tarun@adventuresoverland.com";
-            $operationmail= setting('operation_mail');
-            $extraOperationMail = config('app.ExtraMail');
-
-            $emails = array_unique(
-                    array_merge(
-                        array_map('trim', explode(',', $accountEmail)),     
-                        [$extraEmail],                                       
-                        array_map('trim', explode(',', $operationmail)),    
-                        [$extraOperationMail]                                
-                    )
-                );
-
-			$dataMail = [
-				'attachment' => $filePath,
-				'today' => $targetDate->format('d M Y'),
-			];
-
-            foreach ($emails as $cEmail) {
-             
-                $cEmail = trim($cEmail);
-                if (!empty($cEmail)) {
-                    try {
-                        if (setting('mail_status') == 1) {
-						@event(new SendMailEvent(
-							$cEmail,
-							'Expense Report - ' . $targetDate->format('d M Y'),
-							'emails.today-expense-report',
-							$dataMail
-						));
-						Log::info('Expense Report email sent to ' . $cEmail . ' for ' . $targetDate->format('Y-m-d'));
-                        }
-					else {
-						Log::info('Mail status is disabled, not sending email to ' . $cEmail . ' for ' . $targetDate->format('Y-m-d'));
-                        }
-                    } catch (\Throwable $e) {
-                        Log::error("Error sending email to {$cEmail}: " . $e->getMessage());
-                    }
-                }
-			else {
-				Log::warning('Email address is empty, skipping email for ' . $targetDate->format('Y-m-d'));
-                }
-            }
-
-            session()->flash('success', 'Please check your download.');
-            return response()->download($filePath);
-
-        } catch (\Throwable $e) {
-            Log::error('Unexpected error in sendDatedExpenseReport: ' . $e->getMessage());
-            return response('Unexpected error', 500);
-        }
     }
 
 }

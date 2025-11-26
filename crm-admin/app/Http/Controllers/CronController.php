@@ -13,8 +13,8 @@ use Illuminate\Support\Facades\Hash;
 use App\Events\SendMailEvent;
 use DB;
 use PDF;
-use App\Models\PartPaymentHistory;   
 use App\Models\ExpenseHistory;
+use App\Models\PartPaymentHistory;  
 use App\Models\Expense;
 use App\Models\ExtraService;
 use App\Models\VendorCategory;
@@ -25,7 +25,6 @@ use Illuminate\Support\Carbon;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use Illuminate\Support\Facades\Http;
-
 use App\Models\Customer;
 use App\Models\Setting;
 use App\Models\TripBooking;
@@ -43,12 +42,13 @@ class CronController extends Controller
         foreach($customers as $customer){
             $tripCountOfCustomer = getTripCountbyCustomerId($customer->id);
             $tripCostOfCustomer = totalTripCostOfCustomerById($customer->id);
+
             if($tripCountOfCustomer > 9){
                 $tier = "Legends";
             }elseif($tripCostOfCustomer > 2500000){
-                $tier = "Explorer";
-            }elseif($tripCostOfCustomer > 1000000 && $tripCostOfCustomer <= 2500000){
                 $tier = "Adventurer";
+            }elseif($tripCostOfCustomer > 1000000 && $tripCostOfCustomer <= 2500000){
+                $tier = "Explorer";
             }elseif($tripCostOfCustomer >= 0 && $tripCostOfCustomer <= 1000000){
                 $tier = "Discovery";
             }else{
@@ -63,6 +63,8 @@ class CronController extends Controller
         }
     }
 
+    //  public function ongoingTripReport()
+    
     public function ongoingTripReport(){
 
         if(setting('mail_status') == 1){
@@ -108,13 +110,11 @@ class CronController extends Controller
     
     
     public function sendBirthdayEmail(){
-
             // if(setting('mail_status') == 0){
-            $today = now()->format('m-d');
-            $customers = Customer::whereRaw("DATE_FORMAT(dob, '%m-%d') = ?", [$today])->get();
+        $today = now()->format('m-d');
+        $customers = Customer::whereRaw("DATE_FORMAT(dob, '%m-%d') = ?", [$today])->get();
 
-            foreach ($customers as $customer) {
-
+        foreach ($customers as $customer) {
                 $name = $customer->first_name . ' ' . $customer->last_name;
                 $email = $customer->email;
                 $phone = $customer->phone;
@@ -141,12 +141,16 @@ class CronController extends Controller
                 // $bccEmail=$bccEmail->birthday_email;
                 
                 Log::info("pdf url  - ".$pdfUrl);
-
                 if (empty($email)) {
                     Log::warning("No email found for customer ID: {$customer->id}, birthday email not sent.");
                 } else {
                     try {
                         event(new SendMailEvent($email, '🌳 Happy Birthday! A Tree Planted in Your Honor 🌟', 'emails.birthday-email', $data));
+                        
+                        // Send copy to info email
+                        $infoEmail = 'info@adventuresoverland.com'; 
+                        event(new SendMailEvent($infoEmail, 'Birthday Email Copy - ' . $name, 'emails.birthday-email', $data));
+                     
                          $customer->birthday_email_sent = 1;
                          $customer->save();
                         Log::info("Birthday email sent to $email - " . json_encode($data));
@@ -172,7 +176,8 @@ class CronController extends Controller
                 Log::info("Whatsapp url  - ". 'https://live-server-8452.wati.io/api/v1/sendTemplateMessage?whatsappNumber='.$phone);
                 Log::info("Whatsapp body  - ". json_encode($body));
                 
-               if (!empty($phone)) {
+                if (!empty($phone))
+                {
                     try 
                     {
                         $client = new Client();
@@ -182,7 +187,7 @@ class CronController extends Controller
                                 'Authorization' => 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJlMDhmNjczYy01YWM5LTQ4OWItYjM2OC0yMzAwMjcxMGJlNWIiLCJ1bmlxdWVfbmFtZSI6ImluZm9AYWR2ZW50dXJlc292ZXJsYW5kLmNvbSIsIm5hbWVpZCI6ImluZm9AYWR2ZW50dXJlc292ZXJsYW5kLmNvbSIsImVtYWlsIjoiaW5mb0BhZHZlbnR1cmVzb3ZlcmxhbmQuY29tIiwiYXV0aF90aW1lIjoiMTEvMjUvMjAyNCAwOTo1NToyNSIsInRlbmFudF9pZCI6Ijg0NTIiLCJkYl9uYW1lIjoibXQtcHJvZC1UZW5hbnRzIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjoiQURNSU5JU1RSQVRPUiIsImV4cCI6MjUzNDAyMzAwODAwLCJpc3MiOiJDbGFyZV9BSSIsImF1ZCI6IkNsYXJlX0FJIn0.zqxefTmcTMfTb4D0L6CO0FzZpKqN-mjd9EpMhjfWBxY',
                                 'content-type' => 'application/json',
                             ],
-                            'http_errors' => false, // Important: disables Guzzle exceptions on HTTP error status
+                            'http_errors' => false,
                         ]);
                         $statusCode = $response->getStatusCode();
                         $responseBody = json_decode($response->getBody()->getContents(), true);
@@ -199,15 +204,16 @@ class CronController extends Controller
                     } catch (\Exception $e) {
                             Log::error("Failed to send WhatsApp message to $phone: " . $e->getMessage());
                         }
-                    } 
-                    else {
+                } 
+                else 
+                {
                         Log::warning("No phone number for customer ID: {$customer->id}, WhatsApp message not sent.");
                 }
-            }
+        }
     }
-    
     public function sendReminderToUnsubmittedForms()
     {
+        dd();
         $processedCustomers = []; 
         $bookings = TripBooking::where('is_form_submitted', 0)->whereNotIn('trip_status', ['draft', 'Cancelled','Completed'])->get();
         foreach ($bookings as $booking) {
@@ -284,8 +290,6 @@ class CronController extends Controller
         return "Reminder Emails Sent!";
     }
 
-
-
     public function sendTodayExpenseReport()
     {
         try {
@@ -295,6 +299,7 @@ class CronController extends Controller
             $sheet->setTitle('Today Expense');
             $sheet->getStyle('A1:O1')->getFont()->setBold(true);
 
+          
             $headers = [
                 'Created Date', 'Trip Name', 'Vendor', 'Category', 'Service',
                 'Amount Due', 'Amount Paid', 'Pending Amount', 'Document', 'Comment',
@@ -303,7 +308,6 @@ class CronController extends Controller
 
             $data = [];
             $data[] = $headers;
-
             $expenses = Expense::with(['trip', 'vendor', 'service', 'vendorService'])
                 ->whereDate('created_at', $today)
                 ->orderBy('created_at', 'desc')
@@ -369,27 +373,25 @@ class CronController extends Controller
                 return;
             }
 
+             // Emails
             $accountEmail = setting('account_mail');
             $extraEmail   = "tarun@adventuresoverland.com";
             $operationmail= setting('operation_mail');
             $extraOperationMail = config('app.ExtraMail');
-
+            
             $emails = array_unique(
-                    array_merge(
-                        array_map('trim', explode(',', $accountEmail)),     
-                        [$extraEmail],                                       
-                        array_map('trim', explode(',', $operationmail)),    
-                        [$extraOperationMail]                                
-                    )
-                );
-
+                array_merge(
+                    array_map('trim', explode(',', $accountEmail)),     
+                    [$extraEmail],                                       
+                    array_map('trim', explode(',', $operationmail)),    
+                    [$extraOperationMail]                                
+                )
+            );
             $dataMail = [
                 'attachment' => $filePath,
                 'today' => $today->format('d M Y'),
             ];
-
             foreach ($emails as $cEmail) {
-             
                 $cEmail = trim($cEmail);
                 if (!empty($cEmail)) {
                     try {
@@ -406,7 +408,7 @@ class CronController extends Controller
                             Log::info("Mail status is disabled, not sending email to $cEmail for " . $today->format('Y-m-d'));
                         }
                     } catch (\Throwable $e) {
-                        Log::error("Error sending email to {$cEmail}: " . $e->getMessage());
+                        Log::error("Error in Today's Expense Report sending email to {$cEmail}: " . $e->getMessage());
                     }
                 }
                 else {
@@ -418,12 +420,13 @@ class CronController extends Controller
             Log::error("Unexpected error in sendTodayExpenseReport: " . $e->getMessage());
         }
     }
+
     public function dailypartPaymentReport()
     {
         try {
-            $today = Carbon::today();
-
-        
+$today = Carbon::today();
+         $endDate = Carbon::today();
+         $startDate = Carbon::today()->subDays(4); 
             $spreadsheet = new Spreadsheet();
             $sheet = $spreadsheet->getActiveSheet();
             $sheet->setTitle('Daily Part Payments');
@@ -446,10 +449,10 @@ class CronController extends Controller
             $data = [];
             $data[] = $headers;
 
-            $partPayments = PartPaymentHistory::with(['booking.trip'])
-                ->whereDate('created_at', $today)
-                ->orderBy('created_at', 'desc')
-                ->get();
+           $partPayments = PartPaymentHistory::with(['booking.trip'])
+            ->whereBetween('created_at', [$startDate->startOfDay(), $endDate->endOfDay()])
+            ->orderBy('created_at', 'desc')
+            ->get();
 
             if ($partPayments->isEmpty()) {
                 Log::info("No part payments found for today: " . $today->format('Y-m-d'));
@@ -457,14 +460,9 @@ class CronController extends Controller
             }
           
             foreach ($partPayments as $payment) {
-              
                     $details = $payment->details;
                     $tripName = $payment->booking->trip->name ?? 'N/A';
                  
-                    
-
-                 
-                
                     $customerIds = json_decode($payment->booking->customer_id, true);
                     if (!is_array($customerIds)) {
                         $customerIds = [$customerIds];
@@ -526,19 +524,21 @@ class CronController extends Controller
           
             $directory = storage_path('app/admin/daily-partpayment-reports');
             if (!file_exists($directory)) {
+              
                 mkdir($directory, 0777, true);
             }
 
             $fileName = 'daily_partpayment_report_' . $today->format('Y-m-d') . '.xlsx';
+          
             $filePath = $directory . '/' . $fileName;
 
          
                 $writer = new Xlsx($spreadsheet);
                 $writer->save($filePath);
-          
 
-            $accountEmail = "vageesh@adventuresoverland.com";
-            $operationmail = "vageeshpaliwal007@gmail.com";
+            $accountEmail = setting('account_mail');
+            $operationmail = "tarun@adventuresoverland.com";
+
 
             $emails = array_unique(
                 array_merge(
@@ -546,11 +546,11 @@ class CronController extends Controller
                     array_map('trim', explode(',', $operationmail))
                 )
             );
-
             $dataMail = [
                 'attachment' => $filePath,
                 'today' => $today->format('d M Y'),
             ];
+          
 
             foreach ($emails as $cEmail) {
                 $cEmail = trim($cEmail);
@@ -572,6 +572,5 @@ class CronController extends Controller
             Log::error("Unexpected error in dailypartPaymentReport: " . $e->getMessage());
         }
     }
-
 
 }

@@ -464,7 +464,7 @@
                                 </div>
                                 <div class="card-info">
                                     <div class="d-flex align-items-center">
-                                        <h6 class="mb-0">UpComing Trip Revenue Report </h6>
+                                        <h6 class="mb-0">UpComing Trip revenue Report </h6>
                                     </div>
                                 </div>
                             </div>

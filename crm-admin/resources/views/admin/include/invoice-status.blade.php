@@ -43,16 +43,15 @@
         @endphp
 
         @if ($allInvoicesApproved && !$currentUserSentAnyInvoice)
+            
 
 {{--                <span><a href="javaScript:void(0)" onclick="takeActionClicked()">Click here </a> to send--}}
 {{--                    email to customer</span>--}}
                 <a id="takeActionButton" class="btn btn-primary btn-sm mt-1 mb-1 waves-effect waves-light" onclick="takeActionClicked()" href="javascript:void(0)">
-                Send invoice to customer 
+                Send invoice to customer
                 <img src="{{ url('public/admin') }}/assets/img/loader.gif" alt="Ratings" class="loader " width="50">
                 </a>
-{{--                <div id="loadingSpinner" class="spinner-border text-primary" role="status" style="display: none; margin-left: 10px;">--}}
-{{--                    <span class="sr-only">Loading...</span>--}}
-{{--                </div>--}}
+               
         @endif
 
     @else
@@ -60,14 +59,16 @@
     @endif
 </span>
 <style>
-     .loader{
+    .loader{
         display:none;
         width: 30;
         height: 30;
     }
 </style>
 <script>
-   function takeActionClicked() {
+
+    function takeActionClicked() {
+
         // const loadingSpinner = document.getElementById('loadingSpinner');
         // const takeActionButton = document.getElementById('takeActionButton');
         // takeActionButton.style.display = 'none';
@@ -84,9 +85,9 @@
             data: data,
             beforeSend: function () {
                 $('.loader').show();
-            },
+             },
             success: function (result) {
-
+    
                 $("#invoicesModel").modal("hide");
                 if (result.success) {
                     $('.loader').hide();
@@ -162,7 +163,7 @@
     }
 
 </script>
-{{--@if ($tripInvoices->isNotEmpty() > 0 && $bookingInvoices)--}}
+{{--@if ($tripInvoices->isNotEmpty()     > 0 && $bookingInvoices)--}}
 {{--    @if ($data->invoice_sent_date == null)--}}
 {{--        @if (auth()->user()->id == $bookingInvoice->invoice_sent_by)--}}
 {{--            <small>--}}

@@ -42,8 +42,8 @@ class EnquiryController extends Controller
 
 
     public function view(Request $request)
-    {
-        $enquiry = Enquiry::where('id', $request->id)->update(['is_read' => true]);;
+    {   
+        $enquiry = Enquiry::where('id', $request->id)->update(['is_read' => true]);
         $data = Enquiry::where('id', $request->id)->first();
         return view('admin.enquiry.view', compact('data'));
     }

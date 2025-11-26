@@ -27,6 +27,14 @@ span.pointss {
 
 /*ends*/
 
+/*my points new css*/
+.custom-mrg {
+    margin-bottom: 1rem;
+}
+
+/*ends*/
+
+
 /*Faq's css code here*/
 .faq-section {
     margin: 0px 10px;
@@ -588,8 +596,10 @@ h5.text-white.text-capitalize {
     padding-inline: 40px;
 }
 .total-earnd{
-  
-        margin: 0px -1px 0px -10px;
+    width:100%;
+    /*margin: 0 3px 19px 71px;*/
+   
+
 }
 
 
@@ -1054,82 +1064,4 @@ h5.text-white.text-capitalize {
         transition: 0.2s ease;
     }
 
-
-    @media (max-width: 991.98px) {
-        .info-grid {
-            grid-template-columns: repeat(2, 1fr);
-        }
-    }
-    @media only screen and (max-width: 768px) {
-        .profile-glass-card {
-            padding: 1rem;
-            margin-left: 21px;
-            margin-top: 3rem;
-            
-        }
-            .info-grid
-                            {
-                grid-template-columns: 0fr;
-                gap: 0.5rem;
-                margin-left: -9px;
-                margin-top: 21px;
-            }
-                .profile-image, .profile-initials {
-                    margin-top:20px;
-                    width: 80px;
-                    height: 80px;
-                    font-size: 1.5rem;
-                }
-                .edit-btn {
-                    width: 100%;
-                }
-                .textss{
-            color: #4f3325;
-            text-align: center;
-            font-weight: 600px;
-            font-size: 20px;
-            margin: 15px 0px;
-        }
-    }
-
-    @media(min-width: 320px) and (max-width: 480px) {
-          .profile-glass-card {
-            padding: 1rem;
-            margin-left: 21px;
-            margin-top: 3rem;
-            
-        }
-            .info-grid
-              {
-                grid-template-columns: 0fr;
-                gap: 0.5rem;
-                margin-left: -13px;
-                margin-top: 21px;
-            }
-                .profile-image, .profile-initials {
-                    margin-top:20px;
-                    width: 80px;
-                    height: 80px;
-                    font-size: 1.5rem;
-                }
-                .edit-btn {
-                    width: 100%;
-                }
-                .textss{
-            color: #4f3325;
-            text-align: center;
-            font-weight: 600px;
-            font-size: 20px;
-            margin: 15px 0px;
-        }
-         .box {
-        backdrop-filter: blur(10px);
-        border-radius: 15px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-        transition: 0.3s;
-        background: #fafafa;
-        border: 1px solid #e5e5e5;
-        padding: 1rem ;
-        border-radius: 10px;
-    }
-    }
+   

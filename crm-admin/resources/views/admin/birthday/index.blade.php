@@ -112,17 +112,17 @@
 
                     </div>
 
-                    <div class="dt-action-buttons text-end pt-3 pt-md-0">
-                        <div class="dt-buttons btn-group flex-wrap">
-                            <!-- <a href="{{ route('birthday.export') }}"
-                               id="exportButton"
-                               class="btn btn-secondary buttons-collection btn-label-primary me-2" tabindex="0"
-                               aria-controls="DataTables_Table_0" type="button" aria-haspopup="dialog"
-                               aria-expanded="false"><span><i class="mdi mdi-export-variant me-sm-1"></i> <span
-                                        class="d-none d-sm-inline-block">Export</span></span>
-                            </a> -->
-                        </div>
-                    </div>
+                    <!--<div class="dt-action-buttons text-end pt-3 pt-md-0">-->
+                    <!--    <div class="dt-buttons btn-group flex-wrap">-->
+                    <!--        <a href="{{ route('birthday.export') }}"-->
+                    <!--           id="exportButton"-->
+                    <!--           class="btn btn-secondary buttons-collection btn-label-primary me-2" tabindex="0"-->
+                    <!--           aria-controls="DataTables_Table_0" type="button" aria-haspopup="dialog"-->
+                    <!--           aria-expanded="false"><span><i class="mdi mdi-export-variant me-sm-1"></i> <span-->
+                    <!--                    class="d-none d-sm-inline-block">Export</span></span>-->
+                    <!--        </a>-->
+                    <!--    </div>-->
+                    <!--</div>-->
                 </div>
                     <div class="card-datatable table-responsive pt-0">
                         <table id="myDatatable" class="table table-bordered">

@@ -27,13 +27,14 @@ class SendMailListener implements ShouldQueue
     /**
      * Handle the event.
      */
-    public function handle(SendMailEvent $event): void
+    public function handle(SendMailEvent $event)
     {
         try{
             $recipientEmail = $event->recipientEmail;
             $subject = $event->subject;
             $view = $event->view;
-            $data = $event->data;
+            // $data = $event->data;
+            $data = $event->data ?? [];
             
             $bccEmail = null;
             if (isset($data['for']) && $data['for'] == 'birthday_mail') {
@@ -54,7 +55,26 @@ class SendMailListener implements ShouldQueue
             }
 
             // Send the email
+            
                 $mail = new SendMail($subject, $view, $data);
+
+                // Attach files only if attachments are provided in $data
+                if (!empty($data['attachments']) && is_array($data['attachments'])) {
+                    foreach ($data['attachments'] as $filePath) {
+                        try {
+                            if (is_string($filePath) && file_exists($filePath)) {
+                                // attach file to the Mailable instance
+                                $mail->attach($filePath);
+                            } else {
+                                Log::warning("Attachment not found or invalid path: " . (string)$filePath);
+                            }
+                        } catch (\Throwable $e) {
+                            // don't break the mail send if one attachment fails
+                            Log::warning("Failed attaching file to email: {$filePath} - " . $e->getMessage());
+                        }
+                    }
+                }
+
                 if ($bccEmail) {
                     Mail::to($recipientEmail)
                         ->bcc($bccEmail)
@@ -80,12 +100,12 @@ class SendMailListener implements ShouldQueue
                 $activity->other = $other ?? "";
                 $activity->save();
             }
-        }
-        catch (\Throwable $e) {
-            Log::error('Error sending email: ' . $e->getMessage());
+
+            // create Activity
+        } catch (\Throwable $e) {
+            Log::error('Error in sending email: ' . $e->getMessage());
             throw new \Exception("Error sending email:".$e->getMessage());
         }
-        // create Activity
         
     }
 }

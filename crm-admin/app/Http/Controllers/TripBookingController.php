@@ -4,16 +4,16 @@ namespace App\Http\Controllers;
 use App\Models\TripBooking;
 use App\Models\Trip;
 use App\Models\TripInvoices;
+use App\Models\TripImage;
 use App\Models\User;
 use App\Models\Customer;
 use App\Models\ActivityTracker;
 use App\Models\Agent;
-use App\Models\CarbonInfo;
+use App\Models\PartPaymentHistory;     
 use App\Models\TripCarbonInfo;
 use App\Models\ExtraService;
 use App\Models\LoyalityPts;
 use App\Models\Relationship;
-use App\Models\PartPaymentHistory;
 use App\Models\BookingsInvoiceDetail;
 use App\Models\BookingLog;
 use Illuminate\Http\Request;
@@ -53,8 +53,8 @@ class TripBookingController extends Controller
 
     public function get(Request $request)
     {
-
-        if($request->type == "all"){
+        try{
+             if($request->type == "all"){
             $data = TripBooking::where('form_submited', 1)->orderBy('id', 'desc');
         }elseif($request->type == "completed"){
             $data = TripBooking::where('trip_status', 'Completed')->orderBy('id', 'desc');
@@ -75,8 +75,6 @@ class TripBookingController extends Controller
         }
         if(isset($request->admin_id)){
             $data->where('admin_id', $request->admin_id);
-
-            
         }
         if(isset($request->date)){
             $data->whereDate('created_at', $request->date);
@@ -153,7 +151,6 @@ class TripBookingController extends Controller
                 $trip_spent += (totalTripCostOfCustomerById($c_id, $item->id)) ?? 0;
             }
             $item->customers = $customerData;
-
             $partAmt = 0;
             if ($item->part_payment_list) {
                 foreach (json_decode($item->part_payment_list) as $pp) {
@@ -162,11 +159,10 @@ class TripBookingController extends Controller
             }
             $item->balance =number_format($trip_spent - $item->payment_amt - $partAmt);
             $item->payable_amt = number_format($trip_spent);
-            
+
             if($item->payment_amt == null){
                 $item->payment_amt = 0;
             }
-            
             $item->total_payment_amount_received = $item->payment_amt + $partAmt;
             if($item->trip_status != 'Correction'){
                 if($item->trip_status != 'Cancelled'){
@@ -188,6 +184,14 @@ class TripBookingController extends Controller
         return json_encode($response);
 
         // return DataTables::of($data)->make(true);
+
+        }
+        catch (Exception $e)
+        {  
+             return response()->json(['error' => 'Something went wrong!'], 500);
+        }
+
+       
     }
 
     public function create(Request $request){
@@ -234,7 +238,7 @@ class TripBookingController extends Controller
             return redirect()->route('booking.new-trip', ['token' => $hashedToken]);
         }
 
-        $customerswithChild = Customer::with('minors')->orderBy('first_name', 'asc')->get();
+        $customerswithChild = Customer::with('minors')->orderBy('first_name', 'desc')->get();
         $customerswithChild->map(function ($item, $index) {
             $item->identity = ($item->email && $item->email != "null")
                 ? $item->email
@@ -284,7 +288,7 @@ class TripBookingController extends Controller
         $data->map(function ($item, $index) {
             $dateTime = date("M d, Y H:i:s", strtotime($item->created_at));
             $item->created = Carbon::parse($dateTime)->format('d M, Y H:i:s') . ' (' . Carbon::parse($dateTime)->diffForHumans() . ')';
-            $item->name = $item->admin->name;
+            $item->name = $item->admin->name ?? '';
         });
 
         return view('admin.booking.activity', compact('trip_name', 'data'));
@@ -323,8 +327,7 @@ class TripBookingController extends Controller
         $billingTo = json_decode($data->billing_to, true);
         $customers = json_decode($data->customer_id, true);
       
-      
-        $rmBal = $total + $carbonAmtSum - ($firstPay + $partAmt);
+        $rmBal = $total  - ($firstPay + $partAmt);
 
 
         if($data->trip_status != 'Correction'){
@@ -345,8 +348,10 @@ class TripBookingController extends Controller
                     $total_amount += $sch->amount;
                 }
             }
-       
-            $checkPending = 0;
+            if($data->payment_amt==$data->payable_amt){
+                $rec_amount = $data->payment_amt;
+            }
+           $checkPending = 0;
             if($rec_amount <= $total_amount){
                 $schPayments = json_decode($data->sch_payment_list) ?: [];
                 $dueKey = null;
@@ -363,8 +368,7 @@ class TripBookingController extends Controller
             }else{
                 $dueKey = 0;
             }
-   
-
+        
             $pendingAmt = $checkPending - $rec_amount;
           
         // Status of Schedule payment
@@ -378,7 +382,7 @@ class TripBookingController extends Controller
 
       
 
-        return view('admin.booking.view', compact('data', 'customers','rmBal', 'dueKey', 'pendingAmt', 'bookingInvoices','bookingId'));
+        return view('admin.booking.view', compact('data','customers', 'rmBal', 'dueKey', 'pendingAmt', 'bookingInvoices','bookingId'));
     }
 
 
@@ -1182,8 +1186,9 @@ class TripBookingController extends Controller
         return true;
     }
 
-    public function formSubmited(Request $request){ 
-    
+    public function formSubmited(Request $request)
+    { 
+        
         $token = $request->token;
         $booking = TripBooking::where('token', $token)->first();
         $formSubmitedOldValue = $booking->form_submited;
@@ -1237,12 +1242,14 @@ class TripBookingController extends Controller
         $activity->action = $action;
         $activity->save();
 
-        if($formSubmitedOldValue == 0){
+         if($formSubmitedOldValue == 0){
+            $adminName = $booking->admin ? $booking->admin->name : null;
             foreach(json_decode($booking->customer_id) as $traveler){
+                $adminName= Auth::user()->name;
+              
                 $customer = getCustomerById($traveler);
                 $url = env('USER_URL') .'registration?token=' . $booking->token . '&email=' . $customer->email . '&trip_id=' . $booking->trip_id;
                 // $url="https://www.adventuresoverland.com/booking-registration-form/";
-                $adminName = Auth::user()->name;
                 $data = [
                     'name' => $customer->name,
                     'email' => $customer->email,
@@ -1253,6 +1260,18 @@ class TripBookingController extends Controller
                     'booking_id'=>$bookingData->id,
                     'for'=>'customer'
                 ];
+
+                // find gallery images for this trip
+                $images = TripImage::where('trip_id', $booking->trip_id)->pluck('image')->toArray();
+                $attachments = [];
+                foreach ($images as $imgPath) {
+                    $full = storage_path('app/' . $imgPath);
+                    if (is_string($full) && file_exists($full)) {
+                        $attachments[] = $full;
+                    }
+                }
+                $data['attachments'] = $attachments;
+                
                 if(setting('mail_status') == 1){
                     event(new SendMailEvent("$customer->email", 'Thanks for choosing Adventures Overland!', 'emails.trip-booking', $data));
                 }
@@ -1260,6 +1279,7 @@ class TripBookingController extends Controller
                 // =========== email ==================
                 $accountEmail = setting('account_mail');
                 $opsEmail = setting('operation_mail');
+
                 $extraMail = config('app.ExtraMail');
 
                 if($extraMail){
@@ -1277,18 +1297,20 @@ class TripBookingController extends Controller
                     }
                 }
 
+
                 //mail to account
                 if($accountEmail){
                     $data = [
                         'email' => $customer->email,
                         'name' => $customer->name,
+                        'paid_amt' => $booking->payment_amt ?? "N/A",
+                        'slot' => count(json_decode($booking->customer_id)),
                         'spoc_person' => $adminName,
-                        'paid_amt' => $booking->payment_amt ?? 0,
-                        'trip_name' => $booking->trip->name ?? "Trip",
+                        'trip_name' => $booking->trip->name ?? "N/A",
                         'admin_email'=>$accountEmail,
                     ];
                     if(setting('mail_status') == 1){
-                        event(new SendMailEvent("$accountEmail", 'New Booking Recieved from '.$customer->name.' for '. $booking->trip->name .' !', 'emails.admin-booking-confirm', $data));
+                        event(new SendMailEvent("$accountEmail", 'New Booking Received from '.$customer->name.' for '. $booking->trip->name .' !', 'emails.admin-booking-confirm', $data));
                     }
                 }
 
@@ -1305,7 +1327,7 @@ class TripBookingController extends Controller
                         'admin_email'=>$opsEmail,
                     ];
                     if(setting('mail_status') == 1){
-                        event(new SendMailEvent("$opsEmail", 'New Booking Recieved from '.$customer->name.' for '. $booking->trip->name .' !', 'emails.admin-booking-confirm', $data));
+                        event(new SendMailEvent("$opsEmail", 'New Booking Received from '.$customer->name.' for '. $booking->trip->name .' !', 'emails.admin-booking-confirm', $data));
                     }
                 }
                 // =========== email ==================
@@ -1325,11 +1347,110 @@ class TripBookingController extends Controller
         return true;
     }
 
+    // public function getcallsummary()
+    // {
+    //     $customerId ="727";
+    //     $bookings = TripBooking::where('customer_id', 'like', '%'.$customerId.'%')
+    //         ->whereNotNull('token')
+    //         ->get();
+    //         dd($bookings);
+
+    //     foreach ($bookings as $data) {
+
+         
+    //         if ($data->points_distributed == null) {
+    //             $carbonAmtSum = TripCarbonInfo::where('booking_id', $data->id)->sum('donation_amt') ?? 0;
+    //             $total   = $data->payable_amt;
+    //             $firstPay= $data->payment_amt;
+
+    //             $partAmt = 0;
+    //             if ($data->part_payment_list) {
+    //                 foreach (json_decode($data->part_payment_list) as $pp) {
+    //                     $partAmt += $pp->amount;
+    //                 }
+    //             }
+
+    //             $rmBal = $total + $carbonAmtSum - ($firstPay + $partAmt);
+
+    //             if ($data->trip_status == 'Completed' && $rmBal == 0) {
+
+    //                 if ($data->payment_all_done_by_this == 1 && $data->payment_by_customer_id != null) {
+                
+    //                     $payablePoints = 0;
+    //                     foreach (json_decode($data->customer_id) as $customerId) {
+    //                         $tripCostForCustomer = getTripCostWithoutTaxByBookingAndCustomerId($data->id, $customerId);
+    //                         $customerPoints = round(($tripCostForCustomer * getPointPerByCustomerId($data->id, $customerId)) / 100);
+    //                         $payablePoints += $customerPoints;
+    //                     }
+
+    //                     $customer = Customer::find($data->payment_by_customer_id);
+    //                     if ($customer) {
+    //                         $customer->points = $customer->points + $payablePoints;
+    //                         $customer->save();
+    //                     }
+
+    //                     $pointModal = new LoyalityPts();
+    //                     $pointModal->customer_id = $data->payment_by_customer_id;
+    //                     $pointModal->admin_id    = $data->admin_id;
+    //                     $pointModal->reason      = 'Trip Completed';
+    //                     $pointModal->trip_name   = $data->trip->name ?? "Trip Deleted";
+    //                     $tripCost = is_numeric($data->trip->price ?? null) ? (float) $data->trip->price : 0.0;
+    //                     $pointModal->cost      = $tripCost;
+    //                     $pointModal->expiry_date = date('Y-m-d', strtotime('+2 year'));
+    //                     $pointModal->trans_type  = 'Cr';
+    //                     $pointModal->trans_amt   = $payablePoints;
+    //                     $pointModal->balance     = $payablePoints;
+    //                     $pointModal->status      = 'Approved';
+    //                     $pointModal->trans_page  = 'TripCompleted';
+    //                     $pointModal->save();
+
+    //                 } else {
+                    
+    //                     if ($data->customer_id) {
+    //                         foreach (json_decode($data->customer_id) as $c_id) {
+    //                             $payablePoints = round(
+    //                                 (getTripCostWithoutTaxByBookingAndCustomerId($data->id, $c_id)
+    //                                 * getPointPerByCustomerId($data->id, $c_id)) / 100
+    //                             );
+
+    //                             $customer = Customer::find($c_id);
+    //                             if ($customer) {
+    //                                 $customer->points = $customer->points + $payablePoints;
+    //                                 $customer->save();
+    //                             }
+
+    //                             $pointModal = new LoyalityPts();
+    //                             $pointModal->customer_id = $c_id;
+    //                             $pointModal->token       = $data->token;
+    //                             $pointModal->admin_id    = $data->admin_id;
+    //                             $pointModal->reason      = 'Trip Completed';
+    //                             $pointModal->trip_name   = $data->trip->name ?? "Trip Deleted";
+    //                             $tripCost = is_numeric($data->trip->price ?? null) ? (float) $data->trip->price : 0.0;
+    //                             $pointModal->cost        = $tripCost;
+    //                             $pointModal->expiry_date = date('Y-m-d', strtotime('+2 year'));
+    //                             $pointModal->trans_type  = 'Cr';
+    //                             $pointModal->trans_amt   = $payablePoints;
+    //                             $pointModal->balance     = $payablePoints;
+    //                             $pointModal->status      = 'Approved';
+    //                             $pointModal->trans_page  = 'TripCompleted';
+    //                             $pointModal->save();
+    //                         }
+    //                     }
+    //                 }
+
+    //                 $data->points_distributed = 1;
+    //                 $data->save();
+    //             }
+    //         }
+    //     }
+
+    //     return "Done running points distribution";
+    // }
+
     public function summary(Request $request){
         $token = $request->token;
 
         $data = TripBooking::where('token', $token)->first();
-       
         //point distribution Accrding trip status Completed and remaining balance 0
         $carbonAmtSum = TripCarbonInfo::where('booking_id', $data->id)->sum('donation_amt') ?? 0;
         $total = $data->payable_amt;
@@ -1342,8 +1463,9 @@ class TripBookingController extends Controller
                 
             }
         }
-        if($data->points_distributed==Null){
+        if($data->points_distributed == null){
             $rmBal = $total + $carbonAmtSum - ($firstPay + $partAmt);
+          
             if($data->trip->end_date < date("Y-m-d") && $rmBal==0)
             {
                 if($data->payment_all_done_by_this == 1 && $data->payment_by_customer_id != null){
@@ -1354,6 +1476,7 @@ class TripBookingController extends Controller
                         $tripCostForCustomer = getTripCostWithoutTaxByBookingAndCustomerId($data->id, $customerId);
                         $customerPoints = round(($tripCostForCustomer * getPointPerByCustomerId($data->id, $customerId)) / 100);
                         $payablePoints += $customerPoints;
+                       
                     }
                    
                     $customer = Customer::find($data->payment_by_customer_id);
@@ -1363,7 +1486,7 @@ class TripBookingController extends Controller
     
                     $pointModal = new LoyalityPts();
                     $pointModal->customer_id = $data->payment_by_customer_id;
-                    $pointModal->admin_id = Auth::user()->id;
+                    $pointModal->admin_id = $data->admin_id;
                     $pointModal->reason = 'Trip Completed';
                     $pointModal->trip_name = $data->trip->name ?? "Trip Deleted";
                     $pointModal->cost = $data->trip->price ?? "Trip Deleted";
@@ -1382,7 +1505,7 @@ class TripBookingController extends Controller
                         foreach(json_decode($data->customer_id) as $c_id){
                             $cusCheck = getCustomerByid($c_id)->parent;
                            
-                            $payablePoints = round((getTripCostWithoutTaxByBookingAndCustomerId($data->id, $c_id) * getPointPerByCustomerId($data->id,$c_id))/100);
+                            $payablePoints = round((getTripCostWithoutTaxByBookingAndCustomerId($data->id, $c_id) * getPointPerByCustomerId($data->id, $c_id))/100);
                             
                             $customer = Customer::find($c_id);
                             $customer->points = $customer->points + $payablePoints;
@@ -1391,7 +1514,7 @@ class TripBookingController extends Controller
                             $pointModal = new LoyalityPts();
                             $pointModal->customer_id = $c_id;
                             $pointModal->token = $data->token;
-                            $pointModal->admin_id = Auth::user()->id;
+                            $pointModal->admin_id = $data->admin_id;
                             $pointModal->reason = 'Trip Completed';
                             $pointModal->trip_name = $data->trip->name ?? "Trip Deleted";
                             $pointModal->cost = $data->trip->price ?? "Trip Deleted";
@@ -1413,7 +1536,6 @@ class TripBookingController extends Controller
         }
         //point distribution Accrding trip status Completed and remaining balance 0
         $result = [];
-
         if($data){
             // trip cost
             if($data->trip_cost != null){
@@ -1434,9 +1556,9 @@ class TripBookingController extends Controller
 
                 foreach($tripCost as $key=>$tc){
 
-                    $tc->traveler = getCustomerById($tc->c_id)->name;
-                    $tc->parent = getCustomerById($tc->c_id)->parent;
-                    $tc->relation = getCustomerById($tc->c_id)->relation;
+                    $tc->traveler = getCustomerById($tc->c_id)->name ?? '';
+                    $tc->parent = getCustomerById($tc->c_id)->parent ?? '';
+                    $tc->relation = getCustomerById($tc->c_id)->relation ?? '';
                     $tc->vehicle_amt = $data->vehical_seat_amt ?? 0;
                     $tc->room_amt = $data->room_type_amt ?? 0;
                     $tc->comment = $data->vehicle_type_other_cmt ?? "NA";
@@ -1574,12 +1696,6 @@ class TripBookingController extends Controller
                     $tooltip = " ";
 
                     $traveler = getCustomerById($tt->c_id)->name;
-                    // if($data->payment_by_customer_id) {
-                    //     $traveler = getCustomerById($data->payment_by_customer_id)->name;
-                    // }else{
-                    //     $traveler = getCustomerById($tt->c_id)->name;
-                    // }
-                    // print_r($data->payment_by_customer_id); echo "Working";
                     if($data->payment_from == "Individual" && $data->payment_from_tax != null && $data->is_multiple_payment == 0){
                         if($data->payment_from_tax == "Auto"){
                             if($netCost > 1000000){
@@ -1698,7 +1814,7 @@ class TripBookingController extends Controller
                 $devs = json_decode($data->trip_deviation);
 
                 foreach($packageOfferA as $tc){
-                    $tc->traveler = getCustomerById($tc->c_id)->name;
+                    $tc->traveler = getCustomerById($tc->c_id)->name ?? '';
                     if($rps){
                         foreach($rps as $rp){
                             if($rp->c_id == $tc->c_id){
@@ -1743,7 +1859,7 @@ class TripBookingController extends Controller
                 $rps = json_decode($data->redeem_points);
                 $devs = json_decode($data->trip_deviation);
                 foreach($A_B as $tc){
-                    $tc->traveler = getCustomerById($tc->c_id)->name;
+                    $tc->traveler = getCustomerById($tc->c_id)->name ?? '';
                     $tc->cost = $tc->cost + $perTravellerPackageB;
                     // dd($tc->cost);
                     if($rps){
@@ -1790,7 +1906,7 @@ class TripBookingController extends Controller
                 $rps = json_decode($data->redeem_points);
                 $devs = json_decode($data->trip_deviation);
                 foreach($packageC as $tc){
-                    $tc->traveler = getCustomerById($tc->c_id)->name;
+                    $tc->traveler = getCustomerById($tc->c_id)->name ?? '';
                     $tc->cost = $tc->cost + $perTravellerPackageB;
                     if($rps){
                         foreach($rps as $rp){
@@ -1891,22 +2007,23 @@ class TripBookingController extends Controller
             if($data->customer_id){
                 $pointsArr = [];
                 $actualTripCost = [];
-              
           
                 foreach(json_decode($data->customer_id) as $customer){
                     $actualCost = getTripCostWithoutTaxByBookingAndCustomerId($data->id, $customer);
                     // actual trip cost
                     array_push($actualTripCost, ['traveler'=>getCustomerById($customer)->name ?? "Deleted", 'cost'=>$actualCost]);
-                     $bookingId=$data->id;
+                    $bookingId = $data->id;
                     $cDataa = getCustomerById($customer)->parent;
-                    $cTier = getPointPerByCustomerId($bookingId, $customer);
+                    $relation = getCustomerById($customer)->relation ?? null;
+                    $cTier = getPointPerByCustomerId($bookingId,$customer);
                     $points = ($actualCost * $cTier)/100;
-                    if($cDataa == 0 && !isset($pointsArr[$customer])){
+                    if($cDataa == 0 ||  $relation === 'Friend' && !isset($pointsArr[$customer])){
                         array_push($pointsArr, [$customer => ['points'=>$points, 'name'=>getCustomerById($customer)->name,'reward'=>$cTier]]);
                     }
                     else{
                         if ($pointsArr && array_key_exists($cDataa, $pointsArr[0])) {
                             $pointsArr[0][$cDataa]['points'] = $pointsArr[0][$cDataa]['points'] + $points; 
+
                         }
                     }
 
@@ -1917,7 +2034,6 @@ class TripBookingController extends Controller
                         $first_name=getCustomerById($data->payment_by_customer_id)->first_name;
                         $last_name=getCustomerById($data->payment_by_customer_id)->last_name;
                         $full_name=$first_name.' '.$last_name;
-                        // dd($full_name);
                         foreach (json_decode($allCustomers) as $customerId) {
                             $tripCostForCustomer = getTripCostWithoutTaxByBookingAndCustomerId($data->id, $customerId);
                             $customerPoints = round(($tripCostForCustomer * getPointPerByCustomerId($bookingId,$customerId)) / 100); 
@@ -1929,7 +2045,6 @@ class TripBookingController extends Controller
                     }
                 }
               
-
                 $result['points_list'] = $pointsArr;
                 $result['actual_trip_cost'] = $actualTripCost;
                 $result['real_trip_amt'] = $data->trip->price ?? "0";
@@ -1962,8 +2077,10 @@ class TripBookingController extends Controller
            
             $customers = json_decode($item->customer_id) ?? null;
             $cList = "";
+            //  $customerEmails="";
             foreach($customers as $customer){
                 $cList .= (getCustomerById($customer)->name ?? " ") .", ";
+                // $customerEmails .= (getCustomerById($customer)->email ?? " ") .", ";
             }
             // payment Type
             $paymentType = $item->payment_type. ", ";
@@ -1998,7 +2115,7 @@ class TripBookingController extends Controller
                 }
             }
 
-             $relationManagerName = null;
+            $relationManagerName = null;
             if ($item->trip && $item->trip->relation_manager_id) {
                 $rmIds = json_decode($item->trip->relation_manager_id, true);
               
@@ -2204,7 +2321,7 @@ class TripBookingController extends Controller
             return redirect()->back()->with('error', 'Payment update failed: ' . $e->getMessage());
         }
     }
-    
+
     public function storePaymentHistory($booking,$paymentData)
     {
         if (empty($booking)) {
@@ -2319,6 +2436,7 @@ class TripBookingController extends Controller
         $activity->action = $action;
         $activity->save();
         // Activity Tracker
+
         $customerDetails = [];
         foreach (json_decode($data->customer_id) as $traveler) {
             $customer = getCustomerById($traveler);
@@ -2434,7 +2552,7 @@ class TripBookingController extends Controller
                 'reason' => $request->cancelation_reason,
                 'trip_name' => $data->trip->name ?? "Trip",
                 'admin_email'=>$accountEmail,
-                  'customer_name' => $customerDetailsStr,
+                'customer_name' => $customerDetailsStr,
             ];
             if(setting('mail_status') == 1){
                 event(new SendMailEvent("$accountEmail", 'Booking Cancelled!', 'emails.admin-booking-cancelled', $data));
@@ -2475,9 +2593,6 @@ class TripBookingController extends Controller
     }
 
     public function uploadInvoice(Request $request){
-        $tripbooking= TripBooking::where('id', $request->id)->first();
-        $trip_id=$tripbooking->trip_id;
-        $this->generateCertificateforcorbon($trip_id);
         DB::beginTransaction();
         try {
 
@@ -2613,62 +2728,6 @@ class TripBookingController extends Controller
             return redirect()->back()->with('error', 'An error occurred while adding the item: ' . $e->getMessage());
         }
     }
-    public function generateCertificateforcorbon($data)
-    {
-        $carbonData = CarbonInfo::where('trip_id', $data)->get();
-        foreach ($carbonData as $carboninfo) {
-                $trip_name =$carboninfo->trip->name ?? "Trip";
-                $name = $carboninfo->customer_first_name . ' ' . $carboninfo->customer_last_name;
-                $email = $carboninfo->customer_email;
-                $carnumber= $carboninfo->car_sequence_number;
-                $distance = $carboninfo->total_distance;
-                $carbon_emission = $carboninfo->carbon_emission;
-                $no_of_trees = $carboninfo->no_of_trees;
-
-
-                $data = array(
-                    'trip_name' => $trip_name,
-                    'name' => $name,
-                    'email' => $email,
-                    'carnumber' => $carnumber,
-                    'distance' => $distance,
-                    'carbon_emission' => $carbon_emission,
-                    'no_of_trees' => $no_of_trees,
-
-                );
-               
-
-                $pdfFile = "carbon-certificate-" . $name . ".pdf";
-                $pdf = PDF::setPaper('A4', 'landscape')->loadView('pdf.carbon-certificate', $data);
-
-                $tempFilePathPdf = storage_path('pdf/carboncertificate/' . $pdfFile);
-                if (!file_exists(dirname($tempFilePathPdf))) {
-                    mkdir(dirname($tempFilePathPdf), 0755, true);
-                }
-                // Save the PDF to a temporary file
-                $pdf->save($tempFilePathPdf);
-                $pdfUrl = storage_path('pdf/carboncertificate/' . $pdfFile);
-                $data['attachment'] = [$pdfUrl];
-                
-                Log::info("pdf url  - ".$pdfUrl);
-               
-
-                if (empty($email)) {
-                    Log::warning("No email found for customer:$email}, birthday email not sent.");
-                } else {
-                    try {
-                        event(new SendMailEvent('vageesh@adventuresoverland.com', '🌳 Carbon Certificate 🌟', 'emails.carbon-certificate', $data));
-                        Log::info("Carbon Certificate email sent to $email - " . json_encode($data));
-                    } catch (\Exception $e) {
-                        Log::error("Failed to send Carbon certificate email to $email: " . $e->getMessage());
-                    }
-                }
-
-                // Save the PDF file to the storage
-        }
-         
-    
-    }
 
     public function uploadMultipleInvoiceAction(Request $request){
         DB::beginTransaction();
@@ -2731,8 +2790,6 @@ class TripBookingController extends Controller
         {
 
             $data = TripBooking::find($request->id);
-           
-        
             $bookingInvoices = BookingsInvoiceDetail::where('booking_id', $data->id)->get();
             $allInvoicesApproved = $bookingInvoices->every(function ($invoice) {
                 return $invoice->invoice_status == 1;
@@ -2794,7 +2851,6 @@ class TripBookingController extends Controller
                                         $accountEmail = setting('account_mail');
                                         if ($accountEmail) {
                                                 $datass = [
-                                                    'points' => $payablePoints,
                                                     'trip_name' => $booking->trip->name ?? "Trip",
                                                     'admin_email' => $accountEmail,
                                                     'attachment' => $attachments,
@@ -2818,7 +2874,6 @@ class TripBookingController extends Controller
                                     $salesEmail = setting('sales_email');
                                     if ($salesEmail) {
                                             $datass = [
-                                                'points' => $payablePoints,
                                                 'trip_name' => $booking->trip->name ?? "Trip",
                                                 'admin_email' => $salesEmail,
                                                 'attachment' => $attachments,
@@ -2879,6 +2934,7 @@ class TripBookingController extends Controller
     }
 
     public function customerDetails(Request $request){
+     
         $data = Customer::find($request->id);
 
         $extraDocx = DB::table('extra_documents')->where('user_id', $request->id)->get();
@@ -2897,7 +2953,9 @@ class TripBookingController extends Controller
             //     $data->carbon_accepted = "Not Accepted";
             // }
         }else{
-            $data->terms_accepted = $data->terms_accepted ?? "Not Accepted";
+            $data->terms_accepted = "Not Accepted";
+        
+            // $data->carbon_accepted = "Not Accepted";
         }
         if($data->passport_front){
             $data->passport_front = env('USER_URL').'storage/app/'.$data->passport_front;
@@ -3205,7 +3263,6 @@ class TripBookingController extends Controller
         return redirect()->back()->with('error', 'No file uploaded.');
 
     }
-
     public function billingCustomer(Request $request)
     {
         $token = $request->token;

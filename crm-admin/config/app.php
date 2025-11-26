@@ -168,7 +168,6 @@ return [
         // App\Providers\BroadcastServiceProvider::class,
         App\Providers\EventServiceProvider::class,
         App\Providers\RouteServiceProvider::class,
-        App\Providers\PermissionServiceProvider::class,
 
         // laravel pdf
         Barryvdh\DomPDF\ServiceProvider::class,
@@ -192,15 +191,6 @@ return [
         // laravel-pdf
         'PDF' => Barryvdh\DomPDF\Facade::class
     ])->toArray(),
-
-         /*
-    |--------------------------------------------------------------------------
-    | Extra mail used in diffrent places
-    |--------------------------------------------------------------------------
-    |
-    | This line of code  used as extra mail and used in  different controller .
-    |
-    */
-
+    
     'ExtraMail' => env('Extra_Mail', 'amit@adventuresoverland.com'),
 ];

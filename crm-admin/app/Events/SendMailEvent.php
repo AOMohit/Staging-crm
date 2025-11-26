@@ -17,7 +17,8 @@ class SendMailEvent
     public $subject;
     public $view;
     public $data;
-   
+  
+
     /**
      * Create a new event instance.
      */
@@ -27,5 +28,7 @@ class SendMailEvent
         $this->subject = $subject;
         $this->view = $view;
         $this->data = $data;
+ 
     }
+
 }

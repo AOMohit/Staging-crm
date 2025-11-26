@@ -55,54 +55,52 @@ class DashboardController extends Controller
         
         return view('my-trip',['trip'=>$trip]);
     }
-    function nearestExpiringPoint()
-    {
-        // Get all earned points (with expiry) for the logged-in user
-        $userId = Auth::user()->id;
+function nearestExpiringPoint()
+{
+    // Get all earned points (with expiry) for the logged-in user
+    $points = LoaltyPointsModel::where('customer_id', Auth::user()->id)
+        ->where('trans_type', 'Cr') // Only earned points
+        ->whereNotNull('expiry_date')
+        ->orderBy('expiry_date', 'asc')
+        ->get();
 
-        // Fetch all credited (earned) points — regardless of expiry being set or not
-        $points = LoaltyPointsModel::where('customer_id', $userId)
-            ->where('trans_type', 'Cr') // earned points
-            ->orderBy('expiry_date', 'asc') // null expiry will go last
-            ->get();
-    
-        if ($points->isEmpty()) {
-            return response()->json(['data' => []], 200);
-        }
-    
-        // Total used points (Dr)
-        $usedPoints = LoaltyPointsModel::where('customer_id', $userId)
-            ->where('trans_type', 'Dr') // redeemed or transferred
-            ->sum('trans_amt');
-    
-        $adjustedPoints = [];
-    
-        foreach ($points as $point) {
-            $originalAmount = $point->trans_amt;
-    
-            // Deduct used points in order
-            if ($usedPoints >= $originalAmount) {
-                $adjustedAmount = 0;
-                $usedPoints -= $originalAmount;
-            } elseif ($usedPoints > 0) {
-                $adjustedAmount = $originalAmount - $usedPoints;
-                $usedPoints = 0;
-            } else {
-                $adjustedAmount = $originalAmount;
-            }
-    
-            // Include only remaining (non-zero) points
-            if ($adjustedAmount > 0) {
-                $adjustedPoints[] = [
-                    'expiry_date' => $point->expiry_date ?? Carbon::parse($point->created_at)->addMonths(6), // fallback expiry
-                    'original_points' => $originalAmount,
-                    'remaining_points' => $adjustedAmount,
-                ];
-            }
-        }
-    
-        return response()->json(['data' => $adjustedPoints], 200);
+    if ($points->isEmpty()) {
+        return response()->json(['data' => []], 200);
     }
+
+    // Total used or transferred points (Dr)
+    $usedPoints = LoaltyPointsModel::where('customer_id', Auth::user()->id)
+        ->where('trans_type', 'Dr') // All debits: transfers, redemptions, etc.
+        ->sum('trans_amt');
+
+    $adjustedPoints = [];
+
+    foreach ($points as $point) {
+        $originalAmount = $point->trans_amt;
+
+        // Deduct used points in order of expiry
+        if ($usedPoints >= $originalAmount) {
+            $adjustedAmount = 0;
+            $usedPoints -= $originalAmount;
+        } elseif ($usedPoints > 0) {
+            $adjustedAmount = $originalAmount - $usedPoints;
+            $usedPoints = 0;
+        } else {
+            $adjustedAmount = $originalAmount;
+        }
+
+        // Only include if there's remaining points
+        if ($adjustedAmount > 0) {
+            $adjustedPoints[] = [
+                'expiry_date' => $point->expiry_date,
+                'original_points' => $originalAmount,
+                'remaining_points' => $adjustedAmount,
+            ];
+        }
+    }
+
+    return response()->json(['data' => $adjustedPoints], 200);
+}
 
 
 
@@ -173,7 +171,12 @@ class DashboardController extends Controller
                 
             if(isset($data) && $data != Null){
                 
-                $extra = ExtraDocuments::where('user_id', $data->id)->get();
+                if(isset($tripData->id) && $tripData->id != NULL){
+                    $extra = ExtraDocuments::where('user_id', $data->id)->where('trip_id', $tripData->id)->get();
+                } else {
+                    $extra = ExtraDocuments::where('user_id', $data->id)->get();
+                }
+                
                 // $carbonData = TripCarbonInfo::where(['booking_id'=>$bookingId, 'customer_id'=>$data->id, 'trip_id'=>$request->trip_id])->first();
                 $nonRegUser = [];
                 
@@ -382,7 +385,6 @@ class DashboardController extends Controller
         $user->first_name = $request->first_name;
         $user->last_name = $request->last_name;
         $user->phone = $request->phone;
-        // $user->telephone_code = $request->telephone_code;
         $user->dob = $request->dob;
         $user->city = $request->city;
         $user->state = $request->state;
@@ -649,6 +651,7 @@ class DashboardController extends Controller
                             $doc = new ExtraDocuments();
                         }
                         $doc->title = $title;
+                        $doc->trip_id = $tripData->id ?? NULL;
                         if (isset($request->file('image')[$key]) && $request->file('image')[$key] != NULL) {
                             @unlink('storage/app/' . $doc->image[$key]);
                             $doc->image = $request->file('image')[$key]->store('public/image/user/extra');
@@ -656,7 +659,7 @@ class DashboardController extends Controller
                     
                         $doc->user_id = $user->id;
                         $doc->save();
-                        Log::info('Extra document saved for user ID: ' . $user->id, ['title' => $title, 'image' => $doc->image]);
+                        Log::info('Extra document saved for user ID: ' . $user->id, ['title' => $title, 'image' => $doc->image, 'trip_id' => $doc->trip_id]);
                     }
                 }
             }
@@ -690,8 +693,8 @@ class DashboardController extends Controller
             ]);
         } 
         catch (\Exception $e) {
-            \Log::error('Registration error: '.$e->getMessage(), ['trace' => $e->getTraceAsString()]);
-            return redirect()->back()->with('error', 'Something went wrong. Please try again or contact support.');
+                \Log::error('Registration error: '.$e->getMessage(), ['trace' => $e->getTraceAsString()]);
+                return redirect()->back()->with('error', 'Something went wrong. Please try again or contact support.');
         }
        
     }
@@ -711,17 +714,13 @@ class DashboardController extends Controller
     public function removeDocsImage(Request $request)
     {
         try {
-            // Validate with customer_id instead of id
             $request->validate([
                 'customer_id' => 'required|exists:customers,id',
-                'name' => 'required|string' // Column name from data-docname
+                'name' => 'required|string'
             ]);
 
             $customerId = $request->customer_id;
-            $columnName = $request->name; // This is from data-docname attribute
-            
-            // Find the customer
-            // $customer = Customer::find($customerId);
+            $columnName = $request->name;
             $customer = \App\Models\Customer::find($customerId);
             
             if (!$customer) {
@@ -729,16 +728,13 @@ class DashboardController extends Controller
                 return;
             }
 
-            // Get the image filename from the dynamic column
             $imageFileName = $customer->{$columnName};
             
             if ($imageFileName) {
-                // Delete the physical file
                 if (Storage::disk('public')->exists('image/' . $imageFileName)) {
                     Storage::disk('public')->delete('image/' . $imageFileName);
                 }
                 
-                // Set the column value to NULL
                 $customer->{$columnName} = null;
                 $customer->save();
             }
@@ -1032,5 +1028,134 @@ class DashboardController extends Controller
     function faq(){
         $data = Faq::orderBy('created_at', 'desc')->get();
         return view('faq',['data'=>$data]);
+    }
+
+    public function uploadBookingImage(Request $request)
+    {
+        $validator = \Validator::make($request->all(), [
+            'user_id' => 'required|integer|exists:customers,id',
+            'field'   => 'required|string',
+            'file'    => 'required|file|mimes:jpg,jpeg,png,gif,webp,pdf,doc,docx|max:20480',
+            'doc_id'  => 'nullable|integer',
+            'title'   => 'nullable|string|max:255',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors'  => $validator->errors()
+            ], 422);
+        }
+
+        $customer = \App\Models\Customer::find($request->input('user_id'));
+        if (!$customer) {
+            return response()->json(['success' => false, 'message' => 'Customer not found'], 404);
+        }
+
+        $field = $request->input('field');
+        $file = $request->file('file');
+
+        $userFileFields = [
+            'profile','passport_front','passport_back','pan_gst','gst_certificate','adhar_card','driving'
+        ];
+
+        try {
+            $originalName = $file->getClientOriginalName();
+            $ext = $file->getClientOriginalExtension();
+            $filename = now()->format('Ymd_His') . '_' . \Illuminate\Support\Str::random(8) . '.' . $ext;
+            $baseDir = "image/user/{$customer->id}/{$field}";
+            $storedPath = $file->storeAs($baseDir, $filename, 'public');
+            $dbPath = 'public/' . $storedPath;
+            $appUrl = rtrim(config('app.url', ''), '/');
+            $candidateA = $appUrl . '/storage/app/public/' . ltrim($storedPath, '/');
+            $storageRelativeUrl = \Storage::disk('public')->url($storedPath);
+            if (preg_match('#^https?://#i', $storageRelativeUrl)) {
+                $candidateB = $storageRelativeUrl;
+            } else {
+                $candidateB = $appUrl . '/' . ltrim($storageRelativeUrl, '/');
+            }
+
+            $publicUrl = $candidateA ?: $candidateB;
+            $result = [
+                'success' => true,
+                'path' => $dbPath,
+                'stored_path' => $storedPath,
+                'url'  => $publicUrl,
+                'original_name' => $originalName,
+                'field' => $field,
+            ];
+
+            if (in_array($field, $userFileFields)) {
+                if (!empty($customer->{$field})) {
+                    $oldRel = preg_replace('#^public/#', '', $customer->{$field});
+                    if (\Storage::disk('public')->exists($oldRel)) {
+                        \Storage::disk('public')->delete($oldRel);
+                    }
+                }
+
+                $customer->{$field} = $dbPath;
+                $originalNames = $customer->original_filenames ? json_decode($customer->original_filenames, true) : [];
+                $originalNames[$field] = $originalName;
+                $customer->original_filenames = json_encode($originalNames);
+                $customer->save();
+
+                \Log::info("Booking image uploaded for customer {$customer->id}: field={$field}, path={$storedPath}");
+
+                return response()->json($result);
+            }
+
+            if ($field === 'extra') {
+                $docId = $request->input('doc_id');
+                $title = $request->input('title');
+
+                $docModel = \App\Models\ExtraDocuments::class;
+
+                if ($docId) {
+                    $doc = $docModel::where('id', $docId)->first();
+                    if (!$doc) {
+                        $doc = new $docModel();
+                        $doc->user_id = $customer->id;
+                    } else {
+                        if (!empty($doc->image)) {
+                            $oldRel = preg_replace('#^public/#', '', $doc->image);
+                            if (\Storage::disk('public')->exists($oldRel)) {
+                                \Storage::disk('public')->delete($oldRel);
+                            }
+                        }
+                    }
+                } else {
+                    $doc = new $docModel();
+                    $doc->user_id = $customer->id;
+                }
+
+                if ($title) $doc->title = $title;
+
+                $doc->image = $dbPath;
+                $doc->save();
+
+                $result['doc_id'] = $doc->id;
+                $result['title'] = $doc->title;
+
+                \Log::info("Extra doc uploaded for customer {$customer->id}: doc_id={$doc->id}, path={$storedPath}");
+
+                return response()->json($result);
+            }
+
+            if (!in_array($field, $userFileFields) && $field !== 'extra') {
+                if (\Storage::disk('public')->exists($storedPath)) {
+                    \Storage::disk('public')->delete($storedPath);
+                }
+                return response()->json(['success' => false, 'message' => 'Unknown field specified.'], 400);
+            }
+
+            return response()->json($result);
+        } catch (\Exception $e) {
+            \Log::error('uploadBookingImage error: '.$e->getMessage(), ['trace'=>$e->getTraceAsString()]);
+            if (isset($storedPath) && \Storage::disk('public')->exists($storedPath)) {
+                \Storage::disk('public')->delete($storedPath);
+            }
+            return response()->json(['success'=>false,'message'=>'Upload failed','error'=>$e->getMessage()], 500);
+        }
     }
 }

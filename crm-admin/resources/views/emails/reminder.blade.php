@@ -63,31 +63,30 @@
             <td style="font-size: 15px; line-height: 24px; font-family: 'Helvetica', Arial, sans-serif; font-weight: 400; text-decoration: none; color: #383838; width: 596px; vertical-align: top; padding-left: 30px; padding-right: 30px; padding-top: 30px; padding-bottom: 40px;" width="596">
 
               <p>Dear <strong>{{ $data['name'] }}</strong>,</p>
-
-                <p>This is a gentle reminder that we have not yet received your registration form</p>
+         
+                <p>This is a gentle reminder that we have not yet received your registration form for the upcoming trip.</p>
                 
-                <p> We kindly urge you to submit it at the earliest, as your seat will only be confirmed upon registration.</p>
+                <p>We kindly urge you to submit it at the earliest, as your seat will only be confirmed once the registration is completed.</p>
                 
-                <p>Trip Name :<strong>{{ $data['trip'] }}.</strong></p>
-                
-                <p>Please find the link to the form below for your convenience:</p>
-                <div class="button-div" style=" margin-top: 10px; margin-bottom: 20px;">
-                    <a href="{{ $data['link'] }}" class="button p-2"
+                <p><strong>Trip Name:</strong>{{ $data['trip'] }}.</p>
+                <div>
+                <p><strong>Registration Form:</strong> 
+                    <a href="https://www.adventuresoverland.com/booking-registration-form/" class="button p-2"
                         style=" background-color: #FFB224;
                         text-decoration: none;
                         color: white;
                         padding: 10px;
-                        border-radius: 5px;">Registration Form</a>
-                     <p style="font-size: 14px; color: #ae1515; margin-bottom: 20px;">
-                      Your booking will not be Confirmed till You Submit the Registration form"</p>  
-                    </div> 
-
+                        border-radius: 5px;
+                        margin-left: 10px;">Click here to complete your form</a>
+                </p>
+                     <p style="font-size: 14px; color: #d11b1b; margin-bottom: 20px;">
+                      Please note: Your booking will not be confirmed until we receive your registration form.</p>  
+                  </div>
+                <p>Once registered, our team will assist you with visa processing, flight tickets, or any other services you may require before the journey.</p>
                 
-                <p>The team will get in touch with you in assisting with visa, flight tickets or any other services that you may require before the trip.</p>
+                <p>For any queries, feel free to reach out at info@adventuresoverland.com.</p>
                 
-                <p>In case of any queries, please feel free to contact us at info@adventuresoverland.com</p>
-                
-                <p>Regards,<br>
+                <p>Warm Regards,<br>
                 Team Adventures Overland</p>
 
             </td>

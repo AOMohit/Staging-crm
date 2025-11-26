@@ -34,10 +34,9 @@
       .flashing-message {
       font-size: 14px;
       color: #d60000;
-      padding: 10px;
       border-radius: 8px;
-      /* text-align: center; */
-      margin-top: 20px;
+      text-align: left;
+      margin-top: 38px;
       display: block; /* Ensure message is always displayed */
       visibility: visible; /* Ensure message is visible */
     }

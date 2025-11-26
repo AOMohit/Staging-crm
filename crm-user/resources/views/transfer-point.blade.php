@@ -30,25 +30,22 @@
                     
 
                     <div class="col-md-7 mx-auto d-block mt-3 justify-content-center">
-                        <div class="row px-2" style="justify-content: center; margin-bottom: 10px;">
-                            <div class="col-md-8 col-12">
+                        <div class="row px-2">
+                            <div class="col-md-6 col-12 ">
                                 <div class="background-4  rounded p-2 text-center text-white total-earnd">
-                                    <span class="fw-bold">Total Transferred Received</span> 
-                                    <img src="{{asset('public/userpanel')}}/asset/images/star.svg"> 
-                                    &nbsp; {{$receiver}} 
-                                    <small>Points</small>
+                                    <span class="fw-bold">Total Transferred Received</span> <img src="{{asset('public/userpanel')}}/asset/images/star.svg"> &nbsp; {{$receiver}} <small>Points</small>
                                 </div>
                             </div>
 
-                            {{-- <div class="col-md-6 col-12 earn-card">
+                            <!-- <div class="col-md-6 col-12 earn-card">
                                 <div class="background-7 rounded p-2 text-center text-white total-earnd">
 
                                     <span class="fw-bold">Total Transferred</span> <img src="{{asset('public/userpanel')}}/asset/images/star.svg"> &nbsp; {{$transfer}} <small>Points</small>
                                 </div>
-                            </div> --}}
+                            </div> -->
                         </div>
                     </div>
-                    <div class="container mt-4" >
+                    <div class="container mt-3" >
                         <div class="row">
                             <div class="col-12 col-md-4 redeem-form">
                                 <h6 class="text fw-bold">Transfer your points</h6>

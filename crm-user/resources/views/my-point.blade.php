@@ -24,7 +24,7 @@
 
                     <div class="card border-shadow pb-4 ">
 
-                        <div class="col-md-7 col-12 mx-auto d-block mt-3 ">
+                        <div class="col-md-7 col-12 mx-auto d-block mt-3 custom-mrg">
                             <div class="row px-2">
                                 <div class="col-md-6 col-12 ">
                                     <div class="background-4 rounded p-2 text-center text-white  total-earnd">

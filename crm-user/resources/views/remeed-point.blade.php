@@ -2,7 +2,7 @@
 @section('container')
 
 <div class="col-md-10 col-12">
-    <div class="border-shadow">
+    <div class="border-shadow mb-4">
         <div class="card">
             <div class="card-header bg-white information">
                  @include('layouts.userlayout.card-header')
@@ -29,7 +29,7 @@
                                 </div>
                             </div>
                         </form>
-                      
+                       
                     </div>
                     <div class="p-4">
                         <h6 class="text fw-bold">{!!setting('redeem_points_title')!!}</h6>

@@ -10,6 +10,7 @@
                     <form action="{{ route('customer.store') }}" method="post" enctype="multipart/form-data">
                         @csrf
                         <input type="hidden" name="popup" value="1">
+                     
                         <div class="row">
                             <div class="col-6">
                                 <div class="form-floating form-floating-outline mb-4">
@@ -89,8 +90,8 @@
                             <input onchange="referValidate()" type="checkbox" id="is_refered">
                             Is this customer referred by other customer?
                         </div>
-                        <input type="hidden" name="trip_cost"
-                        value="{{ isset($data) && $data->trip_id ? getTripById($data->trip_id)->price : '' }}">
+                        <input type="hidden" name="trip_cost" id="hidden_trip_cost"
+                        value="">
                           
                         </span></small>
                         <div class="form-floating form-floating-outline mb-4 " id="referal">

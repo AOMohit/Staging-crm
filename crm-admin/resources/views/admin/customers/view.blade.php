@@ -28,14 +28,9 @@
                                         width="120" alt="{{ $data->first_name }}" />
                                 @endif
                                 <div class="user-info text-center">
-                                    <h4>{{ $data->first_name . ' ' . $data->last_name }} 
-                                        @if(($permissions['customer']->can_edit ?? false))
-                                        <a
+                                    <h4>{{ $data->first_name . ' ' . $data->last_name }} <a
                                             href="{{ route('customer.edit', $data->id) }}"><span
-                                                class="fa fa-pen"></span>
-                                        </a>
-                                        @endif
-                                    </h4>
+                                                class="fa fa-pen"></span></a></h4>
                                     <span class="badge bg-label-danger">{{ 'Customer' }}</span>
                                 </div>
                             </div>
@@ -162,7 +157,7 @@
                                     <h5 class="mb-3 text-nowrap">Available Points</h5>
                                 </div>
                                 <div class="d-flex align-items-end">
-                                    <h4 class="mb-0 me-2">{{ indian_number_format($totalAmtPoint) }}</h4>
+                                    <h4 class="mb-0 me-2">{{ indian_number_format($data->points) }}</h4>
                                 </div>
                             </div>
                         </div>
@@ -297,9 +292,7 @@
                             </div>
                             <div class="tab-pane fade" id="navs-top-referrals" role="tabpanel">
                                 <div class="card-datatable table-responsive pt-0">
-                                    @if(($permissions['customer']->can_edit ?? false))
-                                        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addReferalModal">Add Referral</button>
-                                    @endif
+                                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addReferalModal">Add Referral</button>
                                     <table id="myDatatablereferal" class="table table-bordered">
                                         <thead>
                                             <tr>

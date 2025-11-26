@@ -1307,24 +1307,3 @@ li.ui-timepicker-selected,
 .bg-footer-theme hr {
   border-color: rgba(99, 101, 120, 0.0765239216);
 }
-.new-blink {
-  color: white;
-  padding: 5px 8px;
-  border-radius: 10px;
-  font-weight: bold;
-  animation: blink 1s infinite alternate, pop 0.3s ease-in-out;
-}
-
-/* Blink animation */
-@keyframes blink {
-  0% { opacity: 1; }
-  50% { opacity: 0; }
-  100% { opacity: 1; }
-}
-
-/* Pop effect when it first appears */
-@keyframes pop {
-  0% { transform: scale(0.8); }
-  50% { transform: scale(1.2); }
-  100% { transform: scale(1); }
-}

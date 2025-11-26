@@ -25,7 +25,6 @@
                         <form action="{{ route('trip.update') }}" method="post" enctype="multipart/form-data">
                             @csrf
                             <input type="hidden" name="id" value="{{ $data->id }}">
-                            <input type="hidden" name="booking_type" value="web">
                             <div class="row col-12">
                                 <div class="col-md-6">
                                     <div class="form-floating form-floating-outline mb-4">
@@ -63,8 +62,8 @@
                                             class="form-control" id="basic-default-fullname" placeholder="Trip Name" />
                                         <label for="basic-default-fullname">Trip Name <span
                                                 class="text-danger">*</span></label>
-                                                <small class="text-muted" style="font-size: 70%;">
-                                           Trip Name Format: tripName_12Aug2025.
+                                        <small class="text-muted" style="font-size: 70%;">
+                                           Trip Name Format: tripName_12Aug2025 - 18Aug2025.
                                         </small>
                                     </div>
                                 </div>
@@ -173,45 +172,40 @@
                                         <label for="">Stationary</label>
                                     </div>
                                 </div>
-                                {{-------radio button---}}
-                                <div class="row mb-3 mt-3">
-                                    <div class="col-md-6">
-                                        <div class="form-check mb-4">
-                                           <input class="form-check-input" type="radio" name="drive_tour_type" id="radio1" value="Self Drive Road Trip"
-                                            @if($data->drive_tour_type == 'Self Drive Road Trip') checked @endif>
-                                          <label class="form-check-label" for="radio1">Self Drive Road Trip</label>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="form-check mb-4">
-                                          <input class="form-check-input" type="radio" name="drive_tour_type" id="radio2" value="Fly & Drive Road Trip"
-                                            @if($data->drive_tour_type == 'Fly & Drive Road Trip') checked @endif>
-                                          <label class="form-check-label" for="radio2">Fly & Drive Road Trip</label>
-                                        </div>
-                                    </div>
-                                     @error('drive_tour_type')
-                                            <span class="text-danger">{{ $message }}</span> 
-                                        @enderror
-                                </div>
-                                {{----radio button----}}
 
+                                {{-- carbon --}}
+                                <div class="col-md-6">
+                                    <div class="form-floating form-floating-outline mb-4">
+                                        <input type="number" name="tree_no" value="{{ $data->tree_no }}"
+                                            class="form-control" id="basic-default-fullname"
+                                            placeholder="Number of Trees " />
+                                        <label for="basic-default-fullname">Number of Trees <span
+                                                class="text-danger"></span></label>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-floating form-floating-outline mb-4">
+                                        <input type="number" name="donation_amt" value="{{ $data->donation_amt }}"
+                                            class="form-control" id="basic-default-fullname"
+                                            placeholder="Donation Amount" />
+                                        <label for="basic-default-fullname">Donation Amount <span
+                                                class="text-danger"></span></label>
+                                    </div>
+                                </div>
+                                {{-- carbon --}}
                                 {{-- Relation Manager --}}
                                 <div class="col-md-12 mb-4">
                                     <div class="form-floating form-floating-outline">
-                                       <select name="relationManager[]" class="select2 form-select form-select-lg" data-allow-clear="true" multiple>
+                                        <select name="relationManager[]" class="select2 form-select form-select-lg" data-allow-clear="true" multiple>
                                             @php
                                                 $selectedManagers = [];
                                                 if (isset($data) && isset($data->relation_manager_id) && $data->relation_manager_id != 'null') {
-                                                    $decoded = json_decode($data->relation_manager_id, true);
-                                                    if (is_array($decoded)) {
-                                                        $selectedManagers = $decoded;
-                                                    } elseif (!empty($decoded)) {
-                                                        $selectedManagers = [$decoded];
-                                                    }
+                                                    $selectedManagers = json_decode($data->relation_manager_id, true) ?? [];
                                                 }
                                             @endphp
                                             @foreach ($relationManagers as $relationManager)
-                                                <option value="{{ $relationManager->id }}" @if (in_array($relationManager->id, $selectedManagers)) selected @endif>
+                                                <option value="{{ $relationManager->id }}"
+                                                    @if (in_array($relationManager->id, $selectedManagers)) selected @endif>
                                                     {{ $relationManager->name }}
                                                 </option>
                                             @endforeach
@@ -233,7 +227,56 @@
                                         <label for="basic-default-fullname">Thumbnail <span
                                                 class="text-danger"></span></label>
                                     </div>
-                                    <img height="100px" src="{{ url('storage/app/' . $data->image) }}" alt="">
+                                    @if($data->image)
+                                        <img height="100px" src="{{ url('storage/app/' . $data->image) }}" alt="thumbnail">
+                                    @endif
+                                </div>
+
+                                {{-- Gallery Images (existing) --}}
+                                <div class="col-md-12">
+                                    <label class="form-label">Gallery Images</label>
+                                    <div class="row">
+                                        @forelse($data->images as $img)
+                                            <div class="col-md-3 mb-3" id="gallery-card-{{ $img->id }}">
+                                                <div class="card">
+                                                    <img src="{{ url('storage/app/' . $img->image) }}" class="card-img-top" style="height:150px;object-fit:cover;" alt="gallery">
+                                                    <div class="card-body p-2 text-center">
+                                                        <button type="button"
+                                                                class="btn btn-sm btn-danger w-100 gallery-delete-btn"
+                                                                data-id="{{ $img->id }}"
+                                                                data-url="{{ route('trip.image.delete', $img->id) }}">
+                                                            Delete
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        @empty
+                                            <div class="col-12 mb-2">
+                                                <small class="text-muted">No gallery images.</small>
+                                            </div>
+                                        @endforelse
+                                    </div>
+                                </div>
+
+                                {{-- Upload additional gallery images --}}
+                                <div class="col-md-12">
+                                    <div class="form-floating form-floating-outline mb-2">
+                                        <label class="form-label">Add More Gallery Images</label>
+                                        <input type="file" name="images[]" id="gallery-input" class="form-control" multiple accept="image/*" />
+                                        <small class="text-muted" style="font-size: 70%;">You can add more images here (max 10 files client-side)</small>
+                                        @if ($errors->has('images.*'))
+                                            <div class="text-danger mt-1">
+                                                @foreach ($errors->get('images.*') as $errGroup)
+                                                    @foreach ($errGroup as $err)
+                                                        <div>{{ $err }}</div>
+                                                    @endforeach
+                                                @endforeach
+                                            </div>
+                                        @endif
+                                    </div>
+
+                                    {{-- preview for newly selected images --}}
+                                    <div id="gallery-preview" class="row"></div>
                                 </div>
 
                                 <div class="col-md-6 mt-4">
@@ -258,4 +301,86 @@
                 </div>
             </div>
         </div>
+
+        <script>
+            // client-side preview for newly selected images
+            document.addEventListener('DOMContentLoaded', function () {
+                const input = document.getElementById('gallery-input');
+                const preview = document.getElementById('gallery-preview');
+                const MAX_FILES = 10;
+                const MAX_SIZE = 5 * 1024 * 1024; // 5MB
+
+                if(!input) return;
+                input.addEventListener('change', function () {
+                    preview.innerHTML = '';
+                    const files = Array.from(input.files);
+                    if (files.length > MAX_FILES) {
+                        alert('You can upload a maximum of ' + MAX_FILES + ' images.');
+                        input.value = '';
+                        return;
+                    }
+
+                    files.forEach(file => {
+                        if (!file.type.startsWith('image/')) return;
+                        if (file.size > MAX_SIZE) {
+                            alert('File "' + file.name + '" exceeds the max size of 5MB.');
+                            input.value = '';
+                            preview.innerHTML = '';
+                            return;
+                        }
+
+                        const reader = new FileReader();
+                        reader.onload = function (ev) {
+                            const col = document.createElement('div');
+                            col.className = 'col-md-3 mb-3';
+                            const img = document.createElement('img');
+                            img.src = ev.target.result;
+                            img.style.width = '100%';
+                            img.style.height = '150px';
+                            img.style.objectFit = 'cover';
+                            img.className = 'rounded';
+                            col.appendChild(img);
+                            preview.appendChild(col);
+                        };
+                        reader.readAsDataURL(file);
+                    });
+                });
+            });
+
+            document.addEventListener('DOMContentLoaded', function () {
+                const token = "{{ csrf_token() }}";
+                document.querySelectorAll('.gallery-delete-btn').forEach(btn => {
+                    btn.addEventListener('click', function () {
+                        if (!confirm('Delete this image?')) return;
+
+                        const id = this.dataset.id;
+                        const url = this.dataset.url;
+                        const card = document.getElementById('gallery-card-' + id);
+
+                        fetch(url, {
+                            method: 'POST',
+                            headers: {
+                                'X-CSRF-TOKEN': token,
+                                'Accept': 'application/json',
+                                'X-Requested-With': 'XMLHttpRequest'
+                            },
+                            credentials: 'same-origin',
+                        })
+                        .then(resp => resp.json())
+                        .then(json => {
+                            if (json.success) {
+                                if (card) card.remove();
+                            } else {
+                                alert(json.message || 'Failed to delete image');
+                            }
+                        })
+                        .catch(err => {
+                            console.error(err);
+                            alert('Failed to delete image (network/error). Check console.');
+                        });
+                    });
+                });
+            });
+
+        </script>
     @endsection

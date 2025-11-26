@@ -238,8 +238,8 @@
                         <img src="{{ env('ADMIN_URL') . 'storage/app/admin/setting/AO-footer-mailer.png'}}" style="width:auto;height:160px">
                         <p
                             style="font-size: 12px; line-height: 15px; font-family: 'Helvetica', Arial, sans-serif; font-weight: normal; text-decoration: none; color: #000000;">
-                            This email was sent to {{ $mailData['email'] }}.<br>
-                            To help secure your account, please dont forward this email.
+                            This Email was sent to {{ $mailData['email'] }}.<br>
+                            To help secure your Account, Please do not forward this Email.
                         </p>
 
                     </td>

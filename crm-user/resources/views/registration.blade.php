@@ -1,20 +1,28 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>Adventure Expedition Booking – Fixed</title>
-    <link href="{{ asset('public/userpanel') }}/asset/css/registration.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.8/css/intlTelInput.min.css" />
-    <style>
-        .iti__country-list {
-            white-space: normal;
-            width: 413px;
-            max-height: 119px!important;
-        
-        }
-        button#previewBtn { display: none !important; }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="csrf-token" content="{{ csrf_token() }}">
+  <title>Adventure Expedition Booking – Fixed</title>
+  <link href="{{ asset('public/userpanel') }}/asset/css/registration.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.8/css/intlTelInput.min.css" />
+ <style>
+
+ 
+ 
+.iti__selected-flag {
+    height: 40px!important;
+}
+.iti__country-list {
+    white-space: normal;
+    width: 413px;
+    max-height: 119px!important;
+   
+}
+ button#previewBtn {
+    display: none !important;
+}
         .img-wrap {
             position: relative;
             width: 100px;
@@ -22,12 +30,27 @@
             flex-shrink: 0;
             cursor: pointer;
         }
-        input.form-control.extra-doc-name { height: 68px; }
-        button.btn.btn-danger.removeDocBtn { margin-top: 15px; }
-        .zoom { display: none; }
-        hr.line-hr { margin: 25px 0px 10px 0px; }
-        .extra-documents { margin-bottom: 35px; }
-        textarea#address { padding: 0px 20px; }
+        input.form-control.extra-doc-name {
+             height: 68px;
+              }
+        
+        button.btn.btn-danger.removeDocBtn {
+               margin-top: 15px;
+           }
+           
+           .zoom {
+           display: none;
+          }
+          hr.line-hr {
+              margin: 25px 0px 10px 0px;
+         }
+         .extra-documents {
+             margin-bottom: 35px;
+        }
+
+
+        /* CSS from file, cleaned up */
+        textarea#address { padding: 10px 20px; }
 
         .iti {
             position: relative;
@@ -45,22 +68,37 @@
             background-image: none !important;
         }
 
-        .prefilled-select::-ms-expand { display: none; }
-        .extra-doc-row { margin-top: 10px; }
-        .extra-doc-row .doc-col { flex: 1; min-width: 280px; }
-        .extra-doc-fields { align-items: flex-start !important; }
-            
+        .prefilled-select::-ms-expand {
+            display: none;
+        }
+
+        /* Extra field specific styling */
+        .extra-doc-row {
+            margin-top: 10px;
+        }
+        
+        .extra-doc-row .doc-col {
+            flex: 1; /* Make doc-col take up available space in the flex container */
+            min-width: 280px; /* Ensure it doesn't get too small */
+        }
+        
+        .extra-doc-fields {
+            align-items: flex-start !important; /* Align items to top to handle input/doc-col height differences */
+        }
+        
         input.form-control.extra-document {
-            height: 68px;
+            /* This targets the input for the document name in the extra section */
+            height: 68px; /* Harmonize height with other inputs */
             margin-top: 0;
             padding: 0 20px;
         }
 
+        /* Targetting the file input element in the extra section that is inside doc-col */
         .extra-doc-row .doc-col .upload-box input.file-input {
-            height: 68px; 
+            height: 68px; /* Ensure consistency for file inputs in the extra section as well */
             padding: 0 20px;
         }
-            
+        
         button.btn.btn-danger.removeDocBtn.extra-remove-btn {
             margin-top: 13px;
         }
@@ -70,15 +108,16 @@
             height: 68px!important;
             padding: 5px!important;
         }
-        
+       
+        /* Fix for mobile layout on doc-col in form-rowss */
         @media (max-width: 768px) {
             .iti__country-list {
-                white-space: normal;
-                width: auto !important;
-            }
+    white-space: normal;
+    width: auto !important;
+}
             .form-rowss .doc-col {
                 width: 100%;
-                margin-bottom: 20px;
+                margin-bottom: 20px; /* Add spacing between doc-cols on mobile */
             }
             .preview-grid {
                 grid-template-columns: 1fr;
@@ -99,8 +138,18 @@
                 grid-template-columns: 1fr;
                 gap: 2px;
             }
+            /* .doc-col { width: 100%; } // Removed this as it was causing issues, fixed above for form-rowss */
             .edit-button { gap: 34px !important; }
         }
+        
+        
+        
+        /*
+        #nextBtn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        */
 
         .is-invalid {
             border-color: red !important;
@@ -112,13 +161,16 @@
             margin-top: 4px;
             color: red;
             font-size: 13px;
-        } 
-    </style>
+        }
 
-    {{-- Define the PDF placeholder SVG as a PHP variable for easy use in Blade --}}
-    @php
-        $pdfSvg = 'data:image/svg+xml,%3Csvg width="80" height="80" xmlns="http://www.w3.org/2000/svg"%3E%3Crect width="80" height="80" fill="%23E53935" rx="8"/%3E%3Ctext x="40" y="45" font-family="Arial, sans-serif" font-size="20" font-weight="bold" fill="white" text-anchor="middle" dominant-baseline="middle"%3EPDF%3C/text%3E%3C/svg%3E';
-    @endphp
+        
+        
+</style>
+
+{{-- Define the PDF placeholder SVG as a PHP variable for easy use in Blade --}}
+@php
+    $pdfSvg = 'data:image/svg+xml,%3Csvg width="80" height="80" xmlns="http://www.w3.org/2000/svg"%3E%3Crect width="80" height="80" fill="%23E53935" rx="8"/%3E%3Ctext x="40" y="45" font-family="Arial, sans-serif" font-size="20" font-weight="bold" fill="white" text-anchor="middle" dominant-baseline="middle"%3EPDF%3C/text%3E%3C/svg%3E';
+@endphp
 </head>
 <body>
   <div class="form-container">
@@ -140,685 +192,695 @@
       </div>
     </div>
 
-        <form action="{{ route('registrationSubmit') }}" method="POST" enctype="multipart/form-data" id="registrationForm" class="form-content" novalidate>
+    <form action="{{ route('registrationSubmit') }}" method="POST" enctype="multipart/form-data" id="registrationForm" class="form-content" novalidate>
             @csrf
-            <input type="hidden" name="form_type" value="{{ $form_type }}">
-            <input type="hidden" name="customer_id" value="{{ $data->id }}">
-            <div class="form-step active" id="step1">
-                <h2 class="step-title">Personal Information</h2>
-        
-                <div class="form-row">
-                    @if(isset($data)) {{-- Use isset() for robustness --}}
-                        <div class="form-group">
-                            <label for="firstName">First Name <span class="required">*</span></label>
-                            <input type="text" id="firstName" name="first_name"
-                                value="{{ old('first_name', $data->first_name) }}" required>
-                            @error('first_name')<span class="text-danger">{{ $message }}</span>@enderror
-                        </div>
-                        <div class="form-group">
-                            <label for="lastName">Last Name <span class="required">*</span></label>
-                            <input type="text" id="lastName" name="last_name"
-                                value="{{ old('last_name', $data->last_name) }}" required>
-                            @error('last_name')<span class="text-danger">{{ $message }}</span>@enderror
-                        </div>
-                    @else
-                        <div class="form-group single">
-                            <label for="traveller_id">Traveller <span class="required">*</span></label>
-                            <select name="traveller_id" id="traveller_id" class="form-control" required>
-                                <option value="">—Please choose an option—</option>
-                                @foreach($nonRegUsers as $nonRegUser)
-                                    <option value="{{ $nonRegUser->id }}" {{ old('traveller_id') == $nonRegUser->id ? 'selected' : '' }}>
-                                        {{ $nonRegUser->first_name." ".$nonRegUser->last_name }}
-                                    </option>
-                                @endforeach
-                            </select>
-                            @error('traveller_id')<span class="text-danger">{{ $message }}</span>@enderror
-                        </div>
-                    @endif
-                </div>
-        
-                <div class="form-row">
-                    <div class="form-group phone-group">
-                        <label for="phone">Phone Number <span class="required">*</span></label>
-                        {{-- The telephone input uses JS for country code, hidden input stores the code --}}
-                        <input type="tel" id="phone" name="phone" value="{{ old('phone', $data->phone ?? '') }}" required>
-                        <input type="hidden" name="telephone_code" id="telephone_code" value="{{ old('telephone_code', $data->telephone_code ?? '') }}">
-
-                        @error('phone')<span class="text-danger">{{ $message }}</span>@enderror
+            <input type="hidden" name="form_type" id="form_type" value="{{ $form_type }}">
+            <input type="hidden" name="customer_id" value="{{ $data->id ?? '' }}">
+        <div class="form-step active" id="step1">
+            <h2 class="step-title">Personal Information</h2>
+    
+            <div class="form-row">
+                @if(isset($data)) {{-- Use isset() for robustness --}}
+                    <div class="form-group">
+                        <label for="firstName">First Name <span class="required">*</span></label>
+                        <input type="text" id="firstName" name="first_name"
+                            value="{{ old('first_name', $data->first_name) }}" required>
+                        @error('first_name')<span class="text-danger">{{ $message }}</span>@enderror
                     </div>
                     <div class="form-group">
-                        <label for="email">E-mail <span class="required">*</span></label>
-                        <input type="email" id="email" name="email"
-                            value="{{ old('email', $data->email ?? '') }}"
-                            {{ isset($data) ? 'readonly style=opacity:0.7;pointer-events:none;background-color:bisque;' : '' }} required>
-                        @error('email')<span class="text-danger">{{ $message }}</span>@enderror
+                        <label for="lastName">Last Name <span class="required">*</span></label>
+                        <input type="text" id="lastName" name="last_name"
+                            value="{{ old('last_name', $data->last_name) }}" required>
+                        @error('last_name')<span class="text-danger">{{ $message }}</span>@enderror
                     </div>
-                </div>
-        
-                <div class="form-row single">
-                    <div class="form-group">
-                        <label for="expedition"> Choose Your Expedition <span class="required">*</span></label>
-                        <select id="expedition" name="letest_trip" required class="{{ request()->trip_id ? 'prefilled-select' : '' }}">
-                            @foreach ($trip as $trips)
-                            <option value="{{ $trips->id }}"
-                                {{ request()->trip_id == $trips->id ? 'selected' : '' }}>
-                                {{ $trips->name }}
-                            </option>
+                @else
+                    <div class="form-group single">
+                        <label for="traveller_id">Traveller <span class="required">*</span></label>
+                        <select name="traveller_id" id="traveller_id" class="form-control" required>
+                            <option value="">—Please choose an option—</option>
+                            @foreach($nonRegUsers as $nonRegUser)
+                                <option value="{{ $nonRegUser->id }}" {{ old('traveller_id') == $nonRegUser->id ? 'selected' : '' }}>
+                                    {{ $nonRegUser->first_name." ".$nonRegUser->last_name }}
+                                </option>
                             @endforeach
                         </select>
+                        @error('traveller_id')<span class="text-danger">{{ $message }}</span>@enderror
                     </div>
+                @endif
+            </div>
+    
+            <div class="form-row">
+                <div class="form-group phone-group">
+                    <label for="phone">Phone Number <span class="required">*</span></label>
+                    {{-- The telephone input uses JS for country code, hidden input stores the code --}}
+                    <input type="tel" id="phone" name="phone" value="{{ old('phone', $data->phone ?? '') }}" required>
+                    <input type="hidden" name="telephone_code" id="telephone_code" value="{{ old('telephone_code', $data->telephone_code ?? '') }}">
+
+                    @error('phone')<span class="text-danger">{{ $message }}</span>@enderror
+                </div>
+                <div class="form-group">
+                    <label for="email">E-mail <span class="required">*</span></label>
+                    <input type="email" id="email" name="email"
+                        value="{{ old('email', $data->email ?? '') }}"
+                        {{ isset($data) ? 'readonly style=opacity:0.7;pointer-events:none;background-color:bisque;' : '' }} required>
+                    @error('email')<span class="text-danger">{{ $message }}</span>@enderror
+                </div>
+            </div>
+    
+            <div class="form-row single">
+               <div class="form-group">
+                 <label for="expedition"> Choose Your Expedition <span class="required">*</span></label>
+                     <select id="expedition" name="letest_trip" required class="{{ request()->trip_id ? 'prefilled-select' : '' }}">
+                       @foreach ($trip as $trips)
+                       <option value="{{ $trips->id }}"
+                          {{ request()->trip_id == $trips->id ? 'selected' : '' }}>
+                           {{ $trips->name }}
+                       </option>
+                        @endforeach
+                     </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-step" id="step2">
+            <h2 class="step-title">Contact & Other Information</h2>
+            <div class="form-row">
+            <div class="form-group">
+                <label for="country">Country <span class="required">*</span></label>
+                <select id="country" name="country" onchange="getState(this.value)" required>
+                    <option value="">Select Country</option>
+                    @foreach (allCountry() as $contrys)
+                        <option value="{{ $contrys->name }}"
+                            {{ old('country', $data->country ?? '') == $contrys->name ? 'selected' : '' }}>
+                            {{ $contrys->name }}
+                        </option>
+                    @endforeach
+                </select>
+                @error('country')<span class="text-danger">{{ $message }}</span>@enderror
+            </div>
+             <div class="form-group">
+                    <label for="state">State <span class="required">*</span></label>
+                    {{-- Hidden input holds the old state value for initialization in JS --}}
+                    <input type="hidden" id="selected-State" value="{{ $data->state ?? '' }}"> 
+                    <select id="state" name="state" required>
+                        <option value="">Select State</option>
+                    </select>
+                    @error('state')<span class="text-danger">{{ $message }}</span>@enderror
+                </div>
+            </div>
+            <div class="form-row">
+               
+                <div class="form-group">
+                    <label for="city">City <span class="required">*</span></label>
+                    <input type="text" id="city" name="city" value="{{ old('city', $data->city ?? '') }}" required>
+                    @error('city')<span class="text-danger">{{ $message }}</span>@enderror
+                </div>
+                <div class="form-group">
+                    <label for="pincode">Pincode <span class="required">*</span></label>
+                    <input type="text" id="pincode" name="pincode" value="{{ old('pincode', $data->pincode ?? '') }}" required>
+                    @error('pincode')<span class="text-danger">{{ $message }}</span>@enderror
+                </div>
+            </div>
+            <div class="form-row">
+               <div class="form-group">
+                 <label for="address">Address <span class="required">*</span></label>
+                  <textarea id="address" name="address" rows="3" style="transform: translateY(-1px); width: 100%; height: 45px;">{{ old('address', $data->address ?? '') }}</textarea>
+                     @error('address')<span class="text-danger">{{ $message }}</span>@enderror
+                </div>
+                <div class="form-group">
+                    <label for="dob">Date Of Birth <span class="required">*</span></label>
+                    <input type="date" id="dob" name="dob" value="{{ old('dob', $data->dob ?? '') }}" required>
+                    @error('dob')<span class="text-danger">{{ $message }}</span>@enderror
                 </div>
             </div>
 
-            <div class="form-step" id="step2">
-                <h2 class="step-title">Contact & Other Information</h2>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="country">Country <span class="required">*</span></label>
-                        <select id="country" name="country" onchange="getState(this.value)" required>
-                            <option value="">Select Country</option>
-                            @foreach (allCountry() as $contrys)
-                            <option value="{{ $contrys->name }}"
-                                {{ old('country', $data->country ?? '') == $contrys->name ? 'selected' : '' }}>
-                                {{ $contrys->name }}
-                            </option>
-                            @endforeach
-                        </select>
-                        @error('country')<span class="text-danger">{{ $message }}</span>@enderror
-                    </div>
-                    <div class="form-group">
-                        <label for="state">State <span class="required">*</span></label>
-                        {{-- Hidden input holds the old state value for initialization in JS --}}
-                        <input type="hidden" id="selected-State" value="{{ $data->state ?? '' }}"> 
-                        <select id="state" name="state" required>
-                            <option value="">Select State</option>
-                        </select>
-                        @error('state')<span class="text-danger">{{ $message }}</span>@enderror
-                    </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="profession">Profession <span class="required">*</span></label>
+                    <input type="text" id="profession" name="profession" value="{{ old('profession', $data->profession ?? '') }}" required>
+                    @error('profession')<span class="text-danger">{{ $message }}</span>@enderror
                 </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="city">City <span class="required">*</span></label>
-                        <input type="text" id="city" name="city" value="{{ old('city', $data->city ?? '') }}" required>
-                        @error('city')<span class="text-danger">{{ $message }}</span>@enderror
-                    </div>
-                    <div class="form-group">
-                        <label for="pincode">Pincode <span class="required">*</span></label>
-                        <input type="text" id="pincode" name="pincode" value="{{ old('pincode', $data->pincode ?? '') }}" required>
-                        @error('pincode')<span class="text-danger">{{ $message }}</span>@enderror
-                    </div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="address">Address <span class="required">*</span></label>
-                        <textarea id="address" name="address" rows="3" style="transform: translateY(-1px); width: 100%; height: 45px;">{{ old('address', $data->address ?? '') }}</textarea>
-                        @error('address')<span class="text-danger">{{ $message }}</span>@enderror
-                    </div>
-                    <div class="form-group">
-                        <label for="dob">Date Of Birth <span class="required">*</span></label>
-                        <input type="date" id="dob" name="dob" value="{{ old('dob', $data->dob ?? '') }}" required>
-                        @error('dob')<span class="text-danger">{{ $message }}</span>@enderror
-                    </div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="profession">Profession <span class="required">*</span></label>
-                        <input type="text" id="profession" name="profession" value="{{ old('profession', $data->profession ?? '') }}" required>
-                        @error('profession')<span class="text-danger">{{ $message }}</span>@enderror
-                    </div>
-                    <div class="form-group">
-                        <label for="bloodGroup">Blood Group <span class="required">*</span></label>
-                        <select id="bloodGroup" name="blood_group" required>
-                            <option value="">Select blood group...</option>
-                            {{-- Note: Using an array in the loop ensures the blood group values are consistently passed as lowercase as per the old() check --}}
-                            @foreach (['A+','A-','B+','B-','O+','O-','AB+','AB-'] as $bg)
+                <div class="form-group">
+                    <label for="bloodGroup">Blood Group <span class="required">*</span></label>
+                    <select id="bloodGroup" name="blood_group" required>
+                        <option value="">Select blood group...</option>
+                        {{-- Note: Using an array in the loop ensures the blood group values are consistently passed as lowercase as per the old() check --}}
+                        @foreach (['A+','A-','B+','B-','O+','O-','AB+','AB-'] as $bg)
                             <option value="{{ strtolower($bg) }}" {{ old('blood_group', $data->blood_group ?? '') == strtolower($bg) ? 'selected' : '' }}>
                                 {{ $bg }}
                             </option>
-                            @endforeach
-                        </select>
-                        @error('blood_group')<span class="text-danger">{{ $message }}</span>@enderror
-                    </div>
+                        @endforeach
+                    </select>
+                    @error('blood_group')<span class="text-danger">{{ $message }}</span>@enderror
                 </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="mealPref">Meal Preference <span class="required">*</span></label>
-                        <input type="text" id="mealPref" name="meal_preference" value="{{ old('meal_preference', $data->meal_preference ?? '') }}" required>
-                        @error('meal_preference')<span class="text-danger">{{ $message }}</span>@enderror
-                    </div>
-                    <div class="form-group">
-                        <label for="tshirtSize">Choose T-Shirt Size <span class="required">*</span></label>
-                        <select id="tshirtSize" name="t_size" required>
-                            <option value="">Select size...</option>
-                            @foreach(['Kids','XS','S','M','L','XL','2XL','3XL'] as $size)
-                            <option value="{{ $size }}" {{ old('t_size', $data->t_size ?? '') == $size ? 'selected' : '' }}>{{ $size }}</option>
-                            @endforeach
-                        </select>
-                        @error('t_size')<span class="text-danger">{{ $message }}</span>@enderror
-                    </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="mealPref">Meal Preference <span class="required">*</span></label>
+                    <input type="text" id="mealPref" name="meal_preference" value="{{ old('meal_preference', $data->meal_preference ?? '') }}" required>
+                    @error('meal_preference')<span class="text-danger">{{ $message }}</span>@enderror
                 </div>
                 <div class="form-group">
-                    <label for="medicalCondition">Medical Condition if any</label>
-                    <input type="text" id="medicalCondition" name="medical_condition" value="{{ old('medical_condition', $data->medical_condition ?? '') }}">
-                    @error('medical_condition')<span class="text-danger">{{ $message }}</span>@enderror
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="emergencyName">Emergency Contact Name <span class="required">*</span></label>
-                        <input type="text" id="emergencyName" name="emg_name" value="{{ old('emg_name', $data->emg_name ?? '') }}" required>
-                        @error('emg_name')<span class="text-danger">{{ $message }}</span>@enderror
-                    </div>
-                    <div class="form-group">
-                        <label for="emergencyPhone">Emergency Contact Number <span class="required">*</span></label>
-                        <input type="tel" id="emergencyPhone" name="emg_contact" value="{{ old('emg_contact', $data->emg_contact ?? '') }}" required>
-                        @error('emg_contact')<span class="text-danger">{{ $message }}</span>@enderror
-                    </div>
+                    <label for="tshirtSize">Choose T-Shirt Size <span class="required">*</span></label>
+                    <select id="tshirtSize" name="t_size" required>
+                        <option value="">Select size...</option>
+                        @foreach(['Kids','XS','S','M','L','XL','2XL','3XL'] as $size)
+                            <option value="{{ $size }}" {{ old('t_size', $data->t_size ?? '') == $size ? 'selected' : '' }}>{{ $size }}</option>
+                        @endforeach
+                    </select>
+                    @error('t_size')<span class="text-danger">{{ $message }}</span>@enderror
                 </div>
             </div>
 
-            <div class="form-step" id="step3">
-                <h2 class="step-title">Document Uploads & Terms</h2>
-                {{-- Ensure $originalNames is an array for safety --}}
-                @php $originalNames = isset($data->original_filenames) ? json_decode($data->original_filenames,true) : []; @endphp
-                
-                {{-- Helper function to check if a file path is a PDF (assuming standard storage structure/naming) --}}
-                @php
-                    function isPdf($path) {
-                        if (is_string($path)) {
-                            return strtolower(pathinfo($path, PATHINFO_EXTENSION)) === 'pdf';
-                        }
-                        return false;
+            <div class="form-group">
+                <label for="medicalCondition">Medical Condition if any <span class="required">*</span></label>
+                <input type="text" id="medicalCondition" name="medical_condition" value="{{ old('medical_condition', $data->medical_condition ?? '') }}" required>
+                @error('medical_condition')<span class="text-danger">{{ $message }}</span>@enderror
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="emergencyName">Emergency Contact Name <span class="required">*</span></label>
+                    <input type="text" id="emergencyName" name="emg_name" value="{{ old('emg_name', $data->emg_name ?? '') }}" required>
+                    @error('emg_name')<span class="text-danger">{{ $message }}</span>@enderror
+                </div>
+                <div class="form-group">
+                    <label for="emergencyPhone">Emergency Contact Number <span class="required">*</span></label>
+                    <input type="tel" id="emergencyPhone" name="emg_contact" value="{{ old('emg_contact', $data->emg_contact ?? '') }}" required>
+                    @error('emg_contact')<span class="text-danger">{{ $message }}</span>@enderror
+                </div>
+            </div>
+        </div>
+
+        <div class="form-step" id="step3">
+            <h2 class="step-title">Document Uploads & Terms</h2>
+            {{-- Ensure $originalNames is an array for safety --}}
+            @php $originalNames = isset($data->original_filenames) ? json_decode($data->original_filenames,true) : []; @endphp
+            
+            {{-- Helper function to check if a file path is a PDF (assuming standard storage structure/naming) --}}
+            @php
+                function isPdf($path) {
+                    if (is_string($path)) {
+                        return strtolower(pathinfo($path, PATHINFO_EXTENSION)) === 'pdf';
                     }
-                @endphp
-                <div class="form-rowss">
-                    <div class="doc-col">
-                        <h2>Passport Upload (Front)</h2>
-                        <div class="upload-box">
-                            <input type="file" class="file-input" name="passport_front" accept="image/*,.pdf">
-                            <div class="upload-content">
-                                <span class="upload-text">Choose File</span>
-                                <div class="upload-icons">
-                                    <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
-                                    <span class="divider">|</span>
-                                    <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                                </div>
+                    return false;
+                }
+            @endphp
+
+
+            <div class="form-rowss">
+                <div class="doc-col">
+                    <h2>Passport Upload (Front)</h2>
+                    <div class="upload-box">
+                        <input type="file" class="file-input" name="passport_front" accept="image/*,.pdf">
+                        <div class="upload-content">
+                            <span class="upload-text">Choose File</span>
+                            <div class="upload-icons">
+                                <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+                                <span class="divider">|</span>
+                                <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                             </div>
                         </div>
-                        <div class="preview" style="{{ isset($data->passport_front) ? 'display: flex;' : 'display: none;' }}">
-                            <div class="img-wrap">
-                                @if(isset($data->passport_front))
-                                    @php
-                                        $is_pdf = isPdf($data->passport_front);
-                                        $image_src = $is_pdf ? $pdfSvg : asset('storage/app/'.$data->passport_front);
-                                    @endphp
-                                    <img src="{{ $image_src }}" class="preview-img" alt="{{ $is_pdf ? 'PDF Document' : 'Passport Front' }}">
-                                    <input type="hidden" name="old_passport_front" value="{{ $data->passport_front }}">
-                                @else
-                                    <img class="preview-img" src="" alt="">
-                                @endif
-                                <div class="zoom">
-                                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8" stroke-width="2"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M11 8v6m-3-3h6"/></svg>
-                                </div>
-                            </div>
-                            <div class="info">
-                                <div class="name">{{ $originalNames['passport_front'] ?? '' }}</div>
-                                <div class="size">
-                                    {{-- Placeholder for size --}}
-                                </div>
-                            </div>
-                            {{-- The remove button calls the JS function defined below --}}
+                    </div>
+                    <div class="preview" style="{{ isset($data->passport_front) ? 'display: flex;' : 'display: none;' }}">
+                        <div class="img-wrap">
                             @if(isset($data->passport_front))
-                                <button class="remove" type="button" onclick="removeFile('passport_front', this)" style="display: block;">×</button>
+                                @php
+                                    $is_pdf = isPdf($data->passport_front);
+                                    $image_src = $is_pdf ? $pdfSvg : asset('storage/app/'.$data->passport_front);
+                                @endphp
+                                <img src="{{ $image_src }}" class="preview-img" alt="{{ $is_pdf ? 'PDF Document' : 'Passport Front' }}">
+                                <input type="hidden" name="old_passport_front" value="{{ $data->passport_front }}">
+                            @else
+                                <img class="preview-img" src="" alt="">
                             @endif
-                        </div>
-                        <div class="max-size">(Max Size: 20mb)</div>
-                    </div>
-
-                    <div class="doc-col">
-                        <h2>Passport Upload (Back)</h2>
-                    
-                        <div class="upload-box">
-                            <input type="file" class="file-input" name="passport_back" accept="image/*,.pdf">
-                            <div class="upload-content">
-                                <span class="upload-text">Choose File</span>
-                                <div class="upload-icons">
-                                    <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
-                                    </svg>
-                                    <span class="divider">|</span>
-                                    <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
-                                    </svg>
-                                </div>
+                            <div class="zoom">
+                                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8" stroke-width="2"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M11 8v6m-3-3h6"/></svg>
                             </div>
                         </div>
-                    
-                        <div class="preview" style="{{ isset($data->passport_back) ? 'display: flex;' : 'display: none;' }}">
-                            <div class="img-wrap">
-                                @if(isset($data->passport_back))
-                                    @php
-                                        $is_pdf = isPdf($data->passport_back);
-                                        $image_src = $is_pdf ? $pdfSvg : asset('storage/app/'.$data->passport_back);
-                                    @endphp
-                                    <img src="{{ $image_src }}" class="preview-img" alt="{{ $is_pdf ? 'PDF Document' : 'Passport Back' }}">
-                                    <input type="hidden" name="old_passport_back" value="{{ $data->passport_back }}">
-                                @else
-                                    <img class="preview-img" src="" alt="">
-                                @endif
-                                <div class="zoom">
-                                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <circle cx="11" cy="11" r="8" stroke-width="2"/>
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M21 21l-4.35-4.35M11 8v6m-3-3h6"/>
-                                    </svg>
-                                </div>
-                            </div>
-                    
-                            <div class="info">
-                                <div class="name">{{ $originalNames['passport_back'] ?? '' }}</div>
-                                <div class="size">
-                                    {{-- Placeholder for size --}}
-                                </div>
-                            </div>
-                    
-                            @if(isset($data->passport_back))
-                                <button class="remove" type="button" onclick="removeFile('passport_back', this)" style="display: block;">×</button>
-                            @endif
-                        </div>
-                    
-                        <div class="max-size">(Max Size: 20mb)</div>
-                    </div>
-                </div>
-
-                <div class="form-rowss">
-                    <div class="doc-col">
-                        <h2>Pan Card</h2>
-                        <div class="upload-box">
-                            <input type="file" class="file-input" name="pan_gst" accept="image/*,.pdf">
-                            <div class="upload-content">
-                                <span class="upload-text">Choose File</span>
-                                <div class="upload-icons">
-                                    <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
-                                    </svg>
-                                    <span class="divider">|</span>
-                                    <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
-                                    </svg>
-                                </div>
+                        <div class="info">
+                            <div class="name">{{ $originalNames['passport_front'] ?? '' }}</div>
+                            <div class="size">
+                                {{-- Placeholder for size --}}
                             </div>
                         </div>
-                    
-                        <div class="preview" style="{{ isset($data->pan_gst) ? 'display: flex;' : 'display: none;' }}">
-                            <div class="img-wrap">
-                                @if(isset($data->pan_gst))
-                                    @php
-                                        $is_pdf = isPdf($data->pan_gst);
-                                        $image_src = $is_pdf ? $pdfSvg : asset('storage/app/'.$data->pan_gst);
-                                    @endphp
-                                    <img src="{{ $image_src }}" class="preview-img" alt="{{ $is_pdf ? 'PDF Document' : 'Pan Card' }}">
-                                    <input type="hidden" name="old_pan_gst" value="{{ $data->pan_gst }}">
-                                @else
-                                    <img class="preview-img" src="" alt="">
-                                @endif
-                                <div class="zoom">
-                                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <circle cx="11" cy="11" r="8" stroke-width="2"/>
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M21 21l-4.35-4.35M11 8v6m-3-3h6"/>
-                                    </svg>
-                                </div>
-                            </div>
-                    
-                            <div class="info">
-                                <div class="name">{{ $originalNames['pan_gst'] ?? '' }}</div>
-                                <div class="size">
-                                    {{-- Placeholder for size --}}
-                                </div>
-                            </div>
-                    
-                            @if(isset($data->pan_gst))
-                                <button class="remove" type="button" onclick="removeFile('pan_gst', this)" style="display: block;">×</button>
-                            @endif
-                        </div>
-                    
-                        <div class="max-size">(Max Size: 20mb)</div>
-                    </div>
-
-                    <div class="doc-col">
-                        <h2>GST Certificate (For Billing Purpose)</h2>
-                    
-                        <div class="upload-box">
-                            <input type="file" class="file-input" name="gst_certificate" accept="image/*,.pdf">
-                            <div class="upload-content">
-                                <span class="upload-text">Choose File</span>
-                                <div class="upload-icons">
-                                    <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
-                                    </svg>
-                                    <span class="divider">|</span>
-                                    <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
-                                    </svg>
-                                </div>
-                            </div>
-                        </div>
-                    
-                        <div class="preview" style="{{ isset($data->gst_certificate) ? 'display: flex;' : 'display: none;' }}">
-                            <div class="img-wrap">
-                                @if(isset($data->gst_certificate))
-                                    @php
-                                        $is_pdf = isPdf($data->gst_certificate);
-                                        $image_src = $is_pdf ? $pdfSvg : asset('storage/app/'.$data->gst_certificate);
-                                    @endphp
-                                    <img src="{{ $image_src }}" class="preview-img" alt="{{ $is_pdf ? 'PDF Document' : 'GST Certificate' }}">
-                                    <input type="hidden" name="old_gst_certificate" value="{{ $data->gst_certificate }}">
-                                @else
-                                    <img class="preview-img" src="" alt="">
-                                @endif
-                                <div class="zoom">
-                                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <circle cx="11" cy="11" r="8" stroke-width="2"/>
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M21 21l-4.35-4.35M11 8v6m-3-3h6"/>
-                                    </svg>
-                                </div>
-                            </div>
-                    
-                            <div class="info">
-                                <div class="name">{{ $originalNames['gst_certificate'] ?? '' }}</div>
-                                <div class="size">
-                                    {{-- Placeholder for size --}}
-                                </div>
-                            </div>
-                    
-                            @if(isset($data->gst_certificate))
-                                <button class="remove" type="button" onclick="removeFile('gst_certificate', this)" style="display: block;">×</button>
-                            @endif
-                        </div>
-                    
-                        <div class="max-size">(Max Size: 20mb)</div>
-                    </div>
-                </div>
-
-                <div class="form-rowss">
-                    <div class="doc-col">
-                        <h2>Aadhaar Card Upload</h2>
-                    
-                        <div class="upload-box">
-                            <input type="file" class="file-input" name="adhar_card" accept="image/*,.pdf">
-                            <div class="upload-content">
-                                <span class="upload-text">Choose File</span>
-                                <div class="upload-icons">
-                                    <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
-                                    </svg>
-                                    <span class="divider">|</span>
-                                    <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
-                                    </svg>
-                                </div>
-                            </div>
-                        </div>
-                    
-                        <div class="preview" style="{{ isset($data->adhar_card) ? 'display: flex;' : 'display: none;' }}">
-                            <div class="img-wrap">
-                                @if(isset($data->adhar_card))
-                                    @php
-                                        $is_pdf = isPdf($data->adhar_card);
-                                        $image_src = $is_pdf ? $pdfSvg : asset('storage/app/'.$data->adhar_card);
-                                    @endphp
-                                    <img src="{{ $image_src }}" class="preview-img" alt="{{ $is_pdf ? 'PDF Document' : 'Aadhaar Card' }}">
-                                    <input type="hidden" name="old_adhar_card" value="{{ $data->adhar_card }}">
-                                @else
-                                    <img class="preview-img" src="" alt="">
-                                @endif
-                                <div class="zoom">
-                                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <circle cx="11" cy="11" r="8" stroke-width="2"/>
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M21 21l-4.35-4.35M11 8v6m-3-3h6"/>
-                                    </svg>
-                                </div>
-                            </div>
-                    
-                            <div class="info">
-                                <div class="name">{{ $originalNames['adhar_card'] ?? '' }}</div>
-                                <div class="size">
-                                    {{-- Placeholder for size --}}
-                                </div>
-                            </div>
-                    
-                            @if(isset($data->adhar_card))
-                                <button class="remove" type="button" onclick="removeFile('adhar_card', this)" style="display: block;">×</button>
-                            @endif
-                        </div>
-                    
-                        <div class="max-size">(Max Size: 20mb)</div>
-                    </div>
-
-                    <div class="doc-col">
-                        <h2>Driving License Upload</h2>
-                    
-                        <div class="upload-box">
-                            <input type="file" class="file-input" name="driving" accept="image/*,.pdf">
-                            <div class="upload-content">
-                                <span class="upload-text">Choose File</span>
-                                <div class="upload-icons">
-                                    <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
-                                    </svg>
-                                    <span class="divider">|</span>
-                                    <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
-                                    </svg>
-                                </div>
-                            </div>
-                        </div>
-                    
-                        <div class="preview" style="{{ isset($data->driving) ? 'display: flex;' : 'display: none;' }}">
-                            <div class="img-wrap">
-                                @if(isset($data->driving))
-                                    @php
-                                        $is_pdf = isPdf($data->driving);
-                                        $image_src = $is_pdf ? $pdfSvg : asset('storage/app/'.$data->driving);
-                                    @endphp
-                                    <img src="{{ $image_src }}" class="preview-img" alt="{{ $is_pdf ? 'PDF Document' : 'Driving License' }}">
-                                    <input type="hidden" name="old_driving" value="{{ $data->driving }}">
-                                @else
-                                    <img class="preview-img" src="" alt="">
-                                @endif
-                                <div class="zoom">
-                                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <circle cx="11" cy="11" r="8" stroke-width="2"/>
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M21 21l-4.35-4.35M11 8v6m-3-3h6"/>
-                                    </svg>
-                                </div>
-                            </div>
-                    
-                            <div class="info">
-                                <div class="name">{{ $originalNames['driving'] ?? '' }}</div>
-                                <div class="size">
-                                    {{-- Placeholder for size --}}
-                                </div>
-                            </div>
-                    
-                            @if(isset($data->driving))
-                                <button class="remove" type="button" onclick="removeFile('driving', this)" style="display: block;">×</button>
-                            @endif
-                        </div>
-                    
-                        <div class="max-size">(Max Size: 20mb)</div>
-                    </div>
-                </div>
-
-                <div class="form-rowss">
-                    <div class="doc-col" style="width:100%;">
-                        <h2>Profile Picture Upload <span class="required">*</span></h2>
-                        <div class="upload-box profile-upload-box">
-                            <input type="file" name="profile" class="file-input" accept="image/*">
-                            <div class="upload-content">
-                                <span class="upload-text">Choose File</span>
-                                <div class="upload-icons">
-                                    <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
-                                    <span class="divider">|</span>
-                                    <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="preview profile-preview" style="{{ isset($data->profile) ? 'display: flex;' : 'display: none;' }}">
-                            <div class="img-wrap">
-                                @if(isset($data->profile))
-                                    <img src="{{ asset('storage/app/' . $data->profile) }}" id="user_profile" class="preview-img" alt="Profile Picture">
-                                    <input type="hidden" name="old_profile" value="{{ $data->profile }}">
-                                @else
-                                    <img class="preview-img" id="user_profile" src="" alt="">
-                                @endif
-                                <div class="zoom">
-                                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8" stroke-width="2"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M11 8v6m-3-3h6"/></svg>
-                                </div>
-                            </div>
-                            <div class="info">
-                                <div class="name">{{ $originalNames['profile'] ?? '' }}</div>
-                                <div class="size">
-                                    {{-- Placeholder for size --}}
-                                </div>
-                            </div>
-                            @if(isset($data->profile))
-                                <button class="remove" type="button" onclick="removeFile('profile', this)" style="display: block;">×</button>
-                            @endif
-                        </div>
-                        <div class="max-size">(Max Size: 20mb)</div>
-                    </div>
-                </div>
-                
-                
-                <hr class="line-hr">
-                <div class="extra-documents">
-                    <h2>Extra Documents</h2>
-
-                    <div id="extraDocumentsContainer">
-                            @if(isset($extra) && count($extra) > 0)
-                                @foreach($extra as $key => $doc)
-                                    <div class="extra-doc-row" style="margin-bottom: 15px;">
-                                        <div class="extra-doc-fields" style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
-                                            <input type="hidden" name="id[]" value="{{ $doc->id }}">
-                                                <input type="text" name="title[]" class="form-control extra-doc-name" value="{{ $doc->title }}" required style="flex:1; min-width:200px;">
-                                    <div class="doc-col">
-                                        <div class="upload-box" style="{{ !empty($doc->image) ? 'display: none;' : 'display: block;' }}">
-                                            <input 
-                                                type="file" 
-                                                class="file-input form-control" 
-                                                name="image[]" 
-                                                accept="image/*,.pdf"
-                                                data-existing="{{ !empty($doc->image) ? '1' : '0' }}" {{-- Mark existing image status --}}
-                                            >
-                                            <div class="upload-content">
-                                                <span class="upload-text">Choose File</span>
-                                                <div class="upload-icons">
-                                                    <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                            d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-                                                    </svg>
-                                                    <span class="divider">|</span>
-                                                    <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                            d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                            d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
-                                                    </svg>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <div class="preview" style="{{ !empty($doc->image) ? 'display: flex;' : 'display: none;' }}">
-                                            <div class="img-wrap">
-                                                @if(!empty($doc->image))
-                                                    @php
-                                                        $is_pdf = isPdf($doc->image);
-                                                        $image_src = $is_pdf ? $pdfSvg : asset('storage/app/'.$doc->image);
-                                                    @endphp
-                                                    <img src="{{ $image_src }}" class="preview-img" alt="{{ $is_pdf ? 'PDF Document' : 'Extra Document' }}">
-                                                    <input type="hidden" name="old_image[]" value="{{ $doc->image }}">
-                                                @else
-                                                    <img class="preview-img" src="" alt="">
-                                                @endif
-                                                <div class="zoom">
-                                                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <circle cx="11" cy="11" r="8" stroke-width="2"/>
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                                d="M21 21l-4.35-4.35M11 8v6m-3-3h6"/>
-                                                    </svg>
-                                                </div>
-                                            </div>
-
-                                            <div class="info">
-                                                <div class="name">{{ $doc->title ?? basename($doc->image ?? '') }}</div>
-                                                <div class="size">
-                                                    {{-- Placeholder for size --}}
-                                                </div>
-                                            </div>
-
-                                            {{-- The remove button is handled by the general JS logic --}}
-                                            <button type="button" class="remove" style="{{ !empty($doc->image) ? 'display: block;' : 'display: none;' }}">×</button> 
-                                        </div>
-
-                                        <div class="max-size">(Max Size: 20mb)</div>
-                                    </div>
-                            
-                                {{-- Remove button for the row --}}
-                                <button type="button" class="btn btn-danger removeDocBtn" data-doc-id="{{ $doc->id }}">Remove</button>
-                            </div>
-                        </div>
-                            @endforeach
+                        {{-- The remove button calls the JS function defined below --}}
+                        @if(isset($data->passport_front))
+                            <button class="remove" type="button" onclick="removeFile('passport_front', this)" style="display: block;">×</button>
                         @endif
                     </div>
-
-                    <button type="button" class="btn btn-secondary" id="addExtraDocumentBtn" style="margin-top:10px;">
-                        + Add Extra Document
-                    </button>
+                    <div class="max-size">(Max Size: 20mb)</div>
                 </div>
 
-                <div class="terms-container">
-                    <label><strong>Terms and Conditions</strong></label>
-                    <div class="terms-text">{!! setting('terms_condition') !!}</div>
-                    <div class="checkbox-container">
-                        <input type="checkbox" id="acceptTerms" name="terms_accepted"
-                            {{ (!isset($data) || ($data->terms_accepted ?? 1) == 1) ? 'checked' : '' }} required> {{-- Added safety check for $data->terms_accepted --}}
-                        <label for="acceptTerms">Yes, I have read and agree <span class="required">*</span></label>
+                <div class="doc-col">
+                    <h2>Passport Upload (Back)</h2>
+                
+                    <div class="upload-box">
+                        <input type="file" class="file-input" name="passport_back" accept="image/*,.pdf">
+                        <div class="upload-content">
+                            <span class="upload-text">Choose File</span>
+                            <div class="upload-icons">
+                                <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                          d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
+                                </svg>
+                                <span class="divider">|</span>
+                                <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                          d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                          d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                </svg>
+                            </div>
+                        </div>
                     </div>
+                
+                    <div class="preview" style="{{ isset($data->passport_back) ? 'display: flex;' : 'display: none;' }}">
+                        <div class="img-wrap">
+                            @if(isset($data->passport_back))
+                                @php
+                                    $is_pdf = isPdf($data->passport_back);
+                                    $image_src = $is_pdf ? $pdfSvg : asset('storage/app/'.$data->passport_back);
+                                @endphp
+                                <img src="{{ $image_src }}" class="preview-img" alt="{{ $is_pdf ? 'PDF Document' : 'Passport Back' }}">
+                                <input type="hidden" name="old_passport_back" value="{{ $data->passport_back }}">
+                            @else
+                                <img class="preview-img" src="" alt="">
+                            @endif
+                            <div class="zoom">
+                                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <circle cx="11" cy="11" r="8" stroke-width="2"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                          d="M21 21l-4.35-4.35M11 8v6m-3-3h6"/>
+                                </svg>
+                            </div>
+                        </div>
+                
+                        <div class="info">
+                            <div class="name">{{ $originalNames['passport_back'] ?? '' }}</div>
+                            <div class="size">
+                                {{-- Placeholder for size --}}
+                            </div>
+                        </div>
+                
+                        @if(isset($data->passport_back))
+                            <button class="remove" type="button" onclick="removeFile('passport_back', this)" style="display: block;">×</button>
+                        @endif
+                    </div>
+                
+                    <div class="max-size">(Max Size: 20mb)</div>
                 </div>
             </div>
 
-            <div class="form-buttons">
-                <button type="button" class="btn btn-secondary" id="backBtn" style="display:none">Back</button>
-                <button type="button" class="btn btn-primary" id="nextBtn">Next Step</button>
-                <button type="button" class="btn btn-ghost" id="previewBtn" style="display:none!important"></button>
-                <button type="submit" class="btn btn-primary" id="submitBtn" style="display:none">Submit Application</button>
+            <div class="form-rowss">
+                <div class="doc-col">
+                    <h2>Pan Card</h2>
+                
+                    <div class="upload-box">
+                        <input type="file" class="file-input" name="pan_gst" accept="image/*,.pdf">
+                        <div class="upload-content">
+                            <span class="upload-text">Choose File</span>
+                            <div class="upload-icons">
+                                <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                          d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
+                                </svg>
+                                <span class="divider">|</span>
+                                <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                          d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                          d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                
+                    <div class="preview" style="{{ isset($data->pan_gst) ? 'display: flex;' : 'display: none;' }}">
+                        <div class="img-wrap">
+                            @if(isset($data->pan_gst))
+                                @php
+                                    $is_pdf = isPdf($data->pan_gst);
+                                    $image_src = $is_pdf ? $pdfSvg : asset('storage/app/'.$data->pan_gst);
+                                @endphp
+                                <img src="{{ $image_src }}" class="preview-img" alt="{{ $is_pdf ? 'PDF Document' : 'Pan Card' }}">
+                                <input type="hidden" name="old_pan_gst" value="{{ $data->pan_gst }}">
+                            @else
+                                <img class="preview-img" src="" alt="">
+                            @endif
+                            <div class="zoom">
+                                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <circle cx="11" cy="11" r="8" stroke-width="2"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                          d="M21 21l-4.35-4.35M11 8v6m-3-3h6"/>
+                                </svg>
+                            </div>
+                        </div>
+                
+                        <div class="info">
+                            <div class="name">{{ $originalNames['pan_gst'] ?? '' }}</div>
+                            <div class="size">
+                                {{-- Placeholder for size --}}
+                            </div>
+                        </div>
+                
+                        @if(isset($data->pan_gst))
+                            <button class="remove" type="button" onclick="removeFile('pan_gst', this)" style="display: block;">×</button>
+                        @endif
+                    </div>
+                
+                    <div class="max-size">(Max Size: 20mb)</div>
+                </div>
+
+                <div class="doc-col">
+                    <h2>GST Certificate (For Billing Purpose)</h2>
+                
+                    <div class="upload-box">
+                        <input type="file" class="file-input" name="gst_certificate" accept="image/*,.pdf">
+                        <div class="upload-content">
+                            <span class="upload-text">Choose File</span>
+                            <div class="upload-icons">
+                                <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                          d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
+                                </svg>
+                                <span class="divider">|</span>
+                                <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                          d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                          d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                
+                    <div class="preview" style="{{ isset($data->gst_certificate) ? 'display: flex;' : 'display: none;' }}">
+                        <div class="img-wrap">
+                            @if(isset($data->gst_certificate))
+                                @php
+                                    $is_pdf = isPdf($data->gst_certificate);
+                                    $image_src = $is_pdf ? $pdfSvg : asset('storage/app/'.$data->gst_certificate);
+                                @endphp
+                                <img src="{{ $image_src }}" class="preview-img" alt="{{ $is_pdf ? 'PDF Document' : 'GST Certificate' }}">
+                                <input type="hidden" name="old_gst_certificate" value="{{ $data->gst_certificate }}">
+                            @else
+                                <img class="preview-img" src="" alt="">
+                            @endif
+                            <div class="zoom">
+                                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <circle cx="11" cy="11" r="8" stroke-width="2"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                          d="M21 21l-4.35-4.35M11 8v6m-3-3h6"/>
+                                </svg>
+                            </div>
+                        </div>
+                
+                        <div class="info">
+                            <div class="name">{{ $originalNames['gst_certificate'] ?? '' }}</div>
+                            <div class="size">
+                                {{-- Placeholder for size --}}
+                            </div>
+                        </div>
+                
+                        @if(isset($data->gst_certificate))
+                            <button class="remove" type="button" onclick="removeFile('gst_certificate', this)" style="display: block;">×</button>
+                        @endif
+                    </div>
+                
+                    <div class="max-size">(Max Size: 20mb)</div>
+                </div>
             </div>
-        </form>
+
+            <div class="form-rowss">
+                <div class="doc-col">
+                    <h2>Aadhaar Card Upload</h2>
+                
+                    <div class="upload-box">
+                        <input type="file" class="file-input" name="adhar_card" accept="image/*,.pdf">
+                        <div class="upload-content">
+                            <span class="upload-text">Choose File</span>
+                            <div class="upload-icons">
+                                <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                          d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
+                                </svg>
+                                <span class="divider">|</span>
+                                <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                          d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                          d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                
+                    <div class="preview" style="{{ isset($data->adhar_card) ? 'display: flex;' : 'display: none;' }}">
+                        <div class="img-wrap">
+                            @if(isset($data->adhar_card))
+                                @php
+                                    $is_pdf = isPdf($data->adhar_card);
+                                    $image_src = $is_pdf ? $pdfSvg : asset('storage/app/'.$data->adhar_card);
+                                @endphp
+                                <img src="{{ $image_src }}" class="preview-img" alt="{{ $is_pdf ? 'PDF Document' : 'Aadhaar Card' }}">
+                                <input type="hidden" name="old_adhar_card" value="{{ $data->adhar_card }}">
+                            @else
+                                <img class="preview-img" src="" alt="">
+                            @endif
+                            <div class="zoom">
+                                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <circle cx="11" cy="11" r="8" stroke-width="2"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                          d="M21 21l-4.35-4.35M11 8v6m-3-3h6"/>
+                                </svg>
+                            </div>
+                        </div>
+                
+                        <div class="info">
+                            <div class="name">{{ $originalNames['adhar_card'] ?? '' }}</div>
+                            <div class="size">
+                                {{-- Placeholder for size --}}
+                            </div>
+                        </div>
+                
+                        @if(isset($data->adhar_card))
+                            <button class="remove" type="button" onclick="removeFile('adhar_card', this)" style="display: block;">×</button>
+                        @endif
+                    </div>
+                
+                    <div class="max-size">(Max Size: 20mb)</div>
+                </div>
+
+                <div class="doc-col">
+                    <h2>Driving License Upload</h2>
+                
+                    <div class="upload-box">
+                        <input type="file" class="file-input" name="driving" accept="image/*,.pdf">
+                        <div class="upload-content">
+                            <span class="upload-text">Choose File</span>
+                            <div class="upload-icons">
+                                <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                          d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
+                                </svg>
+                                <span class="divider">|</span>
+                                <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                          d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                          d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                
+                    <div class="preview" style="{{ isset($data->driving) ? 'display: flex;' : 'display: none;' }}">
+                        <div class="img-wrap">
+                            @if(isset($data->driving))
+                                @php
+                                    $is_pdf = isPdf($data->driving);
+                                    $image_src = $is_pdf ? $pdfSvg : asset('storage/app/'.$data->driving);
+                                @endphp
+                                <img src="{{ $image_src }}" class="preview-img" alt="{{ $is_pdf ? 'PDF Document' : 'Driving License' }}">
+                                <input type="hidden" name="old_driving" value="{{ $data->driving }}">
+                            @else
+                                <img class="preview-img" src="" alt="">
+                            @endif
+                            <div class="zoom">
+                                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <circle cx="11" cy="11" r="8" stroke-width="2"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                          d="M21 21l-4.35-4.35M11 8v6m-3-3h6"/>
+                                </svg>
+                            </div>
+                        </div>
+                
+                        <div class="info">
+                            <div class="name">{{ $originalNames['driving'] ?? '' }}</div>
+                            <div class="size">
+                                {{-- Placeholder for size --}}
+                            </div>
+                        </div>
+                
+                        @if(isset($data->driving))
+                            <button class="remove" type="button" onclick="removeFile('driving', this)" style="display: block;">×</button>
+                        @endif
+                    </div>
+                
+                    <div class="max-size">(Max Size: 20mb)</div>
+                </div>
+            </div>
+
+            <div class="form-rowss">
+                <div class="doc-col" style="width:100%;">
+                    <h2>Profile Picture Upload <span class="required">*</span></h2>
+                    <div class="upload-box profile-upload-box">
+                        <input type="file" name="profile" class="file-input" accept="image/*">
+                        <div class="upload-content">
+                            <span class="upload-text">Choose File</span>
+                            <div class="upload-icons">
+                                <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+                                <span class="divider">|</span>
+                                <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="preview profile-preview" style="{{ isset($data->profile) ? 'display: flex;' : 'display: none;' }}">
+                        <div class="img-wrap">
+                            @if(isset($data->profile))
+                                <img src="{{ asset('storage/app/' . $data->profile) }}" id="user_profile" class="preview-img" alt="Profile Picture">
+                                <input type="hidden" name="old_profile" value="{{ $data->profile }}">
+                            @else
+                                <img class="preview-img" id="user_profile" src="" alt="">
+                            @endif
+                            <div class="zoom">
+                                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8" stroke-width="2"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M11 8v6m-3-3h6"/></svg>
+                            </div>
+                        </div>
+                        <div class="info">
+                            <div class="name">{{ $originalNames['profile'] ?? '' }}</div>
+                            <div class="size">
+                                {{-- Placeholder for size --}}
+                            </div>
+                        </div>
+                        @if(isset($data->profile))
+                            <button class="remove" type="button" onclick="removeFile('profile', this)" style="display: block;">×</button>
+                        @endif
+                    </div>
+                    <div class="max-size">(Max Size: 20mb)</div>
+                </div>
+            </div>
+            
+            
+             <hr class="line-hr">
+            <div class="extra-documents">
+                <h2>Extra Documents</h2>
+
+                <div id="extraDocumentsContainer">
+                        @if(isset($extra) && count($extra) > 0)
+                            @foreach($extra as $key => $doc)
+                                <div class="extra-doc-row" style="margin-bottom: 15px;">
+                                    <div class="extra-doc-fields" style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+                                        <input type="hidden" name="id[]" value="{{ $doc->id }}">
+                                            <input type="text" name="title[]" class="form-control extra-doc-name" value="{{ $doc->title }}" required style="flex:1; min-width:200px;">
+                                <div class="doc-col">
+                                <div class="upload-box" style="{{ !empty($doc->image) ? 'display: none;' : 'display: block;' }}">
+                                    <input 
+                                        type="file" 
+                                        class="file-input form-control" 
+                                        name="image[]" 
+                                        accept="image/*,.pdf"
+                                        data-existing="{{ !empty($doc->image) ? '1' : '0' }}" {{-- Mark existing image status --}}
+                                    >
+                                    <div class="upload-content">
+                                        <span class="upload-text">Choose File</span>
+                                        <div class="upload-icons">
+                                            <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                                            </svg>
+                                            <span class="divider">|</span>
+                                            <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                            </svg>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="preview" style="{{ !empty($doc->image) ? 'display: flex;' : 'display: none;' }}">
+                                    <div class="img-wrap">
+                                        @if(!empty($doc->image))
+                                            @php
+                                                $is_pdf = isPdf($doc->image);
+                                                $image_src = $is_pdf ? $pdfSvg : asset('storage/app/'.$doc->image);
+                                            @endphp
+                                            <img src="{{ $image_src }}" class="preview-img" alt="{{ $is_pdf ? 'PDF Document' : 'Extra Document' }}">
+                                            <input type="hidden" name="old_image[]" value="{{ $doc->image }}">
+                                        @else
+                                            <img class="preview-img" src="" alt="">
+                                        @endif
+                                        <div class="zoom">
+                                            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <circle cx="11" cy="11" r="8" stroke-width="2"/>
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                        d="M21 21l-4.35-4.35M11 8v6m-3-3h6"/>
+                                            </svg>
+                                        </div>
+                                    </div>
+
+                                    <div class="info">
+                                        <div class="name">{{ $doc->title ?? basename($doc->image ?? '') }}</div>
+                                        <div class="size">
+                                            {{-- Placeholder for size --}}
+                                        </div>
+                                    </div>
+
+                                    {{-- The remove button is handled by the general JS logic --}}
+                                    <button type="button" class="remove" style="{{ !empty($doc->image) ? 'display: block;' : 'display: none;' }}">×</button> 
+                                </div>
+
+                                <div class="max-size">(Max Size: 20mb)</div>
+                </div>
+                        
+                        {{-- Remove button for the row --}}
+                        <button type="button" class="btn btn-danger removeDocBtn" data-doc-id="{{ $doc->id }}">Remove</button>
+            </div>
+        </div>
+                            @endforeach
+                        @endif
     </div>
+
+        <button type="button" class="btn btn-secondary" id="addExtraDocumentBtn" style="margin-top:10px;">
+            + Add Extra Document
+        </button>
+    </div>
+
+
+            
+            <div class="terms-container">
+                <label><strong>Terms and Conditions</strong></label>
+                <div class="terms-text">{!! setting('terms_condition') !!}</div>
+                <div class="checkbox-container">
+                    <input type="checkbox" id="acceptTerms" name="terms_accepted"
+                        {{ (!isset($data) || ($data->terms_accepted ?? 1) == 1) ? 'checked' : '' }} required> {{-- Added safety check for $data->terms_accepted --}}
+                    <label for="acceptTerms">Yes, I have read and agree to the Terms of Service. <span class="required">*</span></label>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-buttons">
+            <button type="button" class="btn btn-secondary" id="backBtn" style="display:none">Back</button>
+            <button type="button" class="btn btn-primary" id="nextBtn">Next Step</button>
+            <button type="button" class="btn btn-ghost" id="previewBtn" style="display:none!important"></button>
+            <button type="submit" class="btn btn-primary" id="submitBtn" style="display:none">Submit Application</button>
+        </div>
+    </form>
+  </div>
 
   <div class="modal-backdrop" id="previewBackdrop" aria-hidden="true">
     <div class="modal preview-box" role="dialog" aria-modal="true" aria-labelledby="previewTitle" style="max-width:950px;">
@@ -864,7 +926,7 @@
 
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
     {{-- Assuming registration_new.js contains the multi-step form logic (next/back/preview) --}}
-    <script src="{{ asset('public/userpanel') }}/asset/js/registration_new.js"></script>
+    <script src="{{ asset('public/userpanel') }}/asset/js/registration.js"></script>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.8/js/intlTelInput.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.8/js/utils.js"></script>
@@ -881,6 +943,8 @@
         const phoneInput = document.getElementById('phone');
         const codeInput = document.getElementById('telephone_code');
         const profileInput = document.querySelector('input[name="profile"]');
+        const cityInput = document.getElementById('city');
+        const emergencyPhoneInput = document.getElementById('emergencyPhone');
 
         let initialCountry = 'in';
         if (codeInput.value) {
@@ -966,6 +1030,55 @@
                 e.preventDefault();
             }
         });
+
+        if (emergencyPhoneInput) {
+            emergencyPhoneInput.addEventListener('keypress', function (e) {
+                const charCode = e.which || e.keyCode;
+                if (charCode < 48 || charCode > 57) {
+                    e.preventDefault();
+                }
+            });
+
+            emergencyPhoneInput.addEventListener('paste', function (e) {
+                const pasted = (e.clipboardData || window.clipboardData).getData('text');
+                if (!/^[0-9]+$/.test(pasted)) {
+                    e.preventDefault();
+                }
+            });
+
+            emergencyPhoneInput.addEventListener('input', function () {
+                this.value = this.value.replace(/\D/g, '').slice(0, 15);
+            });
+        }
+
+        if (cityInput) {
+            // Keypress: allow any Unicode letter and space (modern browsers)
+            cityInput.addEventListener('keypress', function (e) {
+                const charCode = e.which ? e.which : e.keyCode;
+                if (charCode === 8 || charCode === 46) return;
+                const ch = String.fromCharCode(charCode);
+                if (!/^[\p{L}\s]$/u.test(ch)) {
+                    e.preventDefault();
+                }
+            });
+
+            // Paste: allow only letters and spaces
+            cityInput.addEventListener('paste', function (e) {
+                const pasted = (e.clipboardData || window.clipboardData).getData('text') || '';
+                if (!/^[\p{L}\s]+$/u.test(pasted.trim())) {
+                    e.preventDefault();
+                }
+            });
+
+            // Input sanitise: remove anything not a letter or space
+            cityInput.addEventListener('input', function () {
+                const cleaned = this.value
+                    .replace(/[^\p{L}\s]/gu, '')   // remove non-letter/space chars
+                    .replace(/\s{2,}/g, ' ')
+                    .replace(/^\s+/g, '');
+                if (this.value !== cleaned) this.value = cleaned;
+            });
+        }
 
         // pincodeInput.addEventListener('input', function () {
         //     this.value = this.value.replace(/\D/g, '').slice(0, 6);
@@ -1102,6 +1215,12 @@
                 activeBtn.disabled = false;
                 activeBtn.style.opacity = '1';
                 activeBtn.style.cursor = 'pointer';
+            } 
+            else if (form_type.value === 'not_user' || form_type.value == 1) {
+                // console.log("Not user");
+                nextBtn.disabled = false;
+                nextBtn.style.opacity = '1';
+                nextBtn.style.cursor = 'pointer';
             } else {
                 activeBtn.disabled = true;
                 activeBtn.style.opacity = '0.6';
@@ -1126,6 +1245,11 @@
             });
 
             if (allValid) {
+                nextBtn.disabled = false;
+                nextBtn.style.opacity = '1';
+                nextBtn.style.cursor = 'pointer';
+            } 
+            else if (form_type.value === 'not_user' || form_type.value == 1) {
                 nextBtn.disabled = false;
                 nextBtn.style.opacity = '1';
                 nextBtn.style.cursor = 'pointer';
@@ -1823,6 +1947,5 @@
     });
 </script>
 
-  
 </body>
 </html>

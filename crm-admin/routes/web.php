@@ -25,14 +25,13 @@ use App\Http\Controllers\StationaryController;
 use App\Http\Controllers\RelationshipController;
 use App\Http\Controllers\SustainabilityController;
 use App\Http\Controllers\AccountsController;
+use Illuminate\Support\Facades\Route;
+use App\Http\Middleware\CheckLogin;
 use App\Http\Controllers\CarbonDonationController;
 // Forget password routes add here
 use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\ResetPasswordController;
 // End code for here
-
-use Illuminate\Support\Facades\Route;
-use App\Http\Middleware\CheckLogin;
 
 /*
 |--------------------------------------------------------------------------
@@ -44,9 +43,7 @@ use App\Http\Middleware\CheckLogin;
 | be assigned to the "web" middleware group. Make something great!
 |
 */
-Route::get('/pdfcertificate', function () {
-    return view('pdf/carbon-certificate');
-});
+
 Route::get('/storage/app/{path}', function ($path) {
     $path = storage_path('app/' . $path);
     if (!file_exists($path)) {
@@ -55,21 +52,10 @@ Route::get('/storage/app/{path}', function ($path) {
     return response()->file($path);
 })->where('path', '.*');
 
-Route::get('/test-trip-reminder', function () {
-    \Artisan::call('send:trip-reminders');
-    return 'Reminder command chal gaya!';
-});
-
 // without any middleare
 Route::get('/', function () {
     return redirect()->route('login');
 })->name('/');
-
-// Add routes for forget password here
-Route::get('forgot-password', [ForgotPasswordController::class, 'showLinkRequestForm'])->name('password.request');
-Route::post('forgot-password', [ForgotPasswordController::class, 'sendResetLinkEmail'])->name('password.email');
-Route::get('reset-password/{token}', [ResetPasswordController::class, 'showResetForm'])->name('password.reset');
-Route::post('reset-password', [ResetPasswordController::class, 'reset'])->name('password.update');
 
 //================= cron jobs =================
 Route::get('tier', [CronController::class, 'customerTier'])->name('tier');
@@ -78,7 +64,7 @@ Route::get('send-birthday-email', [CronController::class, 'sendBirthdayEmail'])-
 Route::get('reminder', [CronController::class, 'sendReminderToUnsubmittedForms'])->name('reminder');
 Route::get('expenses-created-today', [CronController::class, 'sendTodayExpenseReport']);
 Route::get('part-payment-daily-report', [CronController::class, 'dailypartPaymentReport']);
-
+// Route::get('getcall', [TripBookingController::class, 'getcallsummary']);
 //================= cron jobs =================
 
 // without any middleare
@@ -87,18 +73,25 @@ Route::get('merchandise_export', [TripController::class, 'merchandiseExport'])->
 Route::get('ongoing_trip', [ReportController::class, 'ongoingTrip'])->name('ongoing_trip');
 Route::get('customer_registration_data', [TripController::class, 'customerRegistrationData'])->name('customer_registration_data');
 Route::get('ongoing_trip_pdf', [ReportController::class, 'ongoingTripPdf'])->name('ongoing_trip_pdf');
+Route::get('customer_trip_report', [ReportController::class, 'customerTripExcel'])->name('customer_trip_report');
 // without any middleare
 
+// Carbon calculator routes
 Route::get('/offset', fn() => view('admin.carbon.realtime'));
 Route::get('/carbon-calculator', [CarbonDonationController::class, 'show'])->name('carbon.calculator');
 Route::post('/carbon-pay', [CarbonDonationController::class, 'payu'])->name('carbon.payu');
-// Route::post('/carbon-pay-response', [CarbonDonationController::class, 'payuResponse'])->name('carbon.payu-response');
 Route::match(['GET','POST'], '/carbon-pay-response', [CarbonDonationController::class, 'payuResponse'])->name('carbon.payu-response');
 Route::get('/donation/iframe', [CarbonDonationController::class, 'iframe'])->name('donation.iframe');
 Route::get('/donation/embed', function () { return view('admin.carbon.embed'); })->name('donation.embed');
 
+// Add routes for forget password here
+Route::get('forgot-password', [ForgotPasswordController::class, 'showLinkRequestForm'])->name('password.request');
+Route::post('forgot-password', [ForgotPasswordController::class, 'sendResetLinkEmail'])->name('password.email');
+Route::get('reset-password/{token}', [ResetPasswordController::class, 'showResetForm'])->name('password.reset');
+Route::post('reset-password', [ResetPasswordController::class, 'reset'])->name('password.update');
+
 Route::middleware('CheckLogin')->group(function () {
-    // Route::get('/offset', fn() => view('admin.carbon.realtime'));
+
     Route::post('/offset', [CarbonDonationController::class, 'submit']);
 
     Route::get('/enquiries/unread-count', [ProfileController::class, 'unreadCount']);
@@ -152,11 +145,11 @@ Route::middleware('CheckLogin')->group(function () {
 
         Route::get('transfer', [SettingController::class, 'transfer'])->name('transfer');
         Route::post('transfer-update', [SettingController::class, 'transferUpdate'])->name('transfer-update');
-        
+         
         Route::get('loyalty-point-faq', [SettingController::class, 'loyaltyPointFaq'])->name('loyalty-point-faq');
         Route::post('loyalty_point_faq_store',[SettingController::class,'loyaltypointfaqstore'])->name('loyalty_point_faq_store');
         Route::get('loyalty_point_faq_delete',[SettingController::class,'loyaltypointfaqdelete'])->name('loyalty_point_faq_delete');
-        
+
         Route::group(['prefix' => 'extra_service', 'as' => 'extra_service.'], function () {
             Route::get('/', [ExtraServiceController::class, 'index'])->name('index');
             Route::get('get', [ExtraServiceController::class, 'get'])->name('get');
@@ -231,11 +224,10 @@ Route::middleware('CheckLogin')->group(function () {
         Route::post('download-attachments', [CustomerController::class, 'downloadAttachments'])->name('download.attachments');  // Download all attchments for a customer
         Route::get('activity/{id}', [CustomerController::class, 'activityPage'])->name('activity');
         Route::get('activity-get', [CustomerController::class, 'activity'])->name('activity-get');
-
+        Route::post('referal-store', [CustomerController::class, 'referalStore'])->name('referal-store');
         Route::post('import', [CustomerController::class, 'import'])->name('import');
         Route::get('export-sample', [CustomerController::class, 'exportSample'])->name('export-sample');
         Route::get('export', [CustomerController::class, 'export'])->name('export');
-        Route::post('referal-store', [CustomerController::class, 'referalStore'])->name('referal-store');
 
         Route::group(['prefix' => 'details', 'as' => 'details.'], function () {
             Route::get('trips', [CustomerController::class, 'trips'])->name('trips');
@@ -244,7 +236,6 @@ Route::middleware('CheckLogin')->group(function () {
             Route::get('referal', [CustomerController::class, 'referal'])->name('referal');
             Route::get('minor', [CustomerController::class, 'minor'])->name('minor');
             Route::get('email-suggestions', [CustomerController::class, 'emailSuggestions'])->name('email-suggestions');
-
         });
 
     });
@@ -346,15 +337,13 @@ Route::middleware('CheckLogin')->group(function () {
         Route::post('store', [TripController::class, 'store'])->name('store');
         Route::get('edit/{id}', [TripController::class, 'edit'])->name('edit');
         Route::post('update', [TripController::class, 'update'])->name('update');
+        Route::post('image/delete/{id}', [TripController::class, 'deleteImage'])->name('image.delete');
         Route::get('delete/{id}', [TripController::class, 'destroy'])->name('delete');
         Route::get('view/{id}', [TripController::class, 'view'])->name('view');
         Route::get('activity/{id}', [TripController::class, 'activityPage'])->name('activity');
         Route::get('activity-get', [TripController::class, 'activity'])->name('activity-get');
         Route::post('change-status', [TripController::class, 'changeStatus'])->name('change-status');
         Route::post('cancel', [TripController::class, 'cancelTrip'])->name('cancel');
-
-        // Download Expense Report for selected date (handled in TripController)
-        Route::get('expense-report/{date?}', [TripController::class, 'sendDatedExpenseReport'])->name('expense-report');
 
         Route::post('import', [TripController::class, 'import'])->name('import');
         Route::get('export-sample', [TripController::class, 'exportSample'])->name('export-sample');
@@ -399,11 +388,6 @@ Route::middleware('CheckLogin')->group(function () {
             Route::get('sendEmail', [TripController::class, 'sendEmail'])->name('sendEmail');
             Route::get('delete-expense/{id}', [TripController::class, 'deleteExpenseDetail'])->name('delete-expense');
             Route::post('edit-expense-history', [TripController::class, 'editExpenseDetail'])->name('edit-expense-history');
-            Route::get('carbonSampleSheet', [TripController::class, 'carbonsample'])->name('carbonSampleSheet');
-            Route::post('carbonInfoImport', [TripController::class, 'carbonInfoImport'])->name('carbonInfoImport');
-            Route::get('carboninfoData', [TripController::class, 'getcarboninfoData'])->name('carboninfoData');
-            Route::post('update-carbon-neutral-data', [TripController::class, 'UpdatecarbonNeutralData'])->name('update-carbon-neutral-data');
-            Route::post('get-new-carbon-customers', [TripController::class, 'getNewCarbonCustomers'])->name('get-new-carbon-customers');
         });
     });
 
@@ -461,7 +445,6 @@ Route::middleware('CheckLogin')->group(function () {
             Route::get('sent-invoice', [ReportController::class, 'sentInvoice'])->name('sent-invoice');
             Route::get('pending-invoice', [ReportController::class, 'pendingInvoice'])->name('pending-invoice');
 
-
         });
     });
 
@@ -474,8 +457,10 @@ Route::middleware('CheckLogin')->group(function () {
         Route::get('export', [TripBookingController::class, 'export'])->name('export');
         Route::get('delete/{id}', [TripBookingController::class, 'destroy'])->name('delete');
         Route::post('import', [TripBookingController::class, 'import'])->name('import');
+
         Route::get('new-trip', [TripBookingController::class, 'create'])->name('new-trip');
         Route::post('billing-customer',[TripBookingController::class, 'billingCustomer'])->name('billing-customer');
+
         Route::post('/get-customer-manual-tax', [ManualTaxController::class, 'getCustomerManualTax'])->name('getCustomerManualTax');
         Route::post('/save-customer-manual-tax', [ManualTaxController::class, 'saveCustomerManualTax'])->name('saveCustomerManualTax');
 
@@ -522,7 +507,6 @@ Route::middleware('CheckLogin')->group(function () {
             Route::post('delete-media', [TripBookingController::class, 'deleteMedia'])->name('delete-media');
             Route::post('correction-booking', [TripBookingController::class, 'correctionBooking'])->name('correction-booking');
             Route::post('schPayment', [TripBookingController::class, 'schPayment'])->name('schPayment');
-             Route::post('ischeckedStore', [TripBookingController::class, 'ischeckedStore'])->name('ischeckedStore');
             Route::post('multipe-payment', [TripBookingController::class, 'multiplePayment'])->name('multipe-payment');
         });
     });

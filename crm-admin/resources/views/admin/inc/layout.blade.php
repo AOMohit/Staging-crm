@@ -29,675 +29,679 @@
     dir="ltr" data-theme="theme-default" data-assets-path="{{ url('public/admin') }}/assets/"
     data-template="vertical-menu-template">
 
-    <head>
-        <meta charset="utf-8" />
-        <meta name="viewport"
-            content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
 
-        <title>{{ setting('site_name') }}</title>
+    <title>{{ setting('site_name') }}</title>
 
-        <meta name="description" content="" />
+    <meta name="description" content="" />
 
-        <!-- Favicon -->
-        <link rel="icon" type="image/x-icon" href="{{ url('storage/app/' . setting('logo')) }}" />
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="{{ url('storage/app/' . setting('logo')) }}" />
 
-        <!-- Fonts -->
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
-            rel="stylesheet" />
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet" />
 
-        <!-- Icons -->
-        <link rel="stylesheet" href="{{ url('public/admin') }}/assets/vendor/fonts/materialdesignicons.css" />
-        <link rel="stylesheet" href="{{ url('public/admin') }}/assets/vendor/fonts/fontawesome.css" />
-        <!-- Menu waves for no-customizer fix -->
-        <link rel="stylesheet" href="{{ url('public/admin') }}/assets/vendor/libs/node-waves/node-waves.css" />
+    <!-- Icons -->
+    <link rel="stylesheet" href="{{ url('public/admin') }}/assets/vendor/fonts/materialdesignicons.css" />
+    <link rel="stylesheet" href="{{ url('public/admin') }}/assets/vendor/fonts/fontawesome.css" />
+    <!-- Menu waves for no-customizer fix -->
+    <link rel="stylesheet" href="{{ url('public/admin') }}/assets/vendor/libs/node-waves/node-waves.css" />
 
-        <!-- Core CSS -->
-        <link rel="stylesheet" href="{{ url('public/admin') }}/assets/vendor/css/rtl/core.css"
-            class="template-customizer-core-css" />
-        <link rel="stylesheet" href="{{ url('public/admin') }}/assets/vendor/css/rtl/theme-default.css"
-            class="template-customizer-theme-css" />
-        <link rel="stylesheet" href="{{ url('public/admin') }}/assets/css/demo.css" />
+    <!-- Core CSS -->
+    <link rel="stylesheet" href="{{ url('public/admin') }}/assets/vendor/css/rtl/core.css"
+        class="template-customizer-core-css" />
+    <link rel="stylesheet" href="{{ url('public/admin') }}/assets/vendor/css/rtl/theme-default.css"
+        class="template-customizer-theme-css" />
+    <link rel="stylesheet" href="{{ url('public/admin') }}/assets/css/demo.css" />
 
-        <!-- Vendors CSS -->
-        <link rel="stylesheet"
-            href="{{ url('public/admin') }}/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.css" />
-        <link rel="stylesheet" href="{{ url('public/admin') }}/assets/vendor/libs/typeahead-js/typeahead.css" />
-        <link rel="stylesheet"
-            href="{{ url('public/admin') }}/assets/vendor/libs/datatables-bs5/datatables.bootstrap5.css" />
-        <link rel="stylesheet"
-            href="{{ url('public/admin') }}/assets/vendor/libs/datatables-responsive-bs5/responsive.bootstrap5.css" />
-        <link rel="stylesheet" href="{{ url('public/admin') }}/assets/vendor/libs/apex-charts/apex-charts.css" />
-        <link rel="stylesheet" href="{{ url('public/admin') }}/assets/vendor/libs/swiper/swiper.css" />
+    <!-- Vendors CSS -->
+    <link rel="stylesheet"
+        href="{{ url('public/admin') }}/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.css" />
+    <link rel="stylesheet" href="{{ url('public/admin') }}/assets/vendor/libs/typeahead-js/typeahead.css" />
+    <link rel="stylesheet"
+        href="{{ url('public/admin') }}/assets/vendor/libs/datatables-bs5/datatables.bootstrap5.css" />
+    <link rel="stylesheet"
+        href="{{ url('public/admin') }}/assets/vendor/libs/datatables-responsive-bs5/responsive.bootstrap5.css" />
+    <link rel="stylesheet" href="{{ url('public/admin') }}/assets/vendor/libs/apex-charts/apex-charts.css" />
+    <link rel="stylesheet" href="{{ url('public/admin') }}/assets/vendor/libs/swiper/swiper.css" />
 
-        <link rel="stylesheet" href="{{ url('public/admin') }}/assets/vendor/libs/select2/select2.css" />
-        <link rel="stylesheet"
-            href="{{ url('public/admin') }}/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.css" />
-        <link rel="stylesheet" href="{{ url('public/admin') }}/assets/vendor/libs/typeahead-js/typeahead.css" />
-        <link rel="stylesheet" href="{{ url('public/admin') }}/assets/vendor/libs/tagify/tagify.css" />
-        <link rel="stylesheet" href="{{ url('public/admin') }}/assets/vendor/libs/bootstrap-select/bootstrap-select.css" />
-        <link rel="stylesheet" href="{{ url('public/admin') }}/assets/vendor/libs/typeahead-js/typeahead.css" />
+    <link rel="stylesheet" href="{{ url('public/admin') }}/assets/vendor/libs/select2/select2.css" />
+    <link rel="stylesheet"
+        href="{{ url('public/admin') }}/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.css" />
+    <link rel="stylesheet" href="{{ url('public/admin') }}/assets/vendor/libs/typeahead-js/typeahead.css" />
+    <link rel="stylesheet" href="{{ url('public/admin') }}/assets/vendor/libs/tagify/tagify.css" />
+    <link rel="stylesheet" href="{{ url('public/admin') }}/assets/vendor/libs/bootstrap-select/bootstrap-select.css" />
+    <link rel="stylesheet" href="{{ url('public/admin') }}/assets/vendor/libs/typeahead-js/typeahead.css" />
 
-        <!-- Page CSS -->
-        <link rel="stylesheet" href="{{ url('public/admin') }}/assets/vendor/css/pages/cards-statistics.css" />
-        <!-- Helpers -->
-        <script src="{{ url('public/admin') }}/assets/vendor/js/helpers.js"></script>
+    <!-- Page CSS -->
+    <link rel="stylesheet" href="{{ url('public/admin') }}/assets/vendor/css/pages/cards-statistics.css" />
+    <!-- Helpers -->
+    <script src="{{ url('public/admin') }}/assets/vendor/js/helpers.js"></script>
 
-        <script src="{{ url('public/admin') }}/assets/vendor/js/template-customizer.js"></script>
-        <script src="{{ url('public/admin') }}/assets/js/config.js"></script>
+    <script src="{{ url('public/admin') }}/assets/vendor/js/template-customizer.js"></script>
+    <script src="{{ url('public/admin') }}/assets/js/config.js"></script>
 
-        <link rel="stylesheet" href="{{ url('public/admin/assets/bootstrap-4.min.css') }}">
-        <style>
-            .swal2-title{
-                font-size: 13px !important;
-                font-weight: 600 !important;
-                padding: 25px 15px !important
-            }
-            .swal2-container{
-                z-index: 999999 !important;
-            }
-            /* Add this css for User Manual */
-            .user-manual-cls {
-                text-decoration: none;
-            }
-            .user-manual-cls:hover {
-                text-decoration: underline !important; /* show underline on hover */
-            }
-            /* End css User Manual */
-        </style>
-    </head>
+    <link rel="stylesheet" href="{{ url('public/admin/assets/bootstrap-4.min.css') }}">
+<style>
+   
+   .swal2-title{
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    padding: 25px 15px !important
+   }
+   .swal2-container{
+        z-index: 999999 !important;
+    }
+    /* Add this css for User Manual */
+    .user-manual-cls {
+        text-decoration: none;
+    }
+    .user-manual-cls:hover {
+        text-decoration: underline !important; /* show underline on hover */
+    }
+    /* End css User Manual */
+</style>
+</head>
 
-    <body>
-        <!-- Layout wrapper -->
-        <div class="layout-wrapper layout-content-navbar">
-            <div class="layout-container">
-                <!-- Menu -->
+<body>
+    <!-- Layout wrapper -->
+    <div class="layout-wrapper layout-content-navbar">
+        <div class="layout-container">
+            <!-- Menu -->
 
-                <aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme">
-                    <div class="app-brand demo">
-                        <a href="{{ route('dashboard') }}" class="app-brand-link ml-3">
-                            <span class="app-brand-logo demo">
-                                <img style="height: 55px; width: auto;" src="{{ url('storage/app/' . setting('logo')) }}"
-                                    alt="{{ setting('site_name') }}">
-                            </span>
+            <aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme">
+                <div class="app-brand demo">
+                    <a href="{{ route('dashboard') }}" class="app-brand-link ml-3">
+                        <span class="app-brand-logo demo">
+                            <img style="height: 55px; width: auto;" src="{{ url('storage/app/' . setting('logo')) }}"
+                                alt="{{ setting('site_name') }}">
+                        </span>
+                    </a>
+
+                    <a href="javascript:void(0);" class="layout-menu-toggle menu-link text-large ms-auto">
+                        <svg width="22" height="22" viewBox="0 0 22 22" fill="none"
+                            xmlns="http://www.w3.org/2000/svg">
+                            <path
+                                d="M11.4854 4.88844C11.0081 4.41121 10.2344 4.41121 9.75715 4.88844L4.51028 10.1353C4.03297 10.6126 4.03297 11.3865 4.51028 11.8638L9.75715 17.1107C10.2344 17.5879 11.0081 17.5879 11.4854 17.1107C11.9626 16.6334 11.9626 15.8597 11.4854 15.3824L7.96672 11.8638C7.48942 11.3865 7.48942 10.6126 7.96672 10.1353L11.4854 6.61667C11.9626 6.13943 11.9626 5.36568 11.4854 4.88844Z"
+                                fill="currentColor" fill-opacity="0.6" />
+                            <path
+                                d="M15.8683 4.88844L10.6214 10.1353C10.1441 10.6126 10.1441 11.3865 10.6214 11.8638L15.8683 17.1107C16.3455 17.5879 17.1192 17.5879 17.5965 17.1107C18.0737 16.6334 18.0737 15.8597 17.5965 15.3824L14.0778 11.8638C13.6005 11.3865 13.6005 10.6126 14.0778 10.1353L17.5965 6.61667C18.0737 6.13943 18.0737 5.36568 17.5965 4.88844C17.1192 4.41121 16.3455 4.41121 15.8683 4.88844Z"
+                                fill="currentColor" fill-opacity="0.38" />
+                        </svg>
+                    </a>
+                </div>
+
+                <div class="menu-inner-shadow"></div>
+
+                <ul class="menu-inner py-1">
+
+                    <li class="menu-item {{ $current_route == 'dashboard' ? 'active' : '' }}">
+                        <a href="{{ route('dashboard') }}" class="menu-link">
+                            <i class="menu-icon tf-icons mdi mdi-home-outline"></i>
+                            <div data-i18n="Dashboard">Dashboard</div>
                         </a>
+                    </li>
 
-                        <a href="javascript:void(0);" class="layout-menu-toggle menu-link text-large ms-auto">
-                            <svg width="22" height="22" viewBox="0 0 22 22" fill="none"
-                                xmlns="http://www.w3.org/2000/svg">
-                                <path
-                                    d="M11.4854 4.88844C11.0081 4.41121 10.2344 4.41121 9.75715 4.88844L4.51028 10.1353C4.03297 10.6126 4.03297 11.3865 4.51028 11.8638L9.75715 17.1107C10.2344 17.5879 11.0081 17.5879 11.4854 17.1107C11.9626 16.6334 11.9626 15.8597 11.4854 15.3824L7.96672 11.8638C7.48942 11.3865 7.48942 10.6126 7.96672 10.1353L11.4854 6.61667C11.9626 6.13943 11.9626 5.36568 11.4854 4.88844Z"
-                                    fill="currentColor" fill-opacity="0.6" />
-                                <path
-                                    d="M15.8683 4.88844L10.6214 10.1353C10.1441 10.6126 10.1441 11.3865 10.6214 11.8638L15.8683 17.1107C16.3455 17.5879 17.1192 17.5879 17.5965 17.1107C18.0737 16.6334 18.0737 15.8597 17.5965 15.3824L14.0778 11.8638C13.6005 11.3865 13.6005 10.6126 14.0778 10.1353L17.5965 6.61667C18.0737 6.13943 18.0737 5.36568 17.5965 4.88844C17.1192 4.41121 16.3455 4.41121 15.8683 4.88844Z"
-                                    fill="currentColor" fill-opacity="0.38" />
-                            </svg>
+                    @if (in_array('trip', $perArray) || $checkAdmin == 1)
+                        <li
+                            class="menu-item {{ $current_route == 'trip.index' || $current_route == 'trip.view' || $current_route == 'trip.add' || $current_route == 'trip.edit' ? 'active' : '' }}">
+                            <a href="{{ route('trip.index') }}" class="menu-link">
+                                <i class="menu-icon tf-icons mdi mdi-plane-car"></i>
+                                <div data-i18n="Trips">Trips</div>
+                            </a>
+                        </li>
+                    @endif
+
+                    @if (in_array('booking', $perArray) || $checkAdmin == 1)
+                        <li
+                            class="menu-item {{ $current_route == 'booking.index' || $current_route == 'booking.view' || $current_route == 'booking.new-trip' ? 'active' : '' }}">
+                            <a href="{{ route('booking.index') }}" class="menu-link">
+                                <i class="menu-icon tf-icons mdi mdi-book-account"></i>
+                                <div data-i18n="Bookings">Bookings</div>
+                            </a>
+                        </li>
+                    @endif
+
+                    @if (in_array('customer', $perArray) || $checkAdmin == 1)
+                        <li
+                            class="menu-item {{ $current_route == 'customer.index' || $current_route == 'customer.view' || $current_route == 'customer.add' || $current_route == 'customer.edit' ? 'active' : '' }}">
+                            <a href="{{ route('customer.index') }}" class="menu-link">
+                                <i class="menu-icon tf-icons mdi mdi-account-group"></i>
+                                <div data-i18n="Customers">Customers</div>
+                            </a>
+                        </li>
+                    @endif
+
+                    @if (in_array('birthdays', $perArray) || $checkAdmin == 1)
+                        <li class="menu-item {{ $current_route == 'birthday.index' ? 'active' : '' }}">
+                            <a href="{{ route('birthday.index') }}" class="menu-link">
+                                <i class="menu-icon tf-icons mdi mdi-cake-variant"></i>
+                                <div data-i18n="Birthdays">Birthdays</div>
+                            </a>
+                        </li>
+                    @endif
+
+                    @if (in_array('agent', $perArray) || $checkAdmin == 1)
+                        <li
+                            class="menu-item {{ $current_route == 'agent.index' || $current_route == 'agent.view' || $current_route == 'agent.add' || $current_route == 'agent.edit' ? 'active' : '' }}">
+                            <a href="{{ route('agent.index') }}" class="menu-link">
+                                <i class="menu-icon tf-icons mdi mdi-face-agent"></i>
+                                <div data-i18n="Travel Agents">Travel Agents</div>
+                            </a>
+                        </li>
+                    @endif
+                    @if (in_array('vendors', $perArray) || $checkAdmin == 1)
+                        <li
+                            class="menu-item {{ $current_route == 'vendors.index' || $current_route == 'vendors.view' || $current_route == 'vendors.add' || $current_route == 'vendors.edit' ? 'active' : '' }}">
+                            <a href="{{ route('vendors.index') }}" class="menu-link">
+                                <i class="menu-icon tf-icons mdi mdi-store"></i>
+                                <div data-i18n="Vendors">Vendors</div>
+                            </a>
+                        </li>
+                    @endif
+
+                    @if (in_array('inventory_category', $perArray) || $checkAdmin == 1)
+                        <li class="menu-item {{ $current_route == 'inventory_category.index' ? 'active' : '' }}">
+                            <a href="{{ route('inventory_category.index') }}" class="menu-link">
+                                <i class="menu-icon tf-icons mdi mdi-shape"></i>
+                                <div data-i18n="Inventory Category">Inventory Category</div>
+                            </a>
+                        </li>
+                    @endif
+                    @if (in_array('inventory', $perArray) || $checkAdmin == 1)
+                        <li
+                            class="menu-item {{ $current_route == 'inventory.index' || $current_route == 'inventory.view' ? 'active' : '' }}">
+                            <a href="{{ route('inventory.index') }}" class="menu-link">
+                                <i class="menu-icon tf-icons mdi mdi-shopping"></i>
+                                <div data-i18n="Inventory Stock">Inventory Stock</div>
+                            </a>
+                        </li>
+                    @endif
+
+                    @if (in_array('report', $perArray) || $checkAdmin == 1)
+                        <li class="menu-item {{ $current_route == 'report.index' ? 'active' : '' }}">
+                            <a href="{{ route('report.index') }}" class="menu-link">
+                                <i class="menu-icon tf-icons mdi mdi-file-chart"></i>
+                                <div data-i18n="Reports">Reports</div>
+                            </a>
+                        </li>
+                    @endif
+
+                    @if (in_array('loyalty', $perArray) || $checkAdmin == 1)
+                        <li
+                            class="menu-item {{ $current_route == 'loyalty.index' || $current_route == 'loyalty.gift' ? 'active' : '' }}">
+                            <a href="{{ route('loyalty.index') }}" class="menu-link">
+                                <i class="menu-icon tf-icons mdi mdi-star-four-points-circle-outline"></i>
+                                <div data-i18n="Loyalty Program">Loyalty Program</div>
+                            </a>
+                        </li>
+                    @endif
+
+
+                    @if (in_array('setting', $perArray) || $checkAdmin == 1)
+                        <!-- setting -->
+                        <li class="menu-item  @if (
+                            $current_route == 'setting.site' ||
+                                $current_route == 'setting.loyalty-point-terms-condition' ||
+                                $current_route == 'setting.loyalty-point-faq' ||
+                                $current_route == 'setting.contact' ||
+                                $current_route == 'setting.terms' ||
+                                $current_route == 'setting.third-party' ||
+                                $current_route == 'setting.about' ||
+                                $current_route == 'setting.important' ||
+                                $current_route == 'setting.tier' ||
+                                $current_route == 'setting.earn' ||
+                                $current_route == 'setting.redeem' ||
+                                $current_route == 'setting.transfer' ||
+                                $current_route == 'setting.extra_service.index' ||
+                                $current_route == 'setting.vendor_category.index' ||
+                                $current_route == 'setting.vendor_service.index' ||
+                                $current_route == 'setting.merchandise.index' ||
+                                $current_route == 'setting.stationary.index' ||
+                                $current_route == 'setting.relationship.index' ||
+                                $current_route == 'setting.offset' ||
+                                $current_route == 'setting.privacy') active open @endif">
+                            <a href="javascript:void(0);" class="menu-link menu-toggle">
+                                <i class="menu-icon tf-icons mdi mdi-cog"></i>
+                                <div data-i18n="Settings">Settings</div>
+                                {{-- <div class="badge bg-primary rounded-pill ms-auto">3</div> --}}
+                            </a>
+                            <ul class="menu-sub">
+                                <li class="menu-item {{ $current_route == 'setting.site' ? 'active' : '' }}">
+                                    <a href="{{ route('setting.site') }}" class="menu-link">
+                                        <div data-i18n="Site">Site</div>
+                                    </a>
+                                </li>
+                                <li class="menu-item {{ $current_route == 'setting.loyalty-point-terms-condition' ? 'active' : '' }}">
+                                    <a href="{{ route('setting.loyalty-point-terms-condition') }}" class="menu-link">
+                                        <div data-i18n="Loyalty Points T&C">Loyalty Points T&C</div>
+                                    </a>
+                                </li>
+                                <li class="menu-item {{ $current_route == 'setting.loyalty-point-faq' ? 'active' : '' }}">
+                                    <a href="{{ route('setting.loyalty-point-faq') }}" class="menu-link">
+                                        <div data-i18n="Loyalty Points FAQ">Loyalty Points FAQ</div>
+                                    </a>
+                                </li>
+                                <li class="menu-item {{ $current_route == 'setting.third-party' ? 'active' : '' }}">
+                                    <a href="{{ route('setting.third-party') }}" class="menu-link">
+                                        <div data-i18n="Third Party">Third Party</div>
+                                    </a>
+                                </li>
+                                {{-- <li class="menu-item {{ $current_route == 'setting.contact' ? 'active' : '' }}">
+                                    <a href="{{ route('setting.contact') }}" class="menu-link">
+                                        <div data-i18n="Contact">Contact</div>
+                                    </a>
+                                </li> --}}
+                                {{-- <li class="menu-item {{ $current_route == 'setting.privacy' ? 'active' : '' }}">
+                                    <a href="{{ route('setting.privacy') }}" class="menu-link">
+                                        <div data-i18n="Privacy Policy">Privacy Policy</div>
+                                    </a>
+                                </li> --}}
+
+                                <li class="menu-item {{ $current_route == 'setting.terms' ? 'active' : '' }}">
+                                    <a href="{{ route('setting.terms') }}" class="menu-link">
+                                        <div data-i18n="Terms Conditions">Terms Conditions</div>
+                                    </a>
+                                </li>
+
+                                <li class="menu-item {{ $current_route == 'setting.about' ? 'active' : '' }}">
+                                    <a href="{{ route('setting.about') }}" class="menu-link">
+                                        <div data-i18n="Overview">Overview</div>
+                                    </a>
+                                </li>
+
+                                <li class="menu-item {{ $current_route == 'setting.important' ? 'active' : '' }}">
+                                    <a href="{{ route('setting.important') }}" class="menu-link">
+                                        <div data-i18n="Important Notes">Important Notes</div>
+                                    </a>
+                                </li>
+
+                                <li class="menu-item {{ $current_route == 'setting.tier' ? 'active' : '' }}">
+                                    <a href="{{ route('setting.tier') }}" class="menu-link">
+                                        <div data-i18n="How to Climb a Tier">How to Climb a Tier</div>
+                                    </a>
+                                </li>
+
+                                <li class="menu-item {{ $current_route == 'setting.earn' ? 'active' : '' }}">
+                                    <a href="{{ route('setting.earn') }}" class="menu-link">
+                                        <div data-i18n="How to Earn Points">How to Earn Points</div>
+                                    </a>
+                                </li>
+
+                                <li class="menu-item {{ $current_route == 'setting.redeem' ? 'active' : '' }}">
+                                    <a href="{{ route('setting.redeem') }}" class="menu-link">
+                                        <div data-i18n="Redeem Points">Redeem Points</div>
+                                    </a>
+                                </li>
+
+                                <li class="menu-item {{ $current_route == 'setting.transfer' ? 'active' : '' }}">
+                                    <a href="{{ route('setting.transfer') }}" class="menu-link">
+                                        <div data-i18n="Transfer Points">Transfer Points</div>
+                                    </a>
+                                </li>
+
+                                <li
+                                    class="menu-item {{ $current_route == 'setting.extra_service.index' ? 'active' : '' }}">
+                                    <a href="{{ route('setting.extra_service.index') }}" class="menu-link">
+                                        <div data-i18n="Extra Services">Extra Services</div>
+                                    </a>
+                                </li>
+                                <li
+                                    class="menu-item {{ $current_route == 'setting.vendor_category.index' ? 'active' : '' }}">
+                                    <a href="{{ route('setting.vendor_category.index') }}" class="menu-link">
+                                        <div data-i18n="Vendor Category">Vendor Category</div>
+                                    </a>
+                                </li>
+                                <li
+                                    class="menu-item {{ $current_route == 'setting.vendor_service.index' ? 'active' : '' }}">
+                                    <a href="{{ route('setting.vendor_service.index') }}" class="menu-link">
+                                        <div data-i18n="Vendor Service">Vendor Service</div>
+                                    </a>
+                                </li>
+
+                                <li
+                                    class="menu-item {{ $current_route == 'setting.merchandise.index' ? 'active' : '' }}">
+                                    <a href="{{ route('setting.merchandise.index') }}" class="menu-link">
+                                        <div data-i18n="Merchandise">Merchandise</div>
+                                    </a>
+                                </li>
+
+                                <li
+                                    class="menu-item {{ $current_route == 'setting.stationary.index' ? 'active' : '' }}">
+                                    <a href="{{ route('setting.stationary.index') }}" class="menu-link">
+                                        <div data-i18n="Stationary">Stationary</div>
+                                    </a>
+                                </li>
+
+                                <li
+                                    class="menu-item {{ $current_route == 'setting.relationship.index' ? 'active' : '' }}">
+                                    <a href="{{ route('setting.relationship.index') }}" class="menu-link">
+                                        <div data-i18n="Relationship">Relationship</div>
+                                    </a>
+                                </li>
+
+                                 {{-- <li
+                                    class="menu-item {{ $current_route == 'setting.offset' ? 'active' : '' }}">
+                                    <a href="{{ route('setting.offset') }}" class="menu-link">
+                                        <div data-i18n="Carbon Offset">Carbon Offset</div>
+                                    </a>
+                                </li> --}}
+                               
+                               
+
+                            </ul>
+                        </li>
+                    @endif
+
+                    @if (in_array('roles_permission', $perArray) || $checkAdmin == 1)
+                        <li class="menu-item {{ $current_route == 'roles_permission.index' ? 'active' : '' }}">
+                            <a href="{{ route('roles_permission.index') }}" class="menu-link">
+                                <i class="menu-icon mdi mdi-account-key"></i>
+                                <div data-i18n="Roles & Permissions">Roles & Permissions</div>
+                            </a>
+                        </li>
+                    @endif
+
+
+                    @if (in_array('staff', $perArray) || $checkAdmin == 1)
+                        <li class="menu-item {{ $current_route == 'staff.index' ? 'active' : '' }}">
+                            <a href="{{ route('staff.index') }}" class="menu-link">
+                                <i class="menu-icon tf-icons mdi mdi-account-star"></i>
+                                <div data-i18n="Team">Team</div>
+                            </a>
+                        </li>
+                    @endif
+
+
+                    @if (in_array('enquiry', $perArray) || $checkAdmin == 1)
+                        <li class="menu-item {{ $current_route == 'enquiry.index' ? 'active' : '' }}">
+                            <a href="{{ route('enquiry.index') }}" class="menu-link">
+                                <i class="menu-icon tf-icons mdi mdi-help-circle"></i>
+                                <div data-i18n="Enquiries">Enquiries</div>
+                                <span id="unread-count" style="background-color: orange; color: white; font-size: 14px; font-weight: bold; padding: 8px; border-radius: 50%; display: inline-flex; justify-content: center; align-items: center; width: 21px; height: 20px; text-align: center; margin-left:70px;">
+                                
+                            </span>
+                            </a>
+                          
+                        </li>
+                                           
+               
+                    @endif
+
+                    @if (in_array('sustainability', $perArray) || $checkAdmin == 1)
+                        <li class="menu-item {{ $current_route == 'sustainability.index' ? 'active' : '' }}">
+                            <a href="{{ route('sustainability.index') }}" class="menu-link">
+                                <i class="menu-icon tf-icons mdi mdi-certificate-outline"></i>
+                                <div data-i18n="Sustainability">Sustainability</div>
+                            </a>
+                        </li>
+                    @endif
+
+                    <!-- Account Section -->
+                    @if (in_array('accounts', $perArray) || $checkAdmin == 1)
+                        <li class="menu-item  @if ($current_route == 'accounts.check-expense' || $current_route == 'accounts.payment-received') active open @endif">
+                            <a href="javascript:void(0);" class="menu-link menu-toggle">
+                                <i class="menu-icon tf-icons mdi mdi-book-open-page-variant"></i>
+                                <div data-i18n="Accounts">Accounts</div>
+                            </a>
+                            <ul class="menu-sub">
+                                <li
+                                    class="menu-item {{ $current_route == 'accounts.check-expense' ? 'active' : '' }}">
+                                    <a href="{{ route('accounts.check-expense') }}" class="menu-link">
+                                        <div data-i18n="Check Expense">Check Expense</div>
+                                    </a>
+                                </li>
+                                <li
+                                    class="menu-item {{ $current_route == 'accounts.payment-received' ? 'active' : '' }}">
+                                    <a href="{{ route('accounts.payment-received') }}" class="menu-link">
+                                        <div data-i18n="Payment Received">Payment Received</div>
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+                    @endif
+
+                    <li class="menu-item {{ $current_route == 'logout' ? 'active' : '' }}">
+                        <a href="{{ route('logout') }}" class="menu-link">
+                            <i class="menu-icon tf-icons mdi mdi-location-exit"></i>
+                            <div data-i18n="Logout">Logout</div>
+                        </a>
+                    </li>
+
+
+                </ul>
+            </aside>
+            <!-- / Menu -->
+
+            <!-- Layout container -->
+            <div class="layout-page">
+                <!-- Navbar -->
+
+                <nav class="layout-navbar container-xxl navbar navbar-expand-xl navbar-detached align-items-center bg-navbar-theme"
+                    id="layout-navbar">
+                    <div class="layout-menu-toggle navbar-nav align-items-xl-center me-3 me-xl-0 d-xl-none">
+                        <a class="nav-item nav-link px-0 me-xl-4" href="javascript:void(0)">
+                            <i class="mdi mdi-menu mdi-24px"></i>
                         </a>
                     </div>
 
-                    <div class="menu-inner-shadow"></div>
+                    <div class="navbar-nav-right d-flex align-items-center" id="navbar-collapse">
+                        <!-- Search -->
+                        {{-- <div class="navbar-nav align-items-center">
+                            <div class="nav-item navbar-search-wrapper mb-0">
+                                <a class="nav-item nav-link search-toggler fw-normal px-0" href="javascript:void(0);">
+                                    <i class="mdi mdi-magnify mdi-24px scaleX-n1-rtl"></i>
+                                    <span class="d-none d-md-inline-block text-muted">Search (Ctrl+/)</span>
+                                </a>
+                            </div>
+                        </div> --}}
+                        <!-- /Search -->
 
-                    <ul class="menu-inner py-1">
+                        <ul class="navbar-nav flex-row align-items-center ms-auto">
 
-                        <li class="menu-item {{ $current_route == 'dashboard' ? 'active' : '' }}">
-                            <a href="{{ route('dashboard') }}" class="menu-link">
-                                <i class="menu-icon tf-icons mdi mdi-home-outline"></i>
-                                <div data-i18n="Dashboard">Dashboard</div>
-                            </a>
-                        </li>
-
-                        @if (in_array('trip', $perArray) || $checkAdmin == 1)
-                            <li
-                                class="menu-item {{ $current_route == 'trip.index' || $current_route == 'trip.view' || $current_route == 'trip.add' || $current_route == 'trip.edit' ? 'active' : '' }}">
-                                <a href="{{ route('trip.index') }}" class="menu-link">
-                                    <i class="menu-icon tf-icons mdi mdi-plane-car"></i>
-                                    <div data-i18n="Trips">Trips</div>
+                            <!-- Add this button user Manual -->
+                            <li class="nav-item me-1 me-xl-0">
+                                <a class="nav-link btn btn-text-secondary btn-outline-secondary d-flex align-items-center justify-content-center"
+                                    target="_blank"
+                                    href="https://ao-crm-user-manual.adventuresoverland.com/docs/ao-crm/test/"
+                                    style="line-height: 1;">
+                                    <span>User Manual</span>
+                                    <i class="mdi mdi-open-in-new me-1" style="font-size: 18px;"></i>
                                 </a>
                             </li>
-                        @endif
+                            <!-- End this button code user Manual -->
 
-                        @if (in_array('booking', $perArray) || $checkAdmin == 1)
-                            <li
-                                class="menu-item {{ $current_route == 'booking.index' || $current_route == 'booking.view' || $current_route == 'booking.new-trip' ? 'active' : '' }}">
-                                <a href="{{ route('booking.index') }}" class="menu-link">
-                                    <i class="menu-icon tf-icons mdi mdi-book-account"></i>
-                                    <div data-i18n="Bookings">Bookings</div>
+                            <!-- Style Switcher -->
+                            <li class="nav-item me-1 me-xl-0">
+                                <a class="nav-link btn btn-text-secondary rounded-pill btn-icon style-switcher-toggle hide-arrow"
+                                    href="javascript:void(0);">
+                                    <i class="mdi mdi-24px"></i>
                                 </a>
                             </li>
-                        @endif
+                            <!--/ Style Switcher -->
 
-                        @if (in_array('customer', $perArray) || $checkAdmin == 1)
-                            <li
-                                class="menu-item {{ $current_route == 'customer.index' || $current_route == 'customer.view' || $current_route == 'customer.add' || $current_route == 'customer.edit' ? 'active' : '' }}">
-                                <a href="{{ route('customer.index') }}" class="menu-link">
-                                    <i class="menu-icon tf-icons mdi mdi-account-group"></i>
-                                    <div data-i18n="Customers">Customers</div>
+                            <!-- Notification -->
+                            {{-- <li class="nav-item dropdown-notifications navbar-dropdown dropdown me-2 me-xl-1">
+                                <a class="nav-link btn btn-text-secondary rounded-pill btn-icon dropdown-toggle hide-arrow"
+                                    href="javascript:void(0);" data-bs-toggle="dropdown" data-bs-auto-close="outside"
+                                    aria-expanded="false">
+                                    <i class="mdi mdi-bell-outline mdi-24px"></i>
+                                    <span
+                                        class="position-absolute top-0 start-50 translate-middle-y badge badge-dot bg-danger mt-2 border"></span>
                                 </a>
-                            </li>
-                        @endif
-
-                        @if (in_array('birthdays', $perArray) || $checkAdmin == 1)
-                            <li class="menu-item {{ $current_route == 'birthday.index' ? 'active' : '' }}">
-                                <a href="{{ route('birthday.index') }}" class="menu-link">
-                                    <i class="menu-icon tf-icons mdi mdi-cake-variant"></i>
-                                    <div data-i18n="Birthdays">Birthdays</div>
-                                </a>
-                            </li>
-                        @endif
-
-                        @if (in_array('agent', $perArray) || $checkAdmin == 1)
-                            <li
-                                class="menu-item {{ $current_route == 'agent.index' || $current_route == 'agent.view' || $current_route == 'agent.add' || $current_route == 'agent.edit' ? 'active' : '' }}">
-                                <a href="{{ route('agent.index') }}" class="menu-link">
-                                    <i class="menu-icon tf-icons mdi mdi-face-agent"></i>
-                                    <div data-i18n="Travel Agents">Travel Agents</div>
-                                </a>
-                            </li>
-                        @endif
-                        @if (in_array('vendors', $perArray) || $checkAdmin == 1)
-                            <li
-                                class="menu-item {{ $current_route == 'vendors.index' || $current_route == 'vendors.view' || $current_route == 'vendors.add' || $current_route == 'vendors.edit' ? 'active' : '' }}">
-                                <a href="{{ route('vendors.index') }}" class="menu-link">
-                                    <i class="menu-icon tf-icons mdi mdi-store"></i>
-                                    <div data-i18n="Vendors">Vendors</div>
-                                </a>
-                            </li>
-                        @endif
-
-                        @if (in_array('inventory_category', $perArray) || $checkAdmin == 1)
-                            <li class="menu-item {{ $current_route == 'inventory_category.index' ? 'active' : '' }}">
-                                <a href="{{ route('inventory_category.index') }}" class="menu-link">
-                                    <i class="menu-icon tf-icons mdi mdi-shape"></i>
-                                    <div data-i18n="Inventory Category">Inventory Category</div>
-                                </a>
-                            </li>
-                        @endif
-                        @if (in_array('inventory', $perArray) || $checkAdmin == 1)
-                            <li
-                                class="menu-item {{ $current_route == 'inventory.index' || $current_route == 'inventory.view' ? 'active' : '' }}">
-                                <a href="{{ route('inventory.index') }}" class="menu-link">
-                                    <i class="menu-icon tf-icons mdi mdi-shopping"></i>
-                                    <div data-i18n="Inventory Stock">Inventory Stock</div>
-                                </a>
-                            </li>
-                        @endif
-
-                        @if (in_array('report', $perArray) || $checkAdmin == 1)
-                            <li class="menu-item {{ $current_route == 'report.index' ? 'active' : '' }}">
-                                <a href="{{ route('report.index') }}" class="menu-link">
-                                    <i class="menu-icon tf-icons mdi mdi-file-chart"></i>
-                                    <div data-i18n="Reports">Reports</div>
-                                </a>
-                            </li>
-                        @endif
-
-                        @if (in_array('loyalty', $perArray) || $checkAdmin == 1)
-                            <li
-                                class="menu-item {{ $current_route == 'loyalty.index' || $current_route == 'loyalty.gift' ? 'active' : '' }}">
-                                <a href="{{ route('loyalty.index') }}" class="menu-link">
-                                    <i class="menu-icon tf-icons mdi mdi-star-four-points-circle-outline"></i>
-                                    <div data-i18n="Loyalty Program">Loyalty Program</div>
-                                </a>
-                            </li>
-                        @endif
-
-
-                        @if (in_array('setting', $perArray) || $checkAdmin == 1)
-                            <!-- setting -->
-                            <li class="menu-item  @if (
-                                $current_route == 'setting.site' ||
-                                    $current_route == 'setting.loyalty-point-terms-condition' ||
-                                    $current_route == 'setting.loyalty-point-faq' ||
-                                    $current_route == 'setting.contact' ||
-                                    $current_route == 'setting.terms' ||
-                                    $current_route == 'setting.third-party' ||
-                                    $current_route == 'setting.about' ||
-                                    $current_route == 'setting.important' ||
-                                    $current_route == 'setting.tier' ||
-                                    $current_route == 'setting.earn' ||
-                                    $current_route == 'setting.redeem' ||
-                                    $current_route == 'setting.transfer' ||
-                                    $current_route == 'setting.extra_service.index' ||
-                                    $current_route == 'setting.vendor_category.index' ||
-                                    $current_route == 'setting.vendor_service.index' ||
-                                    $current_route == 'setting.merchandise.index' ||
-                                    $current_route == 'setting.stationary.index' ||
-                                    $current_route == 'setting.relationship.index' ||
-                                    $current_route == 'setting.offset' ||
-                                    $current_route == 'setting.privacy') active open @endif">
-                                <a href="javascript:void(0);" class="menu-link menu-toggle">
-                                    <i class="menu-icon tf-icons mdi mdi-cog"></i>
-                                    <div data-i18n="Settings">Settings</div>
-                                    {{-- <div class="badge bg-primary rounded-pill ms-auto">3</div> --}}
-                                </a>
-                                <ul class="menu-sub">
-                                    <li class="menu-item {{ $current_route == 'setting.site' ? 'active' : '' }}">
-                                        <a href="{{ route('setting.site') }}" class="menu-link">
-                                            <div data-i18n="Site">Site</div>
-                                        </a>
-                                    </li>
-                                    <li class="menu-item {{ $current_route == 'setting.loyalty-point-terms-condition' ? 'active' : '' }}">
-                                        <a href="{{ route('setting.loyalty-point-terms-condition') }}" class="menu-link">
-                                            <div data-i18n="Loyalty Points T&C">Loyalty Points T&C</div>
-                                        </a>
-                                    </li>
-                                    <li class="menu-item {{ $current_route == 'setting.loyalty-point-faq' ? 'active' : '' }}">
-                                        <a href="{{ route('setting.loyalty-point-faq') }}" class="menu-link">
-                                            <div data-i18n="Loyalty Points FAQ">Loyalty Points FAQ</div>
-                                        </a>
-                                    </li>
-                                    <li class="menu-item {{ $current_route == 'setting.third-party' ? 'active' : '' }}">
-                                        <a href="{{ route('setting.third-party') }}" class="menu-link">
-                                            <div data-i18n="Third Party">Third Party</div>
-                                        </a>
-                                    </li>
-                                    {{-- <li class="menu-item {{ $current_route == 'setting.contact' ? 'active' : '' }}">
-                                        <a href="{{ route('setting.contact') }}" class="menu-link">
-                                            <div data-i18n="Contact">Contact</div>
-                                        </a>
-                                    </li> --}}
-                                    {{-- <li class="menu-item {{ $current_route == 'setting.privacy' ? 'active' : '' }}">
-                                        <a href="{{ route('setting.privacy') }}" class="menu-link">
-                                            <div data-i18n="Privacy Policy">Privacy Policy</div>
-                                        </a>
-                                    </li> --}}
-
-                                    <li class="menu-item {{ $current_route == 'setting.terms' ? 'active' : '' }}">
-                                        <a href="{{ route('setting.terms') }}" class="menu-link">
-                                            <div data-i18n="Terms Conditions">Terms Conditions</div>
-                                        </a>
-                                    </li>
-
-                                    <li class="menu-item {{ $current_route == 'setting.about' ? 'active' : '' }}">
-                                        <a href="{{ route('setting.about') }}" class="menu-link">
-                                            <div data-i18n="Overview">Overview</div>
-                                        </a>
-                                    </li>
-
-                                    <li class="menu-item {{ $current_route == 'setting.important' ? 'active' : '' }}">
-                                        <a href="{{ route('setting.important') }}" class="menu-link">
-                                            <div data-i18n="Important Notes">Important Notes</div>
-                                        </a>
-                                    </li>
-
-                                    <li class="menu-item {{ $current_route == 'setting.tier' ? 'active' : '' }}">
-                                        <a href="{{ route('setting.tier') }}" class="menu-link">
-                                            <div data-i18n="How to Climb a Tier">How to Climb a Tier</div>
-                                        </a>
-                                    </li>
-
-                                    <li class="menu-item {{ $current_route == 'setting.earn' ? 'active' : '' }}">
-                                        <a href="{{ route('setting.earn') }}" class="menu-link">
-                                            <div data-i18n="How to Earn Points">How to Earn Points</div>
-                                        </a>
-                                    </li>
-
-                                    <li class="menu-item {{ $current_route == 'setting.redeem' ? 'active' : '' }}">
-                                        <a href="{{ route('setting.redeem') }}" class="menu-link">
-                                            <div data-i18n="Redeem Points">Redeem Points</div>
-                                        </a>
-                                    </li>
-
-                                    <li class="menu-item {{ $current_route == 'setting.transfer' ? 'active' : '' }}">
-                                        <a href="{{ route('setting.transfer') }}" class="menu-link">
-                                            <div data-i18n="Transfer Points">Transfer Points</div>
-                                        </a>
-                                    </li>
-
-                                    <li
-                                        class="menu-item {{ $current_route == 'setting.extra_service.index' ? 'active' : '' }}">
-                                        <a href="{{ route('setting.extra_service.index') }}" class="menu-link">
-                                            <div data-i18n="Extra Services">Extra Services</div>
-                                        </a>
-                                    </li>
-                                    <li
-                                        class="menu-item {{ $current_route == 'setting.vendor_category.index' ? 'active' : '' }}">
-                                        <a href="{{ route('setting.vendor_category.index') }}" class="menu-link">
-                                            <div data-i18n="Vendor Category">Vendor Category</div>
-                                        </a>
-                                    </li>
-                                    <li
-                                        class="menu-item {{ $current_route == 'setting.vendor_service.index' ? 'active' : '' }}">
-                                        <a href="{{ route('setting.vendor_service.index') }}" class="menu-link">
-                                            <div data-i18n="Vendor Service">Vendor Service</div>
-                                        </a>
-                                    </li>
-
-                                    <li
-                                        class="menu-item {{ $current_route == 'setting.merchandise.index' ? 'active' : '' }}">
-                                        <a href="{{ route('setting.merchandise.index') }}" class="menu-link">
-                                            <div data-i18n="Merchandise">Merchandise</div>
-                                        </a>
-                                    </li>
-
-                                    <li
-                                        class="menu-item {{ $current_route == 'setting.stationary.index' ? 'active' : '' }}">
-                                        <a href="{{ route('setting.stationary.index') }}" class="menu-link">
-                                            <div data-i18n="Stationary">Stationary</div>
-                                        </a>
-                                    </li>
-
-                                    <li
-                                        class="menu-item {{ $current_route == 'setting.relationship.index' ? 'active' : '' }}">
-                                        <a href="{{ route('setting.relationship.index') }}" class="menu-link">
-                                            <div data-i18n="Relationship">Relationship</div>
-                                        </a>
-                                    </li>
-
-                                    {{-- <li
-                                        class="menu-item {{ $current_route == 'setting.offset' ? 'active' : '' }}">
-                                        <a href="{{ route('setting.offset') }}" class="menu-link">
-                                            <div data-i18n="Carbon Offset">Carbon Offset</div>
-                                        </a>
-                                    </li> --}}
-                                
-                                
-
-                                </ul>
-                            </li>
-                        @endif
-
-                        @if (in_array('roles_permission', $perArray) || $checkAdmin == 1)
-                            <li class="menu-item {{ $current_route == 'roles_permission.index' ? 'active' : '' }}">
-                                <a href="{{ route('roles_permission.index') }}" class="menu-link">
-                                    <i class="menu-icon mdi mdi-account-key"></i>
-                                    <div data-i18n="Roles & Permissions">Roles & Permissions</div>
-                                </a>
-                            </li>
-                        @endif
-
-
-                        @if (in_array('staff', $perArray) || $checkAdmin == 1)
-                            <li class="menu-item {{ $current_route == 'staff.index' ? 'active' : '' }}">
-                                <a href="{{ route('staff.index') }}" class="menu-link">
-                                    <i class="menu-icon tf-icons mdi mdi-account-star"></i>
-                                    <div data-i18n="Team">Team</div>
-                                </a>
-                            </li>
-                        @endif
-
-
-                        @if (in_array('enquiry', $perArray) || $checkAdmin == 1)
-                            <li class="menu-item {{ $current_route == 'enquiry.index' ? 'active' : '' }}">
-                                <a href="{{ route('enquiry.index') }}" class="menu-link">
-                                    <i class="menu-icon tf-icons mdi mdi-help-circle"></i>
-                                    <div data-i18n="Enquiries">Enquiries</div>
-                                    <span id="unread-count" style="background-color: orange; color: white; font-size: 14px; font-weight: bold; padding: 8px; border-radius: 50%; display: inline-flex; justify-content: center; align-items: center; width: 21px; height: 20px; text-align: center; margin-left:70px;">
-                                    
-                                </span>
-                                </a>
-                            
-                            </li>
-                                            
-                
-                        @endif
-
-                        @if (in_array('sustainability', $perArray) || $checkAdmin == 1)
-                            <li class="menu-item {{ $current_route == 'sustainability.index' ? 'active' : '' }}">
-                                <a href="{{ route('sustainability.index') }}" class="menu-link">
-                                    <i class="menu-icon tf-icons mdi mdi-certificate-outline"></i>
-                                    <div data-i18n="Sustainability">Sustainability</div>
-                                </a>
-                            </li>
-                        @endif
-
-                        <!-- Account Section -->
-                        @if (in_array('accounts', $perArray) || $checkAdmin == 1)
-                            <li class="menu-item  @if ($current_route == 'accounts.check-expense' || $current_route == 'accounts.payment-received') active open @endif">
-                                <a href="javascript:void(0);" class="menu-link menu-toggle">
-                                    <i class="menu-icon tf-icons mdi mdi-book-open-page-variant"></i>
-                                    <div data-i18n="Accounts">Accounts</div>
-                                </a>
-                                <ul class="menu-sub">
-                                    <li
-                                        class="menu-item {{ $current_route == 'accounts.check-expense' ? 'active' : '' }}">
-                                        <a href="{{ route('accounts.check-expense') }}" class="menu-link">
-                                            <div data-i18n="Check Expense">Check Expense</div>
-                                        </a>
-                                    </li>
-                                    <li
-                                        class="menu-item {{ $current_route == 'accounts.payment-received' ? 'active' : '' }}">
-                                        <a href="{{ route('accounts.payment-received') }}" class="menu-link">
-                                            <div data-i18n="Payment Received">Payment Received</div>
-                                        </a>
-                                    </li>
-                                </ul>
-                            </li>
-                        @endif
-
-                        <li class="menu-item {{ $current_route == 'logout' ? 'active' : '' }}">
-                            <a href="{{ route('logout') }}" class="menu-link">
-                                <i class="menu-icon tf-icons mdi mdi-location-exit"></i>
-                                <div data-i18n="Logout">Logout</div>
-                            </a>
-                        </li>
-
-
-                    </ul>
-                </aside>
-                <!-- / Menu -->
-
-                <!-- Layout container -->
-                <div class="layout-page">
-                    <!-- Navbar -->
-
-                    <nav class="layout-navbar container-xxl navbar navbar-expand-xl navbar-detached align-items-center bg-navbar-theme"
-                        id="layout-navbar">
-                        <div class="layout-menu-toggle navbar-nav align-items-xl-center me-3 me-xl-0 d-xl-none">
-                            <a class="nav-item nav-link px-0 me-xl-4" href="javascript:void(0)">
-                                <i class="mdi mdi-menu mdi-24px"></i>
-                            </a>
-                        </div>
-                        
-                        <div class="navbar-nav-right d-flex align-items-center" id="navbar-collapse">
-                            <!-- Search -->
-                            {{-- <div class="navbar-nav align-items-center">
-                                <div class="nav-item navbar-search-wrapper mb-0">
-                                    <a class="nav-item nav-link search-toggler fw-normal px-0" href="javascript:void(0);">
-                                        <i class="mdi mdi-magnify mdi-24px scaleX-n1-rtl"></i>
-                                        <span class="d-none d-md-inline-block text-muted">Search (Ctrl+/)</span>
-                                    </a>
-                                </div>
-                            </div> --}}
-                            <!-- /Search -->
-
-                            <ul class="navbar-nav flex-row align-items-center ms-auto">
-                                <!-- Add this button user Manual -->
-                                <li class="nav-item me-1 me-xl-0">
-                                    <a class="nav-link btn btn-text-secondary btn-outline-secondary d-flex align-items-center justify-content-center"
-                                        target="_blank"
-                                        href="https://ao-crm-user-manual.adventuresoverland.com/docs/ao-crm/test/"
-                                        style="line-height: 1;">
-                                        <span>User Manual</span>
-                                        <i class="mdi mdi-open-in-new me-1" style="font-size: 18px;"></i>
-                                    </a>
-                                </li>
-                                <!-- End this button code user Manual -->
-                                 
-                                <!-- Style Switcher -->
-                                <li class="nav-item me-1 me-xl-0">
-                                    <a class="nav-link btn btn-text-secondary rounded-pill btn-icon style-switcher-toggle hide-arrow"
-                                        href="javascript:void(0);">
-                                        <i class="mdi mdi-24px"></i>
-                                    </a>
-                                </li>
-                                <!--/ Style Switcher -->
-
-                                <!-- Notification -->
-                                {{-- <li class="nav-item dropdown-notifications navbar-dropdown dropdown me-2 me-xl-1">
-                                    <a class="nav-link btn btn-text-secondary rounded-pill btn-icon dropdown-toggle hide-arrow"
-                                        href="javascript:void(0);" data-bs-toggle="dropdown" data-bs-auto-close="outside"
-                                        aria-expanded="false">
-                                        <i class="mdi mdi-bell-outline mdi-24px"></i>
-                                        <span
-                                            class="position-absolute top-0 start-50 translate-middle-y badge badge-dot bg-danger mt-2 border"></span>
-                                    </a>
-                                    <ul class="dropdown-menu dropdown-menu-end py-0">
-                                        <li class="dropdown-menu-header border-bottom">
-                                            <div class="dropdown-header d-flex align-items-center py-3">
-                                                <h6 class="mb-0 me-auto">Notification</h6>
-                                                <span class="badge rounded-pill bg-label-primary">8 New</span>
-                                            </div>
-                                        </li>
-
-                                        <li class="dropdown-menu-footer border-top p-2">
-                                            <a href="javascript:void(0);"
-                                                class="btn btn-primary d-flex justify-content-center">
-                                                View all notifications
-                                            </a>
-                                        </li>
-                                    </ul>
-                                </li> --}}
-                                <!--/ Notification -->
-
-                                <!-- User -->
-                                <li class="nav-item navbar-dropdown dropdown-user dropdown">
-                                    <a class="nav-link dropdown-toggle hide-arrow" href="javascript:void(0);"
-                                        data-bs-toggle="dropdown">
-                                        <div class="avatar avatar-online">
-                                            <img src="@if (auth()->user()->image) {{ url('storage/app/' . auth()->user()->image) }} @else {{ url('public/admin') }}/assets/img/avatars/1.png @endif"
-                                                alt class="w-px-40 h-auto rounded-circle" />
+                                <ul class="dropdown-menu dropdown-menu-end py-0">
+                                    <li class="dropdown-menu-header border-bottom">
+                                        <div class="dropdown-header d-flex align-items-center py-3">
+                                            <h6 class="mb-0 me-auto">Notification</h6>
+                                            <span class="badge rounded-pill bg-label-primary">8 New</span>
                                         </div>
-                                    </a>
-                                    <ul class="dropdown-menu dropdown-menu-end">
-                                        <li>
-                                            <a class="dropdown-item" href="javaScript:void(0)">
-                                                <div class="d-flex">
-                                                    <div class="flex-shrink-0 me-3">
-                                                        <div class="avatar avatar-online">
-                                                            <img src="@if (auth()->user()->image) {{ url('storage/app/' . auth()->user()->image) }} @else {{ url('public/admin') }}/assets/img/avatars/1.png @endif"
-                                                                alt class="w-px-40 h-auto rounded-circle" />
-                                                        </div>
-                                                    </div>
-                                                    <div class="flex-grow-1">
-                                                        <span
-                                                            class="fw-semibold d-block">{{ auth()->user()->name }}</span>
-                                                        <small class="text-muted">{{ auth()->user()->email }}</small>
+                                    </li>
+
+                                    <li class="dropdown-menu-footer border-top p-2">
+                                        <a href="javascript:void(0);"
+                                            class="btn btn-primary d-flex justify-content-center">
+                                            View all notifications
+                                        </a>
+                                    </li>
+                                </ul>
+                            </li> --}}
+                            <!--/ Notification -->
+
+                            <!-- User -->
+                            <li class="nav-item navbar-dropdown dropdown-user dropdown">
+                                <a class="nav-link dropdown-toggle hide-arrow" href="javascript:void(0);"
+                                    data-bs-toggle="dropdown">
+                                    <div class="avatar avatar-online">
+                                        <img src="@if (auth()->user()->image) {{ url('storage/app/' . auth()->user()->image) }} @else {{ url('public/admin') }}/assets/img/avatars/1.png @endif"
+                                            alt class="w-px-40 h-auto rounded-circle" />
+                                    </div>
+                                </a>
+                                <ul class="dropdown-menu dropdown-menu-end">
+                                    <li>
+                                        <a class="dropdown-item" href="javaScript:void(0)">
+                                            <div class="d-flex">
+                                                <div class="flex-shrink-0 me-3">
+                                                    <div class="avatar avatar-online">
+                                                        <img src="@if (auth()->user()->image) {{ url('storage/app/' . auth()->user()->image) }} @else {{ url('public/admin') }}/assets/img/avatars/1.png @endif"
+                                                            alt class="w-px-40 h-auto rounded-circle" />
                                                     </div>
                                                 </div>
-                                            </a>
-                                        </li>
-                                        <li>
-                                            <div class="dropdown-divider"></div>
-                                        </li>
-                                        <li>
-                                            <a class="dropdown-item" href="{{ route('my-profile') }}">
-                                                <i class="mdi mdi-account-outline me-2"></i>
-                                                <span class="align-middle">My Profile</span>
-                                            </a>
-                                        </li>
-                                        <li>
-                                            <a class="dropdown-item" href="{{ route('change-password') }}">
-                                                <i class="mdi mdi-account-outline me-2"></i>
-                                                <span class="align-middle">Change Password</span>
-                                            </a>
-                                        </li>
+                                                <div class="flex-grow-1">
+                                                    <span
+                                                        class="fw-semibold d-block">{{ auth()->user()->name }}</span>
+                                                    <small class="text-muted">{{ auth()->user()->email }}</small>
+                                                </div>
+                                            </div>
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <div class="dropdown-divider"></div>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" href="{{ route('my-profile') }}">
+                                            <i class="mdi mdi-account-outline me-2"></i>
+                                            <span class="align-middle">My Profile</span>
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" href="{{ route('change-password') }}">
+                                            <i class="mdi mdi-account-outline me-2"></i>
+                                            <span class="align-middle">Change Password</span>
+                                        </a>
+                                    </li>
 
-                                        <li>
-                                            <div class="dropdown-divider"></div>
-                                        </li>
-                                        <li>
-                                            <a class="dropdown-item" href="{{ route('logout') }}" target="_blank">
-                                                <i class="mdi mdi-logout me-2"></i>
-                                                <span class="align-middle">Log Out</span>
-                                            </a>
-                                        </li>
-                                    </ul>
-                                </li>
-                                <!--/ User -->
-                            </ul>
-                        </div>
+                                    <li>
+                                        <div class="dropdown-divider"></div>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" href="{{ route('logout') }}">
+                                            <i class="mdi mdi-logout me-2"></i>
+                                            <span class="align-middle">Log Out</span>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </li>
+                            <!--/ User -->
+                        </ul>
+                    </div>
 
-                        <!-- Search Small Screens -->
-                        {{-- <div class="navbar-search-wrapper search-input-wrapper d-none">
-                            <input type="text" class="form-control search-input container-xxl border-0"
-                                placeholder="Search..." aria-label="Search..." />
-                            <i class="mdi mdi-close search-toggler cursor-pointer"></i>
-                        </div> --}}
-                    </nav>
+                    <!-- Search Small Screens -->
+                    {{-- <div class="navbar-search-wrapper search-input-wrapper d-none">
+                        <input type="text" class="form-control search-input container-xxl border-0"
+                            placeholder="Search..." aria-label="Search..." />
+                        <i class="mdi mdi-close search-toggler cursor-pointer"></i>
+                    </div> --}}
+                </nav>
 
-                    <!-- / Navbar -->
+                <!-- / Navbar -->
 
-                    @yield('content')
-
-
+                @yield('content')
 
 
-                </div>
-                <!-- / Layout page -->
+
+
             </div>
-
-            <!-- Overlay -->
-            <div class="layout-overlay layout-menu-toggle"></div>
-
-            <!-- Drag Target Area To SlideIn Menu On Small Screens -->
-            <div class="drag-target"></div>
+            <!-- / Layout page -->
         </div>
-        <!-- / Layout wrapper -->
 
-        <!-- Core JS -->
-        <!-- buid/assets/vendor/js/core.js -->
-        <script src="{{ url('public/admin') }}/assets/vendor/libs/jquery/jquery.js"></script>
-        <script src="{{ url('public/admin') }}/assets/vendor/libs/popper/popper.js"></script>
-        <script src="{{ url('public/admin') }}/assets/vendor/js/bootstrap.js"></script>
-        <script src="{{ url('public/admin') }}/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.js"></script>
-        <script src="{{ url('public/admin') }}/assets/vendor/libs/node-waves/node-waves.js"></script>
+        <!-- Overlay -->
+        <div class="layout-overlay layout-menu-toggle"></div>
 
-        <script src="{{ url('public/admin') }}/assets/vendor/libs/hammer/hammer.js"></script>
-        <script src="{{ url('public/admin') }}/assets/vendor/libs/i18n/i18n.js"></script>
-        <script src="{{ url('public/admin') }}/assets/vendor/libs/typeahead-js/typeahead.js"></script>
+        <!-- Drag Target Area To SlideIn Menu On Small Screens -->
+        <div class="drag-target"></div>
+    </div>
+    <!-- / Layout wrapper -->
 
-        <script src="{{ url('public/admin') }}/assets/vendor/js/menu.js"></script>
-        <!-- endbuild -->
+    <!-- Core JS -->
+    <!-- buid/assets/vendor/js/core.js -->
+    <script src="{{ url('public/admin') }}/assets/vendor/libs/jquery/jquery.js"></script>
+    <script src="{{ url('public/admin') }}/assets/vendor/libs/popper/popper.js"></script>
+    <script src="{{ url('public/admin') }}/assets/vendor/js/bootstrap.js"></script>
+    <script src="{{ url('public/admin') }}/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.js"></script>
+    <script src="{{ url('public/admin') }}/assets/vendor/libs/node-waves/node-waves.js"></script>
 
-        <!-- Vendors JS -->
-        <script src="{{ url('public/admin') }}/assets/vendor/libs/select2/select2.js"></script>
-        <script src="{{ url('public/admin') }}/assets/vendor/libs/tagify/tagify.js"></script>
-        <script src="{{ url('public/admin') }}/assets/vendor/libs/bootstrap-select/bootstrap-select.js"></script>
-        <script src="{{ url('public/admin') }}/assets/vendor/libs/typeahead-js/typeahead.js"></script>
-        <script src="{{ url('public/admin') }}/assets/vendor/libs/bloodhound/bloodhound.js"></script>
+    <script src="{{ url('public/admin') }}/assets/vendor/libs/hammer/hammer.js"></script>
+    <script src="{{ url('public/admin') }}/assets/vendor/libs/i18n/i18n.js"></script>
+    <script src="{{ url('public/admin') }}/assets/vendor/libs/typeahead-js/typeahead.js"></script>
 
-        <script src="{{ url('public/admin') }}/assets/vendor/libs/datatables-bs5/datatables-bootstrap5.js"></script>
-        <script src="{{ url('public/admin') }}/assets/vendor/libs/apex-charts/apexcharts.js"></script>
-        <script src="{{ url('public/admin') }}/assets/vendor/libs/swiper/swiper.js"></script>
+    <script src="{{ url('public/admin') }}/assets/vendor/js/menu.js"></script>
+    <!-- endbuild -->
 
-        <!-- Main JS -->
-        <script src="{{ url('public/admin') }}/assets/js/main.js"></script>
+    <!-- Vendors JS -->
+    <script src="{{ url('public/admin') }}/assets/vendor/libs/select2/select2.js"></script>
+    <script src="{{ url('public/admin') }}/assets/vendor/libs/tagify/tagify.js"></script>
+    <script src="{{ url('public/admin') }}/assets/vendor/libs/bootstrap-select/bootstrap-select.js"></script>
+    <script src="{{ url('public/admin') }}/assets/vendor/libs/typeahead-js/typeahead.js"></script>
+    <script src="{{ url('public/admin') }}/assets/vendor/libs/bloodhound/bloodhound.js"></script>
 
-        <!-- Page JS -->
-        <script src="{{ url('public/admin') }}/assets/js/dashboards-ecommerce.js"></script>
+    <script src="{{ url('public/admin') }}/assets/vendor/libs/datatables-bs5/datatables-bootstrap5.js"></script>
+    <script src="{{ url('public/admin') }}/assets/vendor/libs/apex-charts/apexcharts.js"></script>
+    <script src="{{ url('public/admin') }}/assets/vendor/libs/swiper/swiper.js"></script>
 
-        <!-- Page JS -->
-        <script src="{{ url('public/admin') }}/assets/js/tables-datatables-basic.js"></script>
-        <script src="{{ url('public/admin') }}/assets/js/forms-selects.js"></script>
-        <script src="{{ url('public/admin') }}/assets/js/forms-tagify.js"></script>
-        <script src="{{ url('public/admin') }}/assets/js/forms-typeahead.js"></script>
+    <!-- Main JS -->
+    <script src="{{ url('public/admin') }}/assets/js/main.js"></script>
 
-        @yield('script')
+    <!-- Page JS -->
+    <script src="{{ url('public/admin') }}/assets/js/dashboards-ecommerce.js"></script>
 
-        <script src="https://cdn.ckeditor.com/4.13.0/standard/ckeditor.js"></script>
-        <script>
-            CKEDITOR.replace('about_us');
-            CKEDITOR.replace('terms_condition');
-        
-            CKEDITOR.replace('privacy_policy');
-            CKEDITOR.replace('important_notes');
-            CKEDITOR.replace('discovery');
-            CKEDITOR.replace('explorer');
-            CKEDITOR.replace('legends');
-            CKEDITOR.replace('adventurer');
-            CKEDITOR.replace('how_to_earn');
-            CKEDITOR.replace('redeem_points');
-            CKEDITOR.replace('transfer_points');
-            CKEDITOR.replace('loyalty_points_terms');
-        </script>
-    </body>
+    <!-- Page JS -->
+    <script src="{{ url('public/admin') }}/assets/js/tables-datatables-basic.js"></script>
+    <script src="{{ url('public/admin') }}/assets/js/forms-selects.js"></script>
+    <script src="{{ url('public/admin') }}/assets/js/forms-tagify.js"></script>
+    <script src="{{ url('public/admin') }}/assets/js/forms-typeahead.js"></script>
+
+    @yield('script')
+
+    <script src="https://cdn.ckeditor.com/4.13.0/standard/ckeditor.js"></script>
+    <script>
+        CKEDITOR.replace('about_us');
+        CKEDITOR.replace('terms_condition');
+      
+        CKEDITOR.replace('privacy_policy');
+        CKEDITOR.replace('important_notes');
+        CKEDITOR.replace('discovery');
+        CKEDITOR.replace('explorer');
+        CKEDITOR.replace('legends');
+        CKEDITOR.replace('adventurer');
+        CKEDITOR.replace('how_to_earn');
+        CKEDITOR.replace('redeem_points');
+        CKEDITOR.replace('transfer_points');
+        CKEDITOR.replace('loyalty_points_terms');
+    </script>
+</body>
 
 </html>
+
 <script>
     
     $(document).ready(function() {
+          getSummary();
         fetchUnreadCount();
         setInterval(fetchUnreadCount, 3000);
        
@@ -786,6 +790,7 @@
     @endif
 </script>
 
+
 <script>
     // Create our number formatter.
     const formatter = new Intl.NumberFormat('en-IN', {
@@ -793,11 +798,7 @@
         currency: 'INR',
     });
 
-
-    $(document).ready(function() {
-        getSummary();
-    });
-
+  
 
     function getSummary() {
         $.ajax({
@@ -814,6 +815,7 @@
                     // alert("Somthing Went Wrong, try again.")
                 } else {
                     var data = JSON.parse(res);
+                   
                     var all_point_send_to_paid_customer = data.all_payment_payer;
                     var trip_costs = data.trip_costs;
                     var deviations = data.deviation;
@@ -831,6 +833,7 @@
                     var package_offer_A = data.package_offer_A;
                     var a_and_b = data.a_and_b;
                     var package_c_data = data.package_c;
+                      console.log("package_c_data",package_c_data)
                     var extra_services_redeemable = data.extra_services_redeemable;
                     var vehicle_type=data.vehicle_type;
                     var vehicle_seat = data.vehicle_seat;
@@ -995,16 +998,15 @@
 
                     // room info
                     $.each(roomInfo, function(key, value) {
-                        // if (value.room_type_amt) {
+                        if (value.room_type_amt) {
                             total_trip_cost += parseInt(value.room_type_amt);
                             room_info_data += `<div class="d-flex justify-content-between">
                                                     <span class="gray font-size-12">
                                                         Room Charges (${value.room_type})${value.room_cat && value.room_cat !== '' ? ' - ' + value.room_cat : ''}
                                                     </span>
-                                                    {{--<h6 class="font-size-12">${formatter.format(value.room_type_amt)}</h6>--}}
-                                                    <h6 class="font-size-12"> ${value.room_type_amt > 0 ? formatter.format(value.room_type_amt) : ''}</h6>
+                                                    <h6 class="font-size-12">${formatter.format(value.room_type_amt)}</h6>
                                                 </div>`;
-                        // }
+                        }
                     });
                     $("#room_amt_info").html(room_info_data);
                     // Supplementary end
@@ -1223,10 +1225,12 @@
 
                     // total amount
                     $("#total_trip_cost_amt").text(formatter.format(total_trip_cost))
-                 
+                   
                     // total
                     all_payable_amt = parseInt(total_trip_cost) - parseInt(total_redeem_amt);
+                
                     var total_payable_amt = parseInt(all_payable_amt) - parseInt(totalCreditAmt);
+                   
                     $("#total_payable_amt").text(formatter.format(parseInt(all_payable_amt)));
 
                     $("#final_total_payable_amt").text(formatter.format(parseInt(total_payable_amt)));
@@ -1266,7 +1270,7 @@
                     $("#total_pending_amt_inp").val(total_payable_amt - payment.payment ?? 0);
                     // $("#total_pending_amt_inp").val(total_payable_amt - total_rcvd_amt);
                     $("#total_pending_amt").text(formatter.format(total_payable_amt - total_rcvd_amt));
-
+                    //  console.log(total_payable_amt - total_rcvd_amt);
                     // tooltip init here
                     $(function() {
                         $('[data-bs-toggle="tooltip"]').tooltip();

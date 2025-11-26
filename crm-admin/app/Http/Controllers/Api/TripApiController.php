@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\User;
 use App\Models\Trip;
+use Illuminate\Validation\ValidationException;
 use App\Models\Stationary;
 use App\Models\Merchandise;
 
@@ -13,15 +14,22 @@ class TripApiController extends Controller
 {
     public function create(Request $request)
     {
-        $request->validate([
-            'trip_type' => 'required|string',
-            'name' => 'required|string',
-            'start_date' => 'required|date',
-            'end_date' => 'required|date|after_or_equal:start_date',
-            'price' => 'required|numeric',
-            'region_type' => 'nullable|string',
-            'image' => 'nullable|image|max:2048',
-        ]);
+        try {
+            $request->validate([
+                'trip_type' => 'required|string',
+                'name' => 'required|string',
+                'start_date' => 'required|date',
+                'end_date' => 'required|date|after_or_equal:start_date',
+                'price' => 'required|numeric',
+                'region_type' => 'required|string',
+                'image' => 'nullable|image|max:2048',
+            ]);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'errors' => $e->errors()
+            ], 422);
+        }
 
         $data = new Trip();
         $data->trip_type = $request->trip_type;
@@ -36,8 +44,6 @@ class TripApiController extends Controller
         $data->activity = $request->activity;
         $data->overview = $request->overview;
         $data->region_type = $request->region_type;
-        $data->booking_type = $request->booking_type;
-        $data->drive_tour_type = $request->drive_tour_type??'';
         $data->stationary_id = json_encode($request->stationary);
         $data->merchandise_id = json_encode($request->merchandise);
 
@@ -50,7 +56,7 @@ class TripApiController extends Controller
         $data->added_by = $adminId;
 
         if ($request->hasFile('image')) {
-            $data->image = $request->file('image')->store('admin/trip', 'public'); // store in public disk
+            $data->image = $request->file('image')->store('admin/trip', 'public');
         }
         $data->save();
 
@@ -110,5 +116,5 @@ class TripApiController extends Controller
             ], 500);
         }
     }
-
+    
 }

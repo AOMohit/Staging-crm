@@ -2,7 +2,7 @@
 @section('container')
 
 <div class="col-md-10 col-12">
-    <div class="border-shadow">
+    <div class="border-shadow mb-4">
         <div class="card">
             <div class="card-header bg-white information">
                

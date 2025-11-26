@@ -114,6 +114,12 @@
             /* transform: translateY(0) !important; */
         }
 
+        .dropdown-menu-end {
+            top: auto !important;
+            bottom: 100% !important; /* open upward */
+            transform: translateY(0) !important;
+        }
+
         /* Dropdown menu items */
         .dropdown-menu .dropdown-item {
             color: #6c6c6c !important;
@@ -152,16 +158,7 @@
                         </label>
                         <b>Sold Out</b>
                     </div>
-                    @if($carbonInfo->isEmpty())
-                        <div class="col-6"></div>
-                      @else
-                        <div class="col-6">
-                            <span data-bs-toggle="tooltip" data-bs-placement="top" title="This means carbon neutral info is already imported for this trip.">
-                                    <i class="bi bi-info-circle-fill text-primary"></i>Carbon Neutral Information Imported for this trip
-                            </span>
-                        </div>
-                      @endif
-                    <div class="dt-action-buttons text-end pt-3 pt-md-0 col-3">
+                    <div class="dt-action-buttons text-end pt-3 pt-md-0 col-9">
                         <div class="dt-buttons btn-group flex-wrap">
                             <div class="dropdown d-inline-block">
                                <button class="btn btn-primary dropdown-toggle d-flex align-items-center" type="button" id="actionsDropdown" data-bs-toggle="dropdown" aria-expanded="false" style="font-size: 0.9em; margin-right:20px;">
@@ -187,16 +184,15 @@
                                     </li>
 
                                     
-                                @if(strtotime(date('Y-m-d')) > strtotime($data->end_date))
-                                            {{-- @if(in_array(auth()->user()->email, ['Vageesh@adventuresoverland.com'])) --}}
-                                            @if(auth()->user()->email == 'Vageesh@adventuresoverland.com')
-                                            
-                                                <li>
-                                                    <a class="dropdown-item" id="bulk-carbon-neutral-btn" data-bs-toggle="modal" data-bs-target="#bulkCarbonCertificate" href="javascript:void(0)">Bulk Send Carbon Neutral Certificate</a>
-                                                </li>
-                                            @endif
-                                @else
-                                        @if($carbonInfo->isEmpty())
+                                    {{-- @if(strtotime(date('Y-m-d')) > strtotime($data->end_date))
+                                        @if(auth()->user()->email == 'Vageesh@adventuresoverland.com')
+                                        
+                                            <li>
+                                                <a class="dropdown-item" id="bulk-carbon-neutral-btn" data-bs-toggle="modal" data-bs-target="#bulkCarbonCertificate" href="javascript:void(0)">Bulk Send Carbon Neutral Certificate</a>
+                                            </li>
+                                                @endif
+                                    @else
+                                        @if(isset($carbonInfo) && $carbonInfo->isEmpty())
                                             <li>
                                                 <a class="dropdown-item" id="carbon-neutral-btn" data-bs-toggle="modal" data-bs-target="#basicModal" href="javascript:void(0)">Add Carbon Neutral Info</a>
                                             </li>
@@ -205,14 +201,45 @@
                                                 <a class="dropdown-item" id="edit_carbon_neutral_btn" onclick="editCarbonNeutralInfo({{request()->id}})">Edit Carbon Neutral Info</a>
                                             </li>
                                         @endif
-                                  
-                                        
-                                @endif
+                                    @endif --}}
                                 </ul>
                             </div>
 
                         </div>
                     </div>
+                    {{-- <div class="dt-action-buttons text-end pt-3 pt-md-0 col-10">
+                        <div class="dt-buttons btn-group flex-wrap">
+                            @if (checkTripEditable(request()->id))
+                                <a onclick="addExpense()" style="font-size: 0.7em"
+                                    class="btn btn-secondary buttons-collection btn-label-primary me-2"
+                                    href="javaScript:void(0)"><span>
+                                        <span class="d-none d-sm-inline-block">Add Expense</span></span>
+                                </a>
+                            @endif
+                            <a style="font-size: 0.7em" class="btn btn-secondary buttons-collection btn-label-primary me-2"
+                                href="{{ route('trip.details.export-master', ['trip_id' => request()->id]) }}"><span>
+                                    <span class="d-none d-sm-inline-block">Master Detail Report</span></span>
+                            </a>
+
+                            <a style="font-size: 0.7em" class="btn btn-secondary buttons-collection btn-label-primary me-2"
+                                href="{{ route('trip.details.export-expense', ['trip_id' => request()->id]) }}"><span>
+                                    <span class="d-none d-sm-inline-block">Generate Expense Report</span></span>
+                            </a>
+
+                            <a style="font-size: 0.7em"
+                                href="{{ route('trip.details.export-room', ['trip_id' => request()->id]) }}"
+                                class="btn btn-secondary buttons-collection btn-label-primary me-2">
+                                <span class="d-none d-sm-inline-block">Export Room List</span></span></span>
+                            </a>
+
+                            <a style="font-size: 0.7em"
+                                href="{{ route('trip.details.export-vehicle', ['trip_id' => request()->id]) }}"
+                                class="btn btn-secondary buttons-collection btn-label-primary me-2"><span> <span
+                                        class="d-none d-sm-inline-block">Export Convoy List</span></span></span>
+                            </a>
+
+                        </div>
+                    </div> --}}
                 </div>
             </div>
             <div class="row">
@@ -437,6 +464,7 @@
                                 <!-- Flash message container -->
                                 <div id="datatable-flash-message" style="position: fixed; top: 70px; right: 20px; z-index: 9999;"></div>
 
+
                                 <div class="card-datatable table-responsive pt-0">
                                         <table id="myDatatableCustomer" class="table table-bordered">
                                             <thead>
@@ -607,6 +635,7 @@
                                                     <th>Trip Date</th>
                                                     <th>Traveller Name</th>
                                                     <th>Merchandise Type </th>
+                                                    <th>Address</th>
                                                     <th>Size</th>
                                                     <th>Qty</th>
                                                     <th>Gender</th>
@@ -682,11 +711,40 @@
                                             class="text-heading fw-semibold">₹{{ indian_number_format(totalTripAmountRcvdById($data->id) + abs(totalPayableAmtOfTrip($data->id) - totalTripAmountRcvdById($data->id))) }}</span>
                                     </td>
                                 </tr>
+                                
+                                <!-- ================== CHILD ROW 1 – WITH TAX ================== -->
+                                <tr>
+                                    <td class="ps-5 pe-5">
+                                        <span class="text-muted">With Tax Amount</span>
+                                    </td>
+                                    <td class="ps-5 d-flex justify-content-end">
+                                        <span class="text-muted fw-semibold">
+                                            ₹{{ indian_number_format(totalPayableAmtOfTrip($data->id)) }} <!-- Basic Cost only A -->
+                                            <!-- ₹{{ indian_number_format($payableTripAmt) }} Including Tax A+B  -->
+                                        </span>
+                                    </td>
+                                </tr>
+                                <!-- ================== CHILD ROW 2 – WITHOUT TAX ================== -->
+                                <tr>
+                                    <td class="ps-5 pe-5">
+                                        <span class="text-muted">Without Tax Amount</span>
+                                    </td>
+                                    <td class="ps-5 d-flex justify-content-end">
+                                        <span class="text-muted fw-semibold">
+                                            <!-- ₹{{ indian_number_format(actualTripCostSumById($data->id)) }} -->
+                                            ₹{{ indian_number_format(getTripCostWithoutTaxByBookingId($data->id)) }}
+                                            
+                                        </span>
+                                    </td>
+                                </tr>
+                                <!-- End code for with or without tax amount -->
+
                                 <tr>
                                     <td class="pe-5"><span class="text-heading">Amount Recieved</span></td>
                                     <td class="ps-5 d-flex justify-content-end">
                                         <span
-                                            class="text-heading fw-semibold">₹{{ indian_number_format(totalTripAmountRcvdById($data->id)) }}</span>
+                                            class="text-heading fw-semibold">₹{{ indian_number_format(totalTripAmountRcvdById($data->id)) }}
+                                        </span>
                                     </td>
                                 </tr>
                                 <tr>
@@ -1474,7 +1532,7 @@
                     link.click();
                 },
                 error: function(xhr) {
-                    var message = 'Error downloading attachments.';
+                    var message = 'Something Went wrong! No attachments found.';
                     if(xhr.responseJSON && xhr.responseJSON.error){
                         message = xhr.responseJSON.error;
                     }
@@ -1968,6 +2026,12 @@
                         name: 'merchandise_name',
                         "render": function(data, type, row, meta) {
                             return row.merchandise_name;
+                        }
+                    },
+                    {
+                        name: 'address',
+                        "render": function(data, type, row, meta) {
+                            return row.address; 
                         }
                     },
                     {

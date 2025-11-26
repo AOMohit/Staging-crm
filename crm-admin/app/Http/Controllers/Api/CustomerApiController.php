@@ -49,7 +49,7 @@ class CustomerApiController extends Controller
         $data->telephone_code = $request->telephone_code;
         $randomPassword = Str::random(10);
         $data->password = Hash::make($randomPassword);
-        $data->terms_accepted = 0;
+        $data->terms_accepted = 1;
 
         if ($request->refer_by) {
             $checkUser = Customer::where('email', $request->refer_by)->first();
@@ -183,7 +183,6 @@ class CustomerApiController extends Controller
         $data->dob = $request->dob;
         $data->parent = $request->parent;
         $data->relation = $request->relation;
-        $data->terms_accepted = 0;
         $data->save();
 
         return response()->json(['status' => 'success', 'message' => 'Member added successfully', 'member' => $data,],201);
@@ -276,6 +275,5 @@ class CustomerApiController extends Controller
             ], 500);
         }
     }
-
 
 }

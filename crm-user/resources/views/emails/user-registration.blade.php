@@ -93,6 +93,7 @@
                         <p>
                             Thank you for filling in the Registration Form. We are looking forward to travelling with you very soon! Below are the details of the Registration Form submitted by you.
                         </p>
+
                     </td>
                 </tr>
             </tbody>
@@ -163,9 +164,10 @@
                 </tr>
 
                 <tr style="border-bottom: 1px rgb(200, 190, 190) solid">
-                    <th>T Shirt Size:</th>
+                    <th>T-Shirt Size:</th>
                     <td>{{ $mailData['t_size'] }}</td>
                 </tr>
+              
                 <tr style="border-bottom: 1px rgb(200, 190, 190) solid">
                     <th>Profile Image</th>
                     <td>
@@ -228,8 +230,8 @@
                         <img src="{{ env('ADMIN_URL') . 'storage/app/admin/setting/AO-footer-mailer.png'}}" style="width:auto;height:160px">
                         <p
                             style="font-size: 12px; line-height: 15px; font-family: 'Helvetica', Arial, sans-serif; font-weight: normal; text-decoration: none; color: #000000;">
-                            This email was sent to {{ $mailData['email'] }}.<br>
-                            To help secure your account, please dont forward this email.
+                            This Email was sent to {{ $mailData['email'] }}.<br>
+                            To help secure your account, please do not forward this Email.
                         </p>
 
                     </td>

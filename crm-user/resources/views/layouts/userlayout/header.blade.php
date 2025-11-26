@@ -17,9 +17,7 @@
     <title>{{ setting('site_name') }}</title>
     <link rel="shortcut icon" type="image/x-icon" href="{{ env('ADMIN_URL') . 'storage/app/' . setting('logo') }}">
     
-    <!-- ...existing code... -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<!-- ...existing code... -->
+    
      <link href="{{ asset('public/userpanel') }}/asset/css/style.css?v={{ time() }}" rel="stylesheet">
 
     

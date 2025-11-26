@@ -56,10 +56,10 @@ class SendMail extends Mailable
      * @return array<int, \Illuminate\Mail\Mailables\Attachment>
      */
     public function attachments(): array
-    {   
+    {
         try{
             $attachments = [];
-            if (isset($this->data['attachment']))
+                if (isset($this->data['attachment']))
                 {
                     if (is_array($this->data['attachment'])) {
                         foreach ($this->data['attachment'] as $filePath) {
@@ -76,19 +76,21 @@ class SendMail extends Mailable
                 }
 
             //if (isset($this->data['attachment'])) {
-            //$attachments[] = $this->data['attachment'];
+                //$attachments[] = $this->data['attachment'];
             //}
 
             // if (isset($this->data['attachment2'])) {
             //     $attachments[] = $this->data['attachment2'];
             // }
 
-            return $attachments;
+        return $attachments;
+
         }
         catch(\Throwable $e){
             Log::error('Error  Attachment: ' . $e->getMessage());
             throw new \Exception("Error Attachment in email:".$e->getMessage());
         }
+            
     }
 
 }

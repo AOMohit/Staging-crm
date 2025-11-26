@@ -110,6 +110,19 @@ if(!function_exists('getTripCountbyCustomerId')){
     }
 }
 
+
+if(!function_exists('gettripname')){
+    function gettripname($id){
+        $res = TripBooking::whereJsonContains('customer_id', "$id")
+                            ->where('trip_status', '!=', 'Cancelled')
+                            ->where('trip_status', '!=', 'Draft')
+                            ->with('trip')->get();
+                            
+        return $res->pluck('trip.name');
+       
+    }
+}
+
 if(!function_exists('getReferralByAgent')){
     function getReferralByAgent($id){
         $res = TripBooking::where('lead_source', 'Agent')->where('sub_lead_source', "$id")->where('trip_status', "!=" ,"Draft")->count();
@@ -121,11 +134,10 @@ if(!function_exists('getPaxFromTripId')){
     function getPaxFromTripId($id){
         $res = TripBooking::where('trip_id', $id)->whereNotIn('trip_status', ['Cancelled', 'Draft'])->get();
         $count = 0;
-		foreach($res as $item){
-			$decodedCustomers = json_decode($item->customer_id, true);
-			$cc = is_array($decodedCustomers) ? count($decodedCustomers) : 0;
-			$count += $cc;
-		}
+        foreach($res as $item){
+            $cc = count(json_decode($item->customer_id));
+            $count += $cc;
+        }
         return $count;
     }
 }
@@ -279,8 +291,9 @@ if(!function_exists('totalTripCostOfCustomerById')){
                 }
             }
             $packageBSum += $item->vehical_seat_amt;
-            $tripCostData = json_decode($item->trip_cost);
-            if (is_array($tripCostData) && count($tripCostData) > 0) {
+            $tripCostData = json_decode($item->trip_cost) ?? [];
+     
+           if (is_array($tripCostData) && count($tripCostData) > 0) {
                 $travellerCount = count($tripCostData);
             } else {
                 $travellerCount = 1;
@@ -307,6 +320,7 @@ if(!function_exists('totalTripCostOfCustomerById')){
 
                 $tcs_amt = 0;
                 if($tripTax){
+                    
                     foreach($tripTax as $tt){
                         if($tt->c_id == $cId){
                             $netCost = $tt->cost + $perTravellerPackageB;
@@ -323,19 +337,7 @@ if(!function_exists('totalTripCostOfCustomerById')){
                                     }
                                     $tcs_per = $item->payment_from_tax;
                                 }
-                                else if($item->payment_from_tax == "Manual"){
-                                     if (!property_exists($tt, 'amount_1') || $tt->amount_1 === null) {
-                                            $tt->amount_1 = 0;
-                                        }
-                                        if (!property_exists($tt, 'amount_2') || $tt->amount_2 === null) {
-                                            $tt->amount_2 = 0;
-                                        }
-                                        if (!property_exists($tt, 'tcs_1') || $tt->tcs_1 === null) {
-                                            $tt->tcs_1 = 0;
-                                        }
-                                        if (!property_exists($tt, 'tcs_2') || $tt->tcs_2 === null) {
-                                            $tt->tcs_2 = 0;
-                                        }
+                                elseif($item->payment_from_tax == "Manual"){
                                     $tcs1_amt = (($tt->amount_1*$tt->tcs_1)/100);
                                     $tcs2_amt = 0;
                                     if($tt->tcs_2 != null){
@@ -392,12 +394,6 @@ if(!function_exists('getPointPerByCustomerId')){
            
         }
     
-        if(!$tier){
-            $res = Customer::find($id);
-            $tier = $res->tier;
-        }
-      
-
         $per = 1;
         if($tier == "Discovery"){
             $per = 1;
@@ -408,7 +404,6 @@ if(!function_exists('getPointPerByCustomerId')){
         }elseif($tier == "Legends"){
             $per = 5;
         }
-        // dd($per);
         return $per;
     }
 }
@@ -569,14 +564,13 @@ if(!function_exists('getCustomerCountByTripId')){
 
 
         $count = 0;
-		if($res){
-			foreach($res as $booking){
-				if($booking->customer_id){
-					$decodedCustomers = json_decode($booking->customer_id, true);
-					$count += is_array($decodedCustomers) ? count($decodedCustomers) : 0;
-				}
-			}
-		}
+        if($res){
+            foreach($res as $booking){
+                if($booking->customer_id){
+                    $count += count(json_decode($booking->customer_id));
+                }
+            }
+        }
         return $count;
     }
 }
@@ -660,5 +654,71 @@ if (!function_exists('getAllTrips')) {
     {
         $trips = Trip::all();
         return $trips;
+    }
+}
+
+if(!function_exists('getTripCostWithoutTaxByBookingId')){
+    function getTripCostWithoutTaxByBookingId($id){
+        $res = TripBooking::where('trip_id', $id)->whereNotIn('trip_status', ['Cancelled', 'Draft'])->get();
+        $tripCost = 0;
+        foreach($res as $item){
+            $costs = json_decode($item->trip_cost);
+            if($costs){
+                foreach($costs as $cost){
+                    // if($cost->c_id == $cId){
+                        $tripCost += $cost->cost ?? 0;
+                    // }
+                }
+            }
+        }
+
+        $extraCost = 0;
+        $ExtraServices = ExtraService::select('title')->where('is_redeemable', 1)->pluck('title')->toArray();
+
+        foreach($res as $item){
+            $exc = json_decode($item->extra_services);
+            if($exc){
+                foreach($exc as $ex){
+                    if(in_array($ex->services, $ExtraServices)){
+                        // if($ex->traveler == $cId){
+                            $totalEx = $ex->amount;
+                            $extraCost += $totalEx;
+                        // }
+                    }
+                }
+            }
+        }
+
+        $redeemedPoints = 0;
+        foreach($res as $item){
+            $redeems = json_decode($item->redeem_points);
+            if($exc && $redeems){
+                foreach($redeems as $redeem){
+                    // if($redeem->c_id == $cId){
+                        $totalPoints = $redeem->points;
+                        $redeemedPoints += $totalPoints;
+                    // }
+                }
+            }
+        }
+
+        $vsa = 0;
+        foreach($res as $item){
+            $vsa += $item->vehical_seat_amt ?? 0;
+        }
+
+        $roomAmt = 0;
+        foreach($res as $item){
+            $rooms = json_decode($item->room_info);
+            if($rooms){
+                foreach($rooms as $rps){
+                    $roomAmt += (int)$rps->room_type_amt ?? 0;
+                }
+            }
+        }
+
+        $totalSpend = $tripCost + $extraCost + $vsa + $roomAmt;
+        // $totalSpend = $tripCost + $extraCost - $redeemedPoints;
+        return $totalSpend;
     }
 }

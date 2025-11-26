@@ -63,7 +63,7 @@
             <td style="font-size: 15px; line-height: 24px; font-family: 'Helvetica', Arial, sans-serif; font-weight: 400; text-decoration: none; color: #383838; width: 596px; vertical-align: top; padding-left: 30px; padding-right: 30px; padding-top: 30px; padding-bottom: 40px;" width="596">
 
                 <p>Hello Admin,</p>
-                <p><strong>{{ $data['trip_name'] }}</strong> trip has been completed and invoice for the has been sent to <strong>{{ $data['name'] }}</strong>.
+                <p><strong>{{ $data['trip_name'] }}</strong> trip has been completed and invoice for the same has been sent to <strong>{{ $data['name'] }}</strong>.
                 </p>
 
             </td>

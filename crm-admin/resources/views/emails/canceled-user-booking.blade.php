@@ -62,12 +62,6 @@
           <tr>
             <td style="font-size: 15px; line-height: 24px; font-family: 'Helvetica', Arial, sans-serif; font-weight: 400; text-decoration: none; color: #383838; width: 596px; vertical-align: top; padding-left: 30px; padding-right: 30px; padding-top: 30px; padding-bottom: 40px;" width="596">
 
-                <!--<p>Hello {{ $data['name'] }},</p>-->
-
-                <!--<p>-->
-                <!--  Booking for <strong>{{ $data['trip_name'] }}</strong> has been cancelled.<br>
-                  Reason for cancellation <strong>{{ $data['reason'] }}</strong>.-->
-                <!--</p>-->
                 <p>Hello {{ $data['name'] }},</p>
                 <p>Please find below Booking cancelled details.</strong> </p>
                 <ul style="font-size: 15px; line-height: 24px; font-family: 'Helvetica', Arial, sans-serif; color: #383838; padding-left: 20px;">

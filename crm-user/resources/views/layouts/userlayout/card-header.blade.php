@@ -7,7 +7,7 @@
         
         <div class="bg-white shadows rounded p-2  information-trip mx-2 info-box totals">
             <div class="text curent-tier info-title">Total Trips</div>
-            <div class="text fw-bold information-trip-count info-value numberss">{{ count(tripCount()) }}
+            <div class="text fw-bold information-trip-count info-value numberss">{{tripCount()}}
             </div>
         </div>
         {{-- </div> --}}
@@ -23,24 +23,20 @@
         
         {{-- </div> --}}
         {{-- <div class=" col-lg-5 col-md-12 col-12 header-card-data "> --}}
-        @php 
-        $points= getPoints(Auth::user()->id);
-      
-        @endphp
-            @if($points != 0)
-                <div class="bg-white shadows rounded p-2 information-trip total mx-2 info-box">
-                    <div class="new-ak">
-                        <div class="curent-tier info-title text">Total Points Balance</div>
-                        <img src="{{ asset('public/userpanel') }}/asset/images/star.svg" alt="">
-                        <b class="text fw-bold information-trip-count info-value">{{getPoints( Auth::user()->id)}}</b>
-                        <span>Points</span>
-                        <div class="fw-bold green  rounded px-3 expiring-date">
-                            
-                            Total points {{getPoints( Auth::user()->id)}} = Rs. {{getPoints( Auth::user()->id)}} (1 point = Rs. 1)
-                        </div>
-                    </div>
+        
+        
+            <div class="bg-white shadows rounded p-2 information-trip total mx-2 info-box">
+            <div class="new-ak">
+                <div class="curent-tier info-title text">Total Points Balance</div>
+                <img src="{{ asset('public/userpanel') }}/asset/images/star.svg" alt="">
+                <b class="text fw-bold information-trip-count info-value">{{getPoints( Auth::user()->id)}}</b>
+                <span>Points</span>
+                <div class="fw-bold green  rounded px-3 expiring-date">
+                    
+                    Total points {{ Auth::user()->points }} = Rs. {{ Auth::user()->points }} (1 point = Rs. 1)
                 </div>
-            @endif
+                </div>
+            </div>
             
             
             

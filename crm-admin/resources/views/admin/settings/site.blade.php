@@ -89,6 +89,7 @@
                                     class="form-control" id="basic-default-fullname1" placeholder="Sales Email" />
                                 <label for="basic-default-fullname1">Sales Email</label>
                             </div>
+
                             <div class="form-floating form-floating-outline mb-4">
                                 <input type="text" name="birthday_email" value="{{ $data->birthday_email }}"
                                     class="form-control" id="basic-default-fullname1" placeholder="Birthday Email" />
@@ -102,12 +103,10 @@
                                 <label for="basic-default-fullname1">Ongoing Trip Report User Mail</label>
                                 <small>Eg:- abc@mail.com,def@mail.com</small>
                             </div>
-                            
-                            @if(($permissions['setting']->can_edit ?? false))
+
                             <div class="text-center">
                                 <button type="submit" class="btn btn-primary">Submit</button>
                             </div>
-                            @endif
                         </form>
                     </div>
                 </div>

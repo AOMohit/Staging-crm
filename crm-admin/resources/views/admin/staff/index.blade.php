@@ -6,7 +6,6 @@
         <div class="card">
             <div class="card-datatable table-responsive pt-0">
                 <div class="p-3">
-                    @if(($permissions['staff']->can_edit ?? false))
                     <div class="dt-action-buttons text-end pt-3 pt-md-0">
                         <div class="dt-buttons btn-group flex-wrap">
 
@@ -24,7 +23,6 @@
                             </a>
                         </div>
                     </div>
-                    @endif
                 </div>
                 <table id="myDatatable" class="table table-bordered">
                     <thead>
@@ -67,8 +65,6 @@
 
 @section('script')
     <script>
-        var staffCanEdit = {{ ($permissions['staff']->can_edit ?? false) ? 'true' : 'false' }};
-        var staffCanDelete = {{ ($permissions['staff']->can_delete ?? false) ? 'true' : 'false' }};
         $('th').css('white-space', 'nowrap');
 
         $(document).ready(function() {
@@ -114,19 +110,9 @@
                                 </button>
                                 <div class="dropdown-menu" style="">
                                 <a class="dropdown-item waves-effect" href="${routeActivity}"><i class="mdi mdi-book-outline me-1"></i> Activity Log</a>
-                                `;
-                                if (staffCanEdit) {
-                                    text += `
-                                            <a class="dropdown-item waves-effect" href="${routeEdit}"><i class="mdi mdi-pencil-outline me-1"></i> Edit</a>
-                                        `;
-                                }
-                                if (staffCanDelete && row.trip_status !== "Completed") {
-                                    text += `
-                                            <a class="dropdown-item waves-effect" data-bs-toggle="modal" onclick="deleteModal('${routeDlt}')"
+                                <a class="dropdown-item waves-effect" href="${routeEdit}"><i class="mdi mdi-pencil-outline me-1"></i> Edit</a>
+                                <a class="dropdown-item waves-effect" data-bs-toggle="modal" onclick="deleteModal('${routeDlt}')"
                                             data-bs-target="#deleteModal" href="javaScript:void(0)"><i class="mdi mdi-trash-can-outline me-1"></i> Delete</a>
-                                        `;
-                                }
-                                text += `
                                 </div>
                             </div>`;
                             return text;

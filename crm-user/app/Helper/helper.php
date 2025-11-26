@@ -4,15 +4,19 @@ use App\Models\Countrie;
 use App\Models\Customer;
 use App\Models\ExtraService;
 use App\Models\Setting;
+use App\Models\LoaltyPointsModel;
 use App\Models\Trip;
 use App\Models\TripBooking;
-use App\Models\LoaltyPointsModel;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 
     function tripCount(){
+
         $cos_id = Auth::user()->id;
-        $trip = TripBooking::whereJsonContains('customer_id', "$cos_id")->orderBy('id', 'desc')->get();
+        $trip = TripBooking::whereJsonContains('customer_id', "$cos_id")
+                ->where('trip_status', '!=', 'Cancelled')
+                ->where('trip_status', '!=', 'Draft')
+                ->orderBy('id', 'desc')->count();
         return $trip;
     }
 
@@ -111,7 +115,12 @@ if(!function_exists('getTripCostWithoutTaxByBookingAndCustomerId')){
         return $totalSpend;
     }
 }
-
+if(!function_exists('getExtraServiceByName')){
+    function getExtraServiceByName($name){
+        $res = ExtraService::where('title', $name)->first();
+        return $res;
+    }
+}
 
 if(!function_exists('getPointPerByCustomerId')){
     function getPointPerByCustomerId($bookingId,$id){
@@ -158,7 +167,7 @@ if(!function_exists('getPoints')){
             ->sum('trans_amt');
 
         $res = $earnedPoints - $usedPoints;
-        $res= max(0,$res);
+        // dd($res);
         return $res;
     }
 }

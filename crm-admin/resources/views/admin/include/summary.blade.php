@@ -4,7 +4,7 @@
             <div class="col-6">
                 <h5 class="text fw-bold"></h5>
             </div>
-           @if (request()->route()->getName() != 'booking.new-trip')
+             @if (request()->route()->getName() != 'booking.new-trip')
            
                 @if ($data->trip_status != 'Completed')
                 
@@ -14,8 +14,7 @@
                                 class="btn btn-warning">Add Payments</a>
                         </div>
                     @endif
-                @elseif (auth()->user()->email == 'Vageesh@adventuresoverland.com')
-                 <span>hello trip status is not completed</span>
+                @elseif (auth()->user()->email == 'gulab@adventuresoverland.com')
                     <div class="col-6 text-end">
                         <a href="javaScript:void(0)" onclick="addPayment()" style="font-size: 0.7em;"
                             class="btn btn-warning">Add Payments</a>
@@ -98,7 +97,6 @@
                 </div>
                 <hr>
 
-                <!-- TAX SECTION -->
                 <div class="tax mt-3 border-bottoms pb-2">
                     <div id="tax_info">
 
@@ -154,7 +152,7 @@
 
                 <div class="mt-3">
                     <div class="d-flex justify-content-between">
-                        <h6 class="fw-bold text font-size-14">Total asdsReceivable</h6>
+                        <h6 class="fw-bold text font-size-14">Total Receivable</h6>
 
                         <h6 class="font-size-12" id="final_total_payable_amt">0</h6>
                     </div>
@@ -369,6 +367,7 @@
             </div>
     </div>
 <script>
+    
         function editPayment(index) {
             var id = $('#id').val();
             $.ajax({

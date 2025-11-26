@@ -66,27 +66,22 @@
                         <hr>
 
                         {{-- filter --}}
-                        @if(($permissions['trip']->can_edit ?? false))   <!-- Add this line check condition edit have or not (17.10.2025) -->
+
                         <div class="dt-action-buttons text-end pt-3 pt-md-0">
                             <div class="dt-buttons btn-group flex-wrap">
-                                {{-- Add expense report download feature by date is completed 29-09-2025 --}}
-                                {{-- <button class="btn btn-secondary  btn-label-primary me-2" data-bs-toggle="modal"
-                                    data-bs-target="#expenseReportModal">
-                                    <i class="mdi mdi-tray-arrow-down me-sm-1"></i> Download Expense Report
-                                </button> --}}
 
-                                <!-- <button class="btn btn-secondary  btn-label-primary me-2" data-bs-toggle="modal"
-                                    data-bs-target="#basicModal">
-                                    <i class="mdi mdi-tray-arrow-down me-sm-1"></i> Import
-                                </button>
+                                <!--<button class="btn btn-secondary  btn-label-primary me-2" data-bs-toggle="modal"-->
+                                <!--    data-bs-target="#basicModal">-->
+                                <!--    <i class="mdi mdi-tray-arrow-down me-sm-1"></i> Import-->
+                                <!--</button>-->
 
 
-                                <a href="{{ route('trip.export') }}"
-                                    class="btn btn-secondary buttons-collection btn-label-primary me-2" tabindex="0"
-                                    aria-controls="DataTables_Table_0" type="button" aria-haspopup="dialog"
-                                    aria-expanded="false"><span><i class="mdi mdi-export-variant me-sm-1"></i> <span
-                                            class="d-none d-sm-inline-block">Export</span></span></span>
-                                </a> -->
+                                <!--<a href="{{ route('trip.export') }}"-->
+                                <!--    class="btn btn-secondary buttons-collection btn-label-primary me-2" tabindex="0"-->
+                                <!--    aria-controls="DataTables_Table_0" type="button" aria-haspopup="dialog"-->
+                                <!--    aria-expanded="false"><span><i class="mdi mdi-export-variant me-sm-1"></i> <span-->
+                                <!--            class="d-none d-sm-inline-block">Export</span></span></span>-->
+                                <!--</a>-->
 
                                 <a class="btn btn-secondary btn-primary text-white" href="{{ route('trip.add') }}"
                                     tabindex="0"><span><i class="mdi mdi-plus me-sm-1"></i>
@@ -94,7 +89,6 @@
                                 </a>
                             </div>
                         </div>
-                        @endif
                     </div>
                     <table id="myDatatable" class="table table-bordered">
                         <thead>
@@ -119,83 +113,6 @@
                 </div>
             </div>
         </div>
-        {{-- flash messages --}}
-        @if(session('success'))
-            <div class="alert alert-success">{{ session('success') }}</div>
-        @endif
-        @if(session('error'))
-            <div class="alert alert-danger">{{ session('error') }}</div>
-        @endif
-        {{-- Expense Report Date Modal --}}
-        <div class="modal fade" id="expenseReportModal" tabindex="-1" aria-hidden="true">
-            <div class="modal-dialog" role="document">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h4 class="modal-title">Download Expense Report</h4>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <form id="expenseReportForm" action="{{ route('trip.expense-report') }}" method="GET">
-                        <div class="modal-body">
-                            <div class="row">
-                                <div class="col mb-4 mt-2">
-                                    <div class="form-floating form-floating-outline">
-                                        <input type="date" name="date" class="form-control" required />
-                                        <label>Select date</label>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-label-secondary" data-bs-dismiss="modal">Close</button>
-                            <button type="submit" class="btn btn-primary">Download</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-
-        <iframe id="downloadFrame" style="display:none;"></iframe>
-        <script>
-            var tripCanView = {{ ($permissions['trip']->can_view ?? false) ? 'true' : 'false' }};
-            var tripCanEdit = {{ ($permissions['trip']->can_edit ?? false) ? 'true' : 'false' }};
-            var tripCanDelete = {{ ($permissions['trip']->can_delete ?? false) ? 'true' : 'false' }};
-        
-            (function() {
-                const form = document.getElementById('expenseReportForm');
-                if (!form) return;
-                form.addEventListener('submit', function(e) {
-                    e.preventDefault();
-                    const dateInput = form.querySelector('input[name="date"]');
-                    const dateVal = dateInput ? dateInput.value : '';
-                    if (!dateVal) return;
-                    const probeUrl = form.action + '?ajax=1&date=' + encodeURIComponent(dateVal);
-                    fetch(probeUrl, { method: 'GET', headers: { 'X-Requested-With': 'XMLHttpRequest' } })
-                        .then(res => {
-                            if (!res.ok) throw new Error('No records');
-                            const realUrl = form.action + '?date=' + encodeURIComponent(dateVal);
-                            const iframe = document.getElementById('downloadFrame');
-                            if (iframe) iframe.src = realUrl;
-                            const container = document.createElement('div');
-                            container.className = 'alert alert-success mt-2';
-                            container.textContent = 'Please check your download.';
-                            form.closest('.container-xxl')?.prepend(container);
-                            setTimeout(function(){ container.remove(); }, 3000);
-                            const modalEl = document.getElementById('expenseReportModal');
-                            if (modalEl) {
-                                const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
-                                modal.hide();
-                            }
-                        })
-                        .catch(() => {
-                            const container = document.createElement('div');
-                            container.className = 'alert alert-danger mt-2';
-                            container.textContent = 'No expense records found for selected date.';
-                            form.closest('.container-xxl')?.prepend(container);
-                            setTimeout(function(){ container.remove(); }, 3000);
-                        });
-                });
-            })();
-        </script>
         <!--/ DataTable with Buttons -->
 
         <!-- Modal -->
@@ -328,6 +245,7 @@
                     "columns": [{
                             name: 'Action',
                             "render": function(data, type, row, meta) {
+                                var checkEditable = row.editable;
                                 var id = row.id;
                                 var routeEdit = "{{ route('trip.edit', ['id' => 'rowID']) }}";
                                 routeEdit = routeEdit.replace('rowID', id);
@@ -351,27 +269,21 @@
                                                 </button>
                                                 <div class="dropdown-menu" style="">
                                                     <a class="dropdown-item waves-effect" href="${routeActivity}"><i class="mdi mdi-book-outline me-1"></i> Activity Log</a>
-                                                `;
-                                if (tripCanView) {
-                                    text +=
-                                        `<a class="dropdown-item waves-effect" href="${routeView}"><i class="mdi mdi-eye-outline me-1"></i> View</a>`;
-                                }
-                                if (tripCanEdit) {
-                                    text +=
-                                        `<a class="dropdown-item waves-effect" href="${routeEdit}"><i class="mdi mdi-pencil-outline me-1"></i> Edit</a>`;
-                                }
-                                if (tripCanDelete && row.statuss != "Completed") {
+                                                <a class="dropdown-item waves-effect" href="${routeView}"><i class="mdi mdi-eye-outline me-1"></i> View</a>`;
+                                //if (checkEditable == 1) {
+                                text +=
+                                    `<a class="dropdown-item waves-effect" href="${routeEdit}"><i class="mdi mdi-pencil-outline me-1"></i> Edit</a>`;
+                                //}
+                                if (row.statuss != "Completed") {
                                     text +=
                                         `<a class="dropdown-item waves-effect" data-bs-toggle="modal" onclick="deleteModal('${routeDlt}')"
                                                             data-bs-target="#deleteModal" href="javaScript:void(0)"><i class="mdi mdi-trash-can-outline me-1"></i> Delete</a>`;
                                 }
-                                if (tripCanEdit) {
-                                    text += `<a class="dropdown-item waves-effect"  onclick="cancelModal('${id}')"
-                                                            href="javaScript:void(0)"><i class="mdi mdi-close me-1"></i> Cancel</a>
-                                                    </div>
+                                text += `<a class="dropdown-item waves-effect"  onclick="cancelModal('${id}')"
+                                                        href="javaScript:void(0)"><i class="mdi mdi-close me-1"></i> Cancel</a>
+                                                </div>
 
-                                                </div>`;
-                                }
+                                            </div>`;
                                 return text;
                             }
                         },

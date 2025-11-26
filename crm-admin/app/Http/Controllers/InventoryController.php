@@ -383,7 +383,6 @@ class InventoryController extends Controller
 
     public function stockUpdate(Request $request)
     {
-        
         $request->validate([
             'type' => ['required'],
             'qty' => ['required'],
@@ -421,8 +420,7 @@ class InventoryController extends Controller
         $activity->page_data_id = $data->id;
         $activity->save();
         // Activity Tracker
-        // return redirect()->route('inventory.view', ['id' => $request->inventory_id])->with('success', 'Updated Successfully !!');
-
+        
         return redirect()->back()->with('success', 'Updated Successfully !!');
     }
 

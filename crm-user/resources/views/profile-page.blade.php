@@ -22,7 +22,8 @@
                         <div class="p-2">
                             <div class="col-12">
                                 <div class="row mt-4">
-                                    <h6 class="fw-bold textss pb-3">
+                                    <h6 class="fw-bold text pb-3">
+
                                         <i class="fa-solid fa-user"></i> Profile Information
                                     </h6>
                                        <div class="profile-glass-card">
@@ -53,23 +54,23 @@
 
 
                                         <div class="info-grid">
+
                                             <div class="box"><h6>First Name</h6><p>{{ Auth::user()->first_name ?? "-" }}</p></div>
                                             <div class="box"><h6>Last Name</h6><p>{{ Auth::user()->last_name ?? "-" }}</p></div>
                                             <div class="box"><h6>Email</h6><p>{{ Auth::user()->email ?? "-" }}</p></div>
                                             <div class="box"><h6>Phone</h6><p>{{ Auth::user()->phone ?? "-" }}</p></div>
-                                            <div class="box"><h6>Country</h6><p>{{ Auth::user()->country ?? "-" }}</p></div>
-                                            <div class="box"><h6>State</h6><p>{{ Auth::user()->state ?? "-" }}</p></div>
                                             <div class="box"><h6>City</h6><p>{{ Auth::user()->city ?? "-" }}</p></div>
                                             <div class="box"><h6>Pincode</h6><p>{{ Auth::user()->pincode ?? "-" }}</p></div>
                                             <div class="box"><h6>Address</h6><p>{{ Auth::user()->address ?? "-" }}</p></div>
+                                            <div class="box"><h6>State</h6><p>{{ Auth::user()->state ?? "-" }}</p></div>
+                                            <div class="box"><h6>Country</h6><p>{{ Auth::user()->country ?? "-" }}</p></div>
                                             <div class="box"><h6>Date of Birth</h6><p>{{ Auth::user()->dob ?? "-" }}</p></div>
-                                            <div class="box"><h6>Blood Group</h6><p>{{ Auth::user()->blood_group ?? "-" }}</p></div>
+                                            <div class="box"><h6>Profession</h6><p>{{ Auth::user()->profession ?? "-" }}</p></div>
                                             <div class="box"><h6>Meal Preference</h6><p>{{ Auth::user()->meal_preference ?? "-" }}</p></div>
+                                            <div class="box"><h6>Blood Group</h6><p>{{ Auth::user()->blood_group ?? "-" }}</p></div>
+                                            <div class="box"><h6>Emergency Contact</h6><p>{{ Auth::user()->emg_contact ?? "-" }}</p></div>
                                             <div class="box"><h6>T-shirt Size</h6><p>{{ Auth::user()->t_size ?? "-" }}</p></div>
                                             <div class="box"><h6>Medical Condition</h6><p>{{ Auth::user()->medical_condition ?? "-" }}</p></div>
-                                            <div class="box"><h6>Emergency Contact</h6><p>{{ Auth::user()->emg_contact ?? "-" }}</p></div>
-                                            <div class="box"><h6>Emergency Name</h6><p>{{ Auth::user()->emg_name ?? "-" }}</p></div>
-                                            
                                         </div>
 
                                         <button class="edit-btn" data-bs-toggle="modal" data-bs-target="#staticBackdrop">
@@ -129,12 +130,15 @@
                                                                 </div>
                                                                 <div>
                                                                     <label for="">State</label>
-                                                                    <select class="form-select" name="state" id="state" onfocus="getState(document.querySelector('[name=country]').value)">
+                                                                   <select class="form-select" name="state" id="state" disabled>
                                                                         @if(isset(Auth::user()->state)) 
                                                                         <option value="{{ Auth::user()->state }}" selected>
                                                                                 {{ Auth::user()->state }}
                                                                         </option>
                                                                         @endif
+
+                                                                       
+
                                                                     </select>
                                                                 </div>
                                                                 <div>
@@ -257,10 +261,6 @@
                                                                             @if (Auth::user()->t_size == 'L') selected @endif
                                                                             value="L">L
                                                                         </option>
-                                                                         <option
-                                                                            @if (Auth::user()->t_size == 'XL') selected @endif
-                                                                            value="XL">L
-                                                                        </option>
                                                                         <option
                                                                             @if (Auth::user()->t_size == '2XL') selected @endif
                                                                             value="2XL">2XL
@@ -331,7 +331,8 @@
                 },
                success:function(responce){
                     $('#state').html(responce);
-                }
+                    $('#state').prop("disabled", false);
+               }
             });
         }
     </script>

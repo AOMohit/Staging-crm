@@ -280,12 +280,15 @@
                         <div class="row mb-1">
                             <div class="col-6">
                                 <div class="form-floating form-floating-outline">
-                                    <select onchange="paymentFrom(this.value)" name="payment_from" id="payment_from" class="form-control">
+                                    <select onchange="paymentFrom(this.value)" name="payment_from" class="form-control">
                                         <option value="">Payment From</option>
-                                        <option @if (isset($data) && $data->payment_from == 'Individual') selected @endif value="Individual">Individual</option>
-                                        <option @if (isset($data) && $data->payment_from == 'Company') selected @endif value="Company">Company</option>
+                                        <option @if (isset($data) && $data->payment_from == 'Individual') selected @endif value="Individual">
+                                            Individual</option>
+                                        <option @if (isset($data) && $data->payment_from == 'Company') selected @endif value="Company">
+                                            Company</option>
                                     </select>
-                                    <label for="">Payment From<span class="text-danger fixed tailor-made">*</span></label>
+                                    <label for="">Payment From<span
+                                            class="text-danger fixed tailor-made">*</span></label>
                                 </div>
                             </div>
 
@@ -332,6 +335,7 @@
                                 </div>
                             </div>
                         </div>
+
                         {{-- all Payment --}}
                         <div class="form-group mb-4">
                             <input @if (isset($data) && $data->payment_all_done_by_this == 1) checked @endif type="checkbox"
@@ -350,22 +354,20 @@
                             @endif
                         </div>
 
-                
                             <div class="col-6 mb-4" id="billing_customer" 
-                            
                                 @if (isset($data) && $data->is_multiple_payment == 1) style="display: none" @endif
                                 @if (!isset($data) || $data->payment_from_tax == null || $data->payment_from == 'Company') style="display: none" @endif>
                             
                                 <div class="form-floating form-floating-outline">
                                     <select onchange="getbillingCustomers(this)" name="billing_customer_id[]" id="billing_customer_ids"
                                             class="select2 form-select form-select-lg" data-allow-clear="true" multiple>
-                                            <option value="">No billing customers available</option>
+                                                    <option value="">No billing customers available</option>
                                                
                                     </select>
                                     <label for="customer_id">Bill To<span class="text-danger fixed">*</span></label>
                                 </div>
                             </div>
-                       
+                        <hr>
 
                         {{-- trip cost per person --}}
                         <div id="trip_costing">
@@ -553,12 +555,13 @@
                                 <div class="form-floating form-floating-outline">
                                     <select onchange="paymentType(this.value)" id="payment_type" class="form-control" @if(isset($data) && $data->payment_type) disabled @endif>
                                         <option value="">Payment Type</option>
-                                        <option @if (isset($data) && $data->payment_type == 'Full Payment') selected  @endif value="Full Payment">
+                                        <option @if (isset($data) && $data->payment_type == 'Full Payment') selected @endif value="Full Payment">
                                             Full Payment</option>
-                                        <option @if (isset($data) && $data->payment_type == 'Part Payment') selected   @endif value="Part Payment">
+                                        <option @if (isset($data) && $data->payment_type == 'Part Payment') selected @endif value="Part Payment">
                                             Part Payment</option>
                                     </select>
-                                    <label for="">Payment Type<span class="text-danger fixed tailor-made">*</span></label>
+                                    <label for="">Payment Type<span
+                                            class="text-danger fixed tailor-made">*</span></label>
                                 </div>
                             </div>
                             <div class="col-4">
@@ -566,7 +569,7 @@
                                     <input type="number" onblur="paymentAmt(this.value)" value="<?php if (isset($data) && $data->payment_amt) {
                                         echo $data->payment_amt;
                                     } ?>"
-                                        name="payment_amt" id="last_pay_amt" class="form-control" placeholder="Amount" @if(isset($data) && $data->payment_amt) disabled @endif >
+                                        name="payment_amt" id="last_pay_amt" class="form-control" placeholder="Amount" @if(isset($data) && $data->payment_amt) disabled @endif>
                                     <label for="basic-default-fullname">Amount<span
                                             class="text-danger fixed tailor-made">*</span></label>
                                 </div>
@@ -585,46 +588,15 @@
                         </div>
 
                         <hr>
-                        <div class="form-group mt-4 mb-4">
-                            <input type="checkbox" id="is_Amount_paid"
-                                @if (isset($data) && $data->is_full_Amount_paid == 1) checked @endif>
-                            <label for="is_Amount_paid">Is Amount Paid in Full</label>
-                        </div>
+
                         {{-- Payment Schedule --}}
-                        <div class="mb-4"  id="schPaymentSection">
+                        <div class="mb-4">
                             <div>
-                                <h6>Pending Payment Schedule:
-                                    <button  href="javaScript:void(0)" onclick="addNewSchField()"
-                                    class="btn btn-success m-1"  id="addnewschbtn" @if (isset($data) && $data->is_full_Amount_paid == 1) disabled @endif> + Add Schedule</button></h6>
+                                <h6>Pending Payment Schedule: <a href="javaScript:void(0)" onclick="addNewSchField()"
+                                        class="btn btn-success m-1"> + Add Schedule</a></h6>
                             </div>
-                            @if ( (!$data) || $data->is_full_Amount_paid == "0" && $data->sch_payment_list == null )
-                                <div class="row" id="is_no_payment" >
-                                    <div class="form-group col-3 mt-4">
-                                        <label for="schDate">Date<span class="text-danger">*</span></label>
-                                        <input type="date" name="sch_date[]" class="form-control" id="schDate">
-                                     <span class="text-danger error-msg" id="schDateError"></span>
-                                    </div>
-
-                                    <div class="form-group col-3 mt-4">
-                                        <label for="schAmt">Amount<span class="text-danger">*</span></label>
-                                        <input type="number" name="sch_amount[]" class="form-control sch_payment_amt"
-                                            id="schAmt" placeholder="amount">
-                                        <span class="text-danger error-msg" id="schAmtError"></span>
-                                    </div>
-
-                                    <div class="form-group col-3 mt-4">
-                                        <label for="schCmt">Comment</label>
-                                        <input type="text" name="sch_comment[]" class="form-control" id="schCmt"
-                                            placeholder="Comment">
-                                    </div>
-
-                                    
-                                </div>
-                            @endif
-                            
 
                             <div id="scheduleFieldsContainer">
-                                
                                 <div class="row schField">
                                     <div class="form-group col-3 mt-4">
                                         <label for="schDate">Date<span class="text-danger">*</span></label>
@@ -651,7 +623,7 @@
                                 </div>
                                 <form id="pymentSchForm">
                                     @csrf
-                                    <input type="hidden" name="token" value="{{ request()->token }}" id="schtoken">
+                                    <input type="hidden" name="token" value="{{ request()->token }}">
                                     <div class="row" id="cloneSchContainer">
                                         @if (isset($data) && $data->sch_payment_list != null)
                                             @foreach (json_decode($data->sch_payment_list) as $key => $sch)
@@ -709,10 +681,10 @@
                                         @endif
                                     </div>
                                     <div class="text-center mt-4" id="paymentScheduleBtn"
-                                        @if (isset($data) && $data->sch_payment_list != null) style="display: block;" @endif >
-                                        <button href="javaScript:void(0)" onclick="savePaymentSchedule()"
-                                            class="btn btn-warning" id="savebtnsch" @if (isset($data) && $data->is_full_Amount_paid == 1) disabled @endif>Save
-                                            Payment Schedule</button>
+                                        @if (isset($data) && $data->sch_payment_list != null) style="display: block;" @endif>
+                                        <a href="javaScript:void(0)" onclick="savePaymentSchedule()"
+                                            class="btn btn-warning">Save
+                                            Payment Schedule</a>
                                     </div>
                                 </form>
                             </div>
@@ -748,7 +720,7 @@
         #scheduleFieldsContainer> :first-child,
         #trip_costing,
         #extraServces,
-       
+        #paymentScheduleBtn,
         #vehicle_type_other_cmt_box,
         .sub_lead_source_repeat,
         .is_tds_parent {
@@ -757,66 +729,8 @@
     </style>
 
     @section('script')
-
-
         {{-- add Member form for family and friend --}}
         <script>
-          $(document).on("change", "#is_Amount_paid", function () {
-            const isChecked = $(this).prop("checked");
-            let token= $('#schtoken').val();
-            if (isChecked) {
-                $("#addnewschbtn").prop("disabled", true);
-                $("#is_no_payment").hide();
-                $("#paymentScheduleBtn").hide();
-                $.ajax({
-                        url: "{{ route('booking.trip.ischeckedStore') }}",
-                        type: "POST",
-                        data: {
-                            token:token,
-                            _token: '{{ csrf_token() }}',
-                            ischeck: 1
-                        },
-                        success: function(res) {
-                            if (!res) {
-                                alert("Somthing Went Wrong, try again.")
-                            } 
-                            else{
-                                $("#savebtnsch").prop("disabled", true);
-                            }
-                        
-                            }
-                });
-                
-
-            } else {
-                $("#addnewschbtn").prop("disabled", false);
-                $("#is_no_payment").show();
-                $("#paymentScheduleBtn").show();
-
-                  $.ajax({
-                    url: "{{ route('booking.trip.ischeckedStore') }}",
-                    type: "POST",
-                    data: {
-                        token:token,
-                        _token: '{{ csrf_token() }}',
-                        ischeck: 0
-                    },
-                    success: function(res) {
-                        if (!res) {
-                                alert("Somthing Went Wrong, try again.")
-                        }
-                        else{
-                         $("#savebtnsch").prop("disabled", false);
-
-                        }
-
-                    }
-                    });
-            
-              
-                
-            }
-        });
           
             function addNewMember() {
                 var bookingFor = $("#booking_for").val();
@@ -839,7 +753,6 @@
 
         <script>
             $(document).ready(function() {
-              
                 getSelectedCustomers();
                 var customer_name='';
             });
@@ -961,10 +874,8 @@
                         } else {
                             $("#trip_amt").html(res.price);
                             if (res.region_type == "Domestic") {
-                               
                                 $("#payment_from_tax").val("0")
                             } else {
-                               
                                 $("#payment_from_tax").val("Auto")
                             }
                             paymentFromTax($("#payment_from_tax").val());
@@ -1300,12 +1211,12 @@
                         } else if (val == "Company") {
                             $("#multiple_payment_gst").hide();
                             $("#payment_from_tds").hide();
-                            $("#billing_customer").hide();
+                                 $("#billing_customer").hide();
                             $("#payment_from_company, #is_tds_parent").show();
                         } else {
                             $("#multiple_payment_gst").hide();
                             $("#payment_from_tds").hide();
-                             $("#billing_customer").hide();
+                                 $("#billing_customer").hide();
                             $("#payment_from_company, #is_tds_parent").hide();
 
                         }
@@ -1315,7 +1226,8 @@
 
                 });
             }
-        
+
+
             let selectedBillingOrder = [];
 
             const editBillingValues = $('#billing_customer_ids').val();
@@ -1323,13 +1235,27 @@
                 selectedBillingOrder = [...editBillingValues];
             }
 
-    
+            // $('#billing_customer_ids').on('select2:select', function (e) {
+            //     const id = e.params.data.id;
+            //     if (!selectedBillingOrder.includes(id)) {
+            //         selectedBillingOrder.push(id);
+            //     }
+            //     $('#billing_customer_ids').val(selectedBillingOrder).trigger('change.select2');
+            // });
+
+       
+            // $('#billing_customer_ids').on('select2:unselect', function (e) {
+            //     const id = e.params.data.id;
+            //     let selectedBillingOrder = $('#billing_customer_ids').val()
+            //     selectedBillingOrder = selectedBillingOrder.filter(item => item !== id);
+            //     // $('#billing_customer_ids').val(selectedBillingOrder).trigger('change.select2');
+            // });
+
             function getbillingCustomers(select = "") {
                 var pageToken = "{{ request()->token }}";
                 let selectedBillingOrder = $('#billing_customer_ids').val()
                 selectedBillingOrder = selectedBillingOrder.filter(item => item !== id);
                 var selectedCustomerIds = selectedBillingOrder;
-
                 $.ajax({
                     url: "{{ route('booking.billing-customer') }}",
                     type: "POST",
@@ -1659,7 +1585,6 @@
             }
 
             function saveCosts(fromManual = false) {
-                
 
                 var formIsValid = true;
 
@@ -1751,46 +1676,16 @@
                 }
             }
 
-            function getAllScheduleValues() {
-                let schedules = [];
-              
-                let formIsValidforSch = true;
-                // Collect values from #is_no_payment
-                $("#is_no_payment").find('input[name="sch_date[]"], input[name="sch_amount[]"], input[name="sch_comment[]"]').each(function (index, el) {
-                    // group inputs by index (0=date,1=amount,2=comment)
-                    if (index % 3 === 0) schedules.push({});
-                    let fieldIndex = index % 3;
+            function savePaymentSchedule() {
 
-                    if (fieldIndex === 0) schedules[schedules.length - 1].date = $(el).val();
-                    if (fieldIndex === 1) schedules[schedules.length - 1].amount = $(el).val();
-                    if (fieldIndex === 2) schedules[schedules.length - 1].comment = $(el).val();
-
-                });
-
-                // Collect values from #cloneSchContainer
-                $("#cloneSchContainer .row").each(function () {
-                    let schDate = $(this).find("input[name='sch_date[]']").val();
-                    let schAmount = $(this).find("input[name='sch_amount[]']").val();
-                    let schComment = $(this).find("input[name='sch_comment[]']").val();
-                   
-
-
-                    if (schDate || schAmount) {
-                        schedules.push({
-                            date: schDate,
-                            amount: schAmount,
-                            comment: schComment
-                        });
-                        if (!schDate || !schAmount) formIsValidforSch = false;
+                var formIsValid = true;
+                $("#pymentSchForm").find('input[type="date"], input[type="number"]').each(function() {
+                    if ($(this).val() === '') {
+                        formIsValid = false;
+                        return false;
                     }
                 });
 
-                return { schedules, formIsValidforSch };
-            }
-
-            function savePaymentSchedule() {
-                let token= $('#schtoken').val();
-                let { schedules, formIsValidforSch } = getAllScheduleValues();    
                 var pendingAmtTotal = $("#total_pending_amt_inp").val();
 
                 var totalAmount = 0;
@@ -1804,16 +1699,11 @@
                     return false;
                 }
 
-                if (formIsValidforSch) {
+                if (formIsValid) {
                     $.ajax({
                         url: "{{ route('booking.trip.schPayment') }}",
-
                         type: "POST",
-                        data: {
-                            token:token,
-                             _token: '{{ csrf_token() }}',
-                            schedules: schedules
-                        },
+                        data: $("#pymentSchForm").serialize(),
                         success: function(res) {
                             if (!res) {
                                 alert("Somthing Went Wrong, try again.")
@@ -1873,33 +1763,6 @@
 
             function submitBookingForm() {
 
-                 
-                const isChecked = $("#is_Amount_paid").prop("checked");
-                // alert(isChecked);
-                if (!isChecked) {
-                    let date_sch = $("#schDate").val();
-                    let amount_sch = $("#schAmt").val();
-                    let isValid = true;
-
-                    $(".error-msg").text(""); // clear previous errors
-
-                    if (date_sch === "") {
-                        $("#schDateError").text("Please select a schedule date.");
-                        isValid = false;
-                    }
-
-                    if (amount_sch === "") {
-                        $("#schAmtError").text("Please enter schedule amount.");
-                        isValid = false;
-                    }
-
-                    if (!isValid) {
-                        alert("Please enter payment schedule information");
-                        return false; 
-                    }
-                }
-              
-               
                 let paymentFrom = $("#payment_from").val();
                 let billingCustomerIds = $("#billing_customer_ids").val();
                     if (paymentFrom === "Individual") {
@@ -2043,9 +1906,10 @@
                                 var data = JSON.parse(res);
                            
                                 var customers = data.customers;
-                                var billingData = data.bookingData.billing_to ? JSON.parse(data.bookingData.billing_to) : [];
+                              
                                 var customersCount = data.customers.length;
                                 var trip_price = data.trip_price;
+                                var billingData = data.bookingData.billing_to ? JSON.parse(data.bookingData.billing_to) : [];
 
                                 var tripCosts = data.tripCosts;
                                 var tripDeviation = data.tripDeviation;
@@ -2173,7 +2037,18 @@
                                                                 </div>
                                                             </div>
 
-                                                            `;
+                                                            <div class="col-2 multiple-accept-payment" id="" ${multiple_payment_status}>
+                                                                <div class="form-floating form-floating-outline">
+                                                                    <select name="multiple_payment_tax[]" class="form-control">
+                                                                        <option value="">TCS</option>
+                                                                        <option ${select0} value="0">0%</option>
+                                                                        <option ${select5} value="5">5%</option>
+                                                                        <option ${select20} value="20">20%</option>
+                                                                        <option ${selectAuto} value="Auto">Auto</option>
+                                                                    </select>
+                                                                    <label for="">TCS<span class="text-danger fixed tailor-made">*</span></label>
+                                                                </div>
+                                                            </div>`;
 
 
                                             if (checkUser.includes(tripCost.c_id)) {
@@ -2359,7 +2234,7 @@
 
                                     selected +=
                                         `<option value="${value.id}">${value.first_name} ${value.last_name}</option>`;
-
+                                    
                                     selectedForBilling +=
                                         `<option ${billingData.includes(String(value.id)) ? "selected": "unselected"} value="${value.id}">${value.first_name} ${value.last_name}</option>`;
 
@@ -2371,7 +2246,6 @@
                                 $("#trip_amt_details").html(tripUi);
                                 $("#selected-travelers").html(selected);
                                 $("#billing_customer_ids").html(selectedForBilling);
-
                                 getSummary();
                             }
                         });

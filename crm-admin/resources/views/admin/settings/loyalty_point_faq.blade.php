@@ -1,7 +1,6 @@
 @extends('admin.inc.layout')
 
 @section('content')
-
 <div class="container-xxl flex-grow-1 container-p-y">
     <h4 class="fw-bold py-3 mb-4 text-primary">
         <span class="text-muted fw-light">Setting /</span> Loyalty Points FAQ's
@@ -20,12 +19,11 @@
                                 <div class="mb-2">
                                     <div class="d-flex justify-content-between align-items-center mb-2">
                                         <label>Question:</label>
-                                        {{-- <form action="{{ route('setting.loyalty_point_faq_delete') }}" method="POST" class="d-inline-block">
-                                            @csrf --}}
+                                       
                                             <span onclick="deleteFaq({{ $faq->id }})"class="btn btn-sm btn-danger delete-icon">
                                                 <i class="fa fa-trash"></i>
                                             </span>
-                                        {{-- </form> --}}
+                                       
                                     </div>
                                     <input type="text" name="questions[]" class="form-control" value="{{ $faq->question ?? '' }}" required>
                                 </div>
@@ -58,10 +56,6 @@
                 <div class="d-flex justify-content-between align-items-center mt-3">
                     <button type="button" class="custom-add-btn" onclick="addMore()"></button>
                     <button type="submit" class="btn btn-primary custom-btn">Submit</button>
-                </div>
-                <div class="div">
-                    <iframe src="https://adventuresoverland.com/staging-crm/crm-admin/embed" width="400" height="300" frameborder="0"></iframe>
-
                 </div>
             </form>
         </div>

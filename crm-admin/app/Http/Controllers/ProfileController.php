@@ -395,18 +395,18 @@ class ProfileController extends Controller
 
         $res = [
             'trip_price' => $booking->trip->price ?? 0,
-            'bookingData' =>$booking,
             'customers' => $data,
+            'bookingData' =>$booking,
             'tripCosts' => $bookingData,
             'tripDeviation' => $bookingDevData,
             'rooms' => $rooms,
             'is_multiple_payment' => $booking->is_multiple_payment,
             'payment_from_tax' => $booking->payment_from_tax,
         ];
-        $data = $data->sortBy(function($item) use ($customers) {
+
+         $data = $data->sortBy(function($item) use ($customers) {
             return array_search($item->id, $customers);
         })->values();
-     
         $customerDetailsArr = [];
         foreach ($data as $cust) {
             $customerDetailsArr[] = [
