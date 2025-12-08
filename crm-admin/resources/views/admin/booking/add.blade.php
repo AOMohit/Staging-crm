@@ -242,7 +242,7 @@
                                 <div class="form-floating form-floating-outline mb-4">
                                     <input onblur="vehicleSecAmtCmt(this.value)" type="text"
                                         value="@isset($data) {{ $data->vehical_security_amt_cmt }} @endisset"
-                                        name="vehical_security_amt_cmt" class="form-control" placeholder="Comment">
+                                        name="vehical_security_amt_cmt" id="vehical_security_amt_cmt" class="form-control" placeholder="Comment">
                                     <label for="basic-default-fullname">Comment</label>
                                 </div>
                             </div>
@@ -354,6 +354,7 @@
                             @endif
                         </div>
 
+                        <div class="row mb-1">
                             <div class="col-6 mb-4" id="billing_customer" 
                                 @if (isset($data) && $data->is_multiple_payment == 1) style="display: none" @endif
                                 @if (!isset($data) || $data->payment_from_tax == null || $data->payment_from == 'Company') style="display: none" @endif>
@@ -367,6 +368,26 @@
                                     <label for="customer_id">Bill To<span class="text-danger fixed">*</span></label>
                                 </div>
                             </div>
+
+                            <!-- Add new comment Sections Billing Remarks & Persone of guest -->
+                            <div class="col-6">
+                                <div class="form-floating form-floating-outline mb-4">
+                                    <input type="text"
+                                        value="@isset($data) {{ $data->persona_of_guests }} @endisset"
+                                        name="persona_of_guests" id="persona_of_guests" class="form-control" placeholder="Persona of guests">
+                                    <label for="persona_of_guests">Persona of guests</label>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="form-floating form-floating-outline mb-4">
+                                    <input type="text"
+                                        value="@isset($data) {{ $data->booking_remarks }} @endisset"
+                                        name="booking_remarks" id="booking_remarks" class="form-control" placeholder="Booking Remarks">
+                                    <label for="booking_remarks">Booking Remarks</label>
+                                </div>
+                            </div>
+                        </div>
+                            <!-- End Comment section -->
                         <hr>
 
                         {{-- trip cost per person --}}
@@ -1764,6 +1785,9 @@
             function submitBookingForm() {
 
                 let paymentFrom = $("#payment_from").val();
+                let vehicalSecurityAmtCmt = $("#vehical_security_amt_cmt").val();
+                let personaOfGuests = $("#persona_of_guests").val();    // persone of guest
+                let bookingRemarks = $("#booking_remarks").val();       // booking remarks
                 let billingCustomerIds = $("#billing_customer_ids").val();
                     if (paymentFrom === "Individual") {
                         if (!billingCustomerIds || billingCustomerIds.length === 0) {
@@ -1776,7 +1800,7 @@
                         "#payment_from_tax").val() != "" || $("#payment_from_cmpny_name").val() != "")) {
                     var check = 1;
                     var payable_amount = $("#payable_amt_to_saved").val();
-
+                    
                     roomInfo();
                     $.ajax({
                         url: "{{ route('booking.trip.formSubmited') }}",
@@ -1785,7 +1809,10 @@
                             "_token": "{{ csrf_token() }}",
                             token: "{{ request()->token }}",
                             form_submited: check,
-                            payable_amount: payable_amount
+                            payable_amount: payable_amount,
+                            vehical_security_amt_cmt:vehicalSecurityAmtCmt,
+                            persona_of_guests:personaOfGuests,
+                            booking_remarks:bookingRemarks
                         },
                         success: function(res) {
                             if (!res) {

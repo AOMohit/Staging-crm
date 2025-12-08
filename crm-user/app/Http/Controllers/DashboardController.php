@@ -55,52 +55,52 @@ class DashboardController extends Controller
         
         return view('my-trip',['trip'=>$trip]);
     }
-function nearestExpiringPoint()
-{
-    // Get all earned points (with expiry) for the logged-in user
-    $points = LoaltyPointsModel::where('customer_id', Auth::user()->id)
-        ->where('trans_type', 'Cr') // Only earned points
-        ->whereNotNull('expiry_date')
-        ->orderBy('expiry_date', 'asc')
-        ->get();
+    function nearestExpiringPoint()
+    {
+        // Get all earned points (with expiry) for the logged-in user
+        $points = LoaltyPointsModel::where('customer_id', Auth::user()->id)
+            ->where('trans_type', 'Cr') // Only earned points
+            ->whereNotNull('expiry_date')
+            ->orderBy('expiry_date', 'asc')
+            ->get();
 
-    if ($points->isEmpty()) {
-        return response()->json(['data' => []], 200);
-    }
-
-    // Total used or transferred points (Dr)
-    $usedPoints = LoaltyPointsModel::where('customer_id', Auth::user()->id)
-        ->where('trans_type', 'Dr') // All debits: transfers, redemptions, etc.
-        ->sum('trans_amt');
-
-    $adjustedPoints = [];
-
-    foreach ($points as $point) {
-        $originalAmount = $point->trans_amt;
-
-        // Deduct used points in order of expiry
-        if ($usedPoints >= $originalAmount) {
-            $adjustedAmount = 0;
-            $usedPoints -= $originalAmount;
-        } elseif ($usedPoints > 0) {
-            $adjustedAmount = $originalAmount - $usedPoints;
-            $usedPoints = 0;
-        } else {
-            $adjustedAmount = $originalAmount;
+        if ($points->isEmpty()) {
+            return response()->json(['data' => []], 200);
         }
 
-        // Only include if there's remaining points
-        if ($adjustedAmount > 0) {
-            $adjustedPoints[] = [
-                'expiry_date' => $point->expiry_date,
-                'original_points' => $originalAmount,
-                'remaining_points' => $adjustedAmount,
-            ];
-        }
-    }
+        // Total used or transferred points (Dr)
+        $usedPoints = LoaltyPointsModel::where('customer_id', Auth::user()->id)
+            ->where('trans_type', 'Dr') // All debits: transfers, redemptions, etc.
+            ->sum('trans_amt');
 
-    return response()->json(['data' => $adjustedPoints], 200);
-}
+        $adjustedPoints = [];
+
+        foreach ($points as $point) {
+            $originalAmount = $point->trans_amt;
+
+            // Deduct used points in order of expiry
+            if ($usedPoints >= $originalAmount) {
+                $adjustedAmount = 0;
+                $usedPoints -= $originalAmount;
+            } elseif ($usedPoints > 0) {
+                $adjustedAmount = $originalAmount - $usedPoints;
+                $usedPoints = 0;
+            } else {
+                $adjustedAmount = $originalAmount;
+            }
+
+            // Only include if there's remaining points
+            if ($adjustedAmount > 0) {
+                $adjustedPoints[] = [
+                    'expiry_date' => $point->expiry_date,
+                    'original_points' => $originalAmount,
+                    'remaining_points' => $adjustedAmount,
+                ];
+            }
+        }
+
+        return response()->json(['data' => $adjustedPoints], 200);
+    }
 
 
 

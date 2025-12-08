@@ -338,6 +338,7 @@
                                         <th scope="col">Lead Source</th>
                                         <th scope="col">Vehicle Type</th>
                                         <th scope="col">Vehicle Seat</th>
+                                        <th scope="col">Comment</th>
                                         <th scope="col">Room Type</th>
                                         <th scope="col">Room Category</th>
                                         <th scope="col">Payment From</th>
@@ -351,6 +352,7 @@
                                         </td>
                                         <td>{{ $data->vehical_type }}</td>
                                         <td>{{ $data->vehical_seat }}</td>
+                                        <td>{{ $data->vehical_security_amt_cmt }}</td>
                                         <td>
                                             @if ($data->room_info)
                                                 @foreach (json_decode($data->room_info) as $key => $rinfo)

@@ -183,6 +183,16 @@ class CustomerController extends Controller
             'relation' => ['required'],
         ]);
 
+        $exists = Customer::where([
+            'first_name' => $request->first_name,
+            'last_name'  => $request->last_name,
+            'dob'        => $request->dob,
+            'parent'     => $request->parent,
+        ])->exists();
+
+        if ($exists) {
+            return redirect()->back()->with('error', 'This member is already added.');
+        }
 
         $data = new Customer();
         $data->first_name = $request->first_name;
@@ -191,7 +201,6 @@ class CustomerController extends Controller
         $data->dob = $request->dob;
         $data->parent = $request->parent;
         $data->relation = $request->relation;
-        
         $data->save();
 
         // Activity Tracker

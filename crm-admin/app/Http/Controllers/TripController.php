@@ -597,7 +597,106 @@ class TripController extends Controller
         }
         // $payableTripAmt = TripBooking::where('trip_status', '!=', 'Draft')->where('trip_id', $id)->sum('payable_amt');
         $payableTripAmt = $data->price * getCustomerCountByTripId($id);
-        return view('admin.trip.view', compact('data', 'ess', 'exp_total', 'exp_paid', 'payableTripAmt', 'vservices', 'roomTypeSum', 'roomTypeAmtSum', 'vehicleSeat', 'vehicleSeatAmt'));
+
+        $customerIds = $tripInfo->flatMap(function ($ri) {
+            return json_decode($ri->customer_id, true) ?: [];
+        })->unique()->values()->toArray();
+
+        $customerNames = Customer::whereIn('id', $customerIds)->get()->mapWithKeys(function ($c) {
+            return [
+                $c->id => trim($c->first_name . ' ' . $c->last_name)
+            ];
+        });
+
+        // customer_id => trip_booking_id
+        $customerBookingMap = [];
+        foreach ($tripInfo as $ri) {
+            $cids = json_decode($ri->customer_id, true) ?: [];
+            foreach ($cids as $cid) {
+                // e.g. 1184 => 1620, 1194 => 1620, 1196 => 1624
+                $customerBookingMap[$cid] = $ri->id;
+            }
+        }
+
+        return view('admin.trip.view', compact('data', 'ess', 'exp_total', 'exp_paid', 'payableTripAmt', 'vservices', 'roomTypeSum', 'roomTypeAmtSum', 'vehicleSeat', 'vehicleSeatAmt', 'customerIds', 'customerNames', 'customerBookingMap'));
+    }
+
+    // Add new extra Serviece store function 02.12.2025
+    public function storeExtraService(Request $request)
+    {
+        $tripId     = $request->trip_id;
+        $travelers  = $request->input('extra_traveler', []);
+        $serviceIds = $request->input('extra_services', []);
+        $amounts    = $request->input('extra_amount', []);
+        $markups    = $request->input('extra_markup', []);
+        $taxes      = $request->input('extra_tax', []);
+        $comments   = $request->input('extra_comment', []);
+        $bookingIds = $request->input('trip_booking_id', []);
+
+        $serviceTitleMap = VendorService::whereIn('id', array_filter($serviceIds))
+            ->pluck('title', 'id')
+            ->toArray();
+
+        foreach ($travelers as $i => $travelerId) 
+        {
+            if (empty($travelerId)) {
+                continue;
+            }
+            $bookingId = $bookingIds[$i] ?? null;
+            if (!$bookingId) {
+                continue;
+            }
+            $serviceId = $serviceIds[$i] ?? null;
+            if (empty($serviceId)) {
+                continue;
+            }
+            $amount = $amounts[$i] ?? null;
+            if ($amount === null || $amount === '') {
+                continue;
+            }
+
+            $markup  = $markups[$i] ?? 0;
+            $tax     = $taxes[$i] ?? 18;
+            $comment = $comments[$i] ?? '';
+            $booking = TripBooking::find($bookingId);
+            if (!$booking) { continue; }
+            $rawExtra = $booking->extra_services ?: '[]';
+            $extra = json_decode($rawExtra, true);
+            if (!is_array($extra)) { $extra = []; }
+            $serviceTitle = $serviceTitleMap[$serviceId] ?? '';
+            $entry = [
+                'traveler' => (string) $travelerId,
+                'services' => $serviceTitle ?: (string) $serviceId,
+                'amount'   => (string) $amount,
+                'markup'   => (string) $markup,
+                'tax'      => (string) $tax,
+                'comment'  => (string) $comment,
+            ];
+
+            $foundIndex = null;
+            foreach ($extra as $idx => $row) {
+                if (
+                    isset($row['traveler'], $row['services']) &&
+                    (string) $row['traveler'] === (string) $travelerId &&
+                    (string) $row['services'] === (string) $entry['services']
+                ) {
+                    $foundIndex = $idx;
+                    break;
+                }
+            }
+
+            if ($foundIndex !== null) {
+                $extra[$foundIndex] = $entry;
+            } else {
+                $extra[] = $entry;
+            }
+            $booking->extra_services = json_encode($extra);
+            $booking->save();
+        }
+
+        return redirect()
+            ->route('trip.view', $tripId)
+            ->with('success', 'Extra services updated successfully.');
     }
 
     public function activityPage($id)
@@ -733,24 +832,22 @@ class TripController extends Controller
         $trip_id = $request->trip_id;
         $data = TripBooking::where('form_submited', 1)->where('trip_id', $trip_id)->whereNotNull('extra_services')->where('extra_services', '!=', '[]')->where('trip_status', '!=', 'Cancelled')->orderBy('id', 'desc')->get();
 
-        $data->map(function ($item, $index) {
-            $customerData = [];
-            if($item->extra_services){
-                $extra = json_decode($item->extra_services);
-                if(count($extra) > 0){
-                    foreach($extra as $es){
-                        $c_name = getCustomerById($es->traveler)->name ?? null;
-                        $c_services = $es->services ?? null;
-                        $c_amount = ($es->amount + $es->markup + (($es->markup*$es->tax)/100)) ?? null;
-                        array_push($customerData, ['name'=>$c_name, 'service'=>$c_services,'amount'=>$c_amount]);
-                    }
-                }
+        $rows = collect();
+        foreach ($data as $booking) {
+            $extras = json_decode($booking->extra_services) ?: [];
+
+            foreach ($extras as $es) {
+                $rows->push([
+                    'customer' => optional(getCustomerById($es->traveler))->name,
+                    'service'  => $es->services ?? null,
+                    'amount'   => ($es->amount ?? 0)
+                                + ($es->markup ?? 0)
+                                + ((($es->markup ?? 0) * ($es->tax ?? 0)) / 100),
+                ]);
             }
-            $item->extras = $customerData;
-        });
-        // dd($data);
-        // only passed extra services
-        return DataTables::of($data)->make(true);
+        }
+
+        return DataTables::of($rows)->make(true);
     }
 
     public function vendor(Request $request){
@@ -1267,13 +1364,15 @@ class TripController extends Controller
         foreach($datas as $data){
             if($data && $data->customer_id){
                 $customers = json_decode($data->customer_id);
+                $booking_id = $data->id;
 
                 foreach($customers as $customer){
-                    $check = Room::whereJsonContains('travelers', "$customer")->where('trip_id', $request->id)->first();
+                    $check = Room::whereJsonContains('travelers', "$customer")->where('trip_id', $request->trip_id)->first();
                     if(!$check){
                         $cData = [
                             'id' => $customer,
                             'name' => getCustomerById($customer)->name,
+                            'booking_id' => $booking_id,
                         ];
 
                         array_push($res, $cData);
@@ -1288,26 +1387,67 @@ class TripController extends Controller
     public function allotRoom(Request $request){
         $request->validate([
             'trip_id' => ['required'],
-            'booking_id' => ['required'],
-            'customer_id' => ['required'],
+            'customer_id'         => ['required', 'array'],
+            'customer_booking_map'=> ['required'],
         ]);
+        
+        $map = json_decode($request->customer_booking_map, true);
 
+        // Method 1: For single booking_id have multiple customers
+        $hotelNames  = $request->hotel_name  ?? []; // [customer_id => 'Hotel A']
+        $hotelRooms  = $request->hotel_room  ?? []; // [customer_id => '101']
+        $hotelPlaces = $request->hotel_place ?? []; // [customer_id => 'Jaipur']
+        $bookingGroups = [];
+        foreach ($map as $customerId => $bookingId) {
+            if (!$bookingId) {
+                continue;
+            }
+            $bookingGroups[$bookingId][] = $customerId;
+        }
+        foreach ($bookingGroups as $bookingId => $customers) {
+            $firstCustomerId = $customers[0];
 
-        $data = new Room();
-        $data->trip_id = $request->trip_id;
-        $data->booking_id = $request->booking_id;
-        $data->travelers = json_encode($request->customer_id);
-        $data->comment = $request->comment ?? null;
-        $data->hotel_name = $request->hotel_name ?? null;
-        $data->hotel_room = $request->hotel_room ?? null;
-        $data->hotel_place = $request->hotel_place ?? null;
-        $data->admin_id = Auth::user()->id;
-        $data->save();
+            $room = new Room();
+            $room->trip_id    = $request->trip_id;
+            $room->booking_id = $bookingId;                 
+            $room->travelers  = json_encode($customers);     
+            $room->comment    = $request->comment ?? null;
+
+            $room->hotel_name  = $hotelNames[$firstCustomerId]  ?? null;
+            $room->hotel_room  = $hotelRooms[$firstCustomerId]  ?? null;
+            $room->hotel_place = $hotelPlaces[$firstCustomerId] ?? null;
+
+            $room->admin_id   = Auth::user()->id;
+            $room->save();
+        }
 
         $customerNames = "";
         foreach($request->customer_id as $cust){
             $customerNames .= getCustomerById($cust)->name .", ";
         }
+
+        // Method 2: For each customer have separate booking_id
+        // $customerNames = '';
+        // $hotelNames  = $request->hotel_name ?? []; 
+        // $hotelRooms  = $request->hotel_room ?? []; 
+        // $hotelPlaces = $request->hotel_place ?? [];
+        
+        // foreach ($request->customer_id as $custId) {
+        //     $room = new Room();
+        //     $room->trip_id    = $request->trip_id;
+        //     $room->booking_id = $map[$custId] ?? null;
+        //     $room->travelers  = json_encode([$custId]);
+        //     $room->comment    = $request->comment ?? null;
+        //     $room->hotel_name = $hotelNames[$custId]  ?? null;
+        //     $room->hotel_room = $hotelRooms[$custId]  ?? null;
+        //     $room->hotel_place= $hotelPlaces[$custId] ?? null;
+        //     $room->admin_id   = Auth::user()->id;
+        //     $room->save();
+
+        //     $customerNames .= getCustomerById($custId)->name . ', ';
+        // }
+        // End code section for different methods
+
         // Activity Tracker
         $activity = new ActivityTracker();
         $activity->admin_id = Auth::user()->id;
@@ -1346,6 +1486,25 @@ class TripController extends Controller
         return redirect()->back()->with('success', 'Room Deleted Successfuly !');
     }
 
+    public function updateRoom(Request $request)
+    {
+        $request->validate([
+            'room_id'    => 'required',
+            'hotel_name' => 'required',
+            'hotel_room' => 'required',
+            'hotel_place'=> 'required'
+        ]);
+
+        $room = Room::findOrFail($request->room_id);
+
+        $room->hotel_name  = $request->hotel_name;
+        $room->hotel_room  = $request->hotel_room;
+        $room->hotel_place = $request->hotel_place;
+        $room->comment     = $request->comment;
+        $room->save();
+
+        return back()->with('success', 'Room Updated Successfully');
+    }
 
     public function getCustomerByBookingIdForVehicle(Request $request){
         $data = TripBooking::find($request->id);
@@ -1685,89 +1844,327 @@ class TripController extends Controller
         $writer->save('php://output');
     }
 
-    public function customerRegistrationData(Request $request)
-    {
+    // public function customerRegistrationData(Request $request)
+    // {
        
-        $trip_id = $request->trip_id;
-        $TripName = Trip::where('id', $trip_id)->first();
-        $TripName = $TripName ? $TripName->name : 'N/A';
+    //     $trip_id = $request->trip_id;
+    //     $TripName = Trip::where('id', $trip_id)->first();
+    //     $TripName = $TripName ? $TripName->name : 'N/A';
 
         
-        // dd($latestTrip->name);
+    //     // dd($latestTrip->name);
+    //     $mData = TripBooking::where('form_submited', 1)
+    //         ->where('trip_id', $trip_id)
+    //         ->whereNotIn('trip_status', ['Cancelled', 'Draft'])
+    //         ->orderBy('id', 'desc')
+    //         ->get();
+    
+    //     $customerIds = $mData->pluck('customer_id')->map(function ($id) {
+    //         return json_decode($id, true);
+    //     })->flatten()->unique()->toArray();
+
+    //     if (empty($customerIds)) {
+    //         return redirect()->back()->with('warning', 'No customers found for this trip.');
+    //     }
+    
+    //     $customers = Customer::whereIn('id', $customerIds)->get();
+
+    //     $spreadsheet = new Spreadsheet();
+    //     $sheet = $spreadsheet->getActiveSheet();
+    //     $sheet->setTitle('Customer Registration Data');
+    
+      
+    //     $headers = [
+    //         "id", "trip_name", "first_name", "last_name", "gender", "email", "telephone_code", "phone","profile","email_verified_at","address","city","country","state","pincode","dob","meal_preference","blood_group","profession","emg_contact","t_size","medical_condition","vaccination","tier","points","credit_note_wallet","referred_by","parent","relation","emg_name","something","have_road_trip","thrilling_exp","three_travel","three_place","passport_front","passport_back","pan_gst","gst_certificate","adhar_card","driving","letest_trip","created_at","is_password_changed","updated_at","deleted_at"
+    //     ];
+    
+    //     $sheet->fromArray([$headers], null, 'A1');
+    //     $sheet->getStyle('A1:' . Coordinate::stringFromColumnIndex(count($headers)) . '1')->getFont()->setBold(true);
+
+    //     $row = 2;
+    //     $baseUrl = str_replace('crm-admin', 'crm-user', url('storage/app/')) . '/';
+
+    //     foreach ($customers as $customer) {
+    //         $customer->profile = $customer->profile ? $baseUrl . $customer->profile : '';
+    //         $customer->passport_front = $customer->passport_front ? $baseUrl . $customer->passport_front : '';
+    //         $customer->passport_back = $customer->passport_back ? $baseUrl . $customer->passport_back : '';
+    //         $customer->pan_gst = $customer->pan_gst ? $baseUrl . $customer->pan_gst : '';
+    //         $customer->gst_certificate = $customer->gst_certificate ? $baseUrl . $customer->gst_certificate : '';
+    //         $customer->adhar_card = $customer->adhar_card ? $baseUrl . $customer->adhar_card : '';
+    //         $customer->driving = $customer->driving ? $baseUrl . $customer->driving : '';
+         
+    //         $latestTrip = Trip::where('id', $customer->letest_trip)->first();
+    //         $latestTripName = $latestTrip ? $latestTrip->name : 'N/A';
+
+    //         $sheet->fromArray([
+    //             [
+    //                 $customer->id,$TripName, $customer->first_name, $customer->last_name, $customer->gender, $customer->email, $customer->telephone_code, $customer->phone, $customer->profile,$customer->email_verified_at,
+    //                 $customer->address,$customer->city,$customer->country,$customer->state,$customer->pincode,$customer->dob,$customer->meal_preference,$customer->blood_group,$customer->profession,$customer->emg_contact,
+    //                 $customer->t_size,$customer->medical_condition,$customer->vaccination,$customer->tier,$customer->points,$customer->credit_note_wallet,$customer->referred_by,$customer->parent,$customer->relation,
+    //                 $customer->emg_name,$customer->something,$customer->have_road_trip,$customer->thrilling_exp,$customer->three_travel,$customer->three_place,$customer->passport_front,$customer->passport_back,
+    //                 $customer->pan_gst,$customer->gst_certificate,$customer->adhar_card,$customer->driving,$latestTripName,date("d M, Y", strtotime($customer->created_at)),$customer->is_password_changed,date("d M, Y", strtotime($customer->updated_at)),
+    //                 date("d M, Y", strtotime($customer->deleted_at)),
+    //             ]
+    //         ], null, 'A' . $row);
+    
+    //         $row++;
+    //     }
+    
+    //     $columnCount = count($headers);
+    //     $lastColumn = Coordinate::stringFromColumnIndex($columnCount); 
+    
+    //     for ($col = 1; $col <= $columnCount; $col++) {
+    //         $columnLetter = Coordinate::stringFromColumnIndex($col);
+    //         $sheet->getColumnDimension($columnLetter)->setAutoSize(true);
+    //     }
+    
+    //     $writer = new Xlsx($spreadsheet);
+    //     header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    //     header('Content-Disposition: attachment; filename="customers_registration_data.xlsx"');
+    //     header('Cache-Control: max-age=0');
+    
+    //     $writer->save('php://output');
+    //     exit;
+    // }
+
+    public function customerRegistrationData(Request $request)
+    {
+        $trip_id = $request->trip_id;
+        $trip = Trip::find($trip_id);
+        $TripName = $trip ? $trip->name : 'N/A';
+
         $mData = TripBooking::where('form_submited', 1)
             ->where('trip_id', $trip_id)
             ->whereNotIn('trip_status', ['Cancelled', 'Draft'])
             ->orderBy('id', 'desc')
             ->get();
-    
-        $customerIds = $mData->pluck('customer_id')->map(function ($id) {
-            return json_decode($id, true);
-        })->flatten()->unique()->toArray();
+
+        if ($mData->isEmpty()) {
+            return redirect()->back()->with('warning', 'No bookings found for this trip.');
+        }
+
+        $adminIds = $mData->pluck('admin_id')->unique()->toArray();
+        $customerIds = $mData->pluck('customer_id')->map(fn($id) => json_decode($id, true))->flatten()->unique()->toArray();
 
         if (empty($customerIds)) {
             return redirect()->back()->with('warning', 'No customers found for this trip.');
         }
-    
-        $customers = Customer::whereIn('id', $customerIds)->get();
+
+        $customers     = Customer::whereIn('id', $customerIds)->get()->keyBy('id');
+        $bookedByUsers = User::whereIn('id', $adminIds)->pluck('name', 'id');
 
         $spreadsheet = new Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
         $sheet->setTitle('Customer Registration Data');
-    
-      
+
         $headers = [
-            "id", "trip_name", "first_name", "last_name", "gender", "email", "telephone_code", "phone","profile","email_verified_at","address","city","country","state","pincode","dob","meal_preference","blood_group","profession","emg_contact","t_size","medical_condition","vaccination","tier","points","credit_note_wallet","referred_by","parent","relation","emg_name","something","have_road_trip","thrilling_exp","three_travel","three_place","passport_front","passport_back","pan_gst","gst_certificate","adhar_card","driving","letest_trip","created_at","is_password_changed","updated_at","deleted_at"
+            "Booked By","Booking Id","Booking For",
+            "Customers","Lead Source","Sub Lead Source","Expedition","Trip",
+            "Vehicle Type","Vehicle Seat","Vehicle Seat Amount","Vehicle Security Amount",
+            "Vehicle Amount Comment","Room Type","Room Type Amount","Room Category",
+            "Payment From","Company","TCS","Complete Payment By","Payment Type",
+            "Payment Amount","Payment Date","Trip Cost","Extra Services",
+            "Tax Required","Payable Amount","Trip Status","Invoice File",
+            "Invoice Status","Invoice Sent Date","Redeem Points","Cancellation Reason",
+            "Cancellation Amount","Cancellation Date",
+            "gender","email","telephone_code","phone","profile","email_verified_at","address",
+            "city","country","state","pincode","dob","meal_preference","blood_group","profession",
+            "emg_contact","t_size","medical_condition","vaccination","tier","points",
+            "credit_note_wallet","referred_by","parent","relation","emg_name","something",
+            "have_road_trip","thrilling_exp","three_travel","three_place","passport_front",
+            "passport_back","pan_gst","gst_certificate","adhar_card","driving","letest_trip",
+            "created_at","is_password_changed","updated_at","deleted_at"
         ];
-    
+
         $sheet->fromArray([$headers], null, 'A1');
         $sheet->getStyle('A1:' . Coordinate::stringFromColumnIndex(count($headers)) . '1')->getFont()->setBold(true);
 
         $row = 2;
         $baseUrl = str_replace('crm-admin', 'crm-user', url('storage/app/')) . '/';
 
-        foreach ($customers as $customer) {
-            $customer->profile = $customer->profile ? $baseUrl . $customer->profile : '';
-            $customer->passport_front = $customer->passport_front ? $baseUrl . $customer->passport_front : '';
-            $customer->passport_back = $customer->passport_back ? $baseUrl . $customer->passport_back : '';
-            $customer->pan_gst = $customer->pan_gst ? $baseUrl . $customer->pan_gst : '';
-            $customer->gst_certificate = $customer->gst_certificate ? $baseUrl . $customer->gst_certificate : '';
-            $customer->adhar_card = $customer->adhar_card ? $baseUrl . $customer->adhar_card : '';
-            $customer->driving = $customer->driving ? $baseUrl . $customer->driving : '';
-         
-            $latestTrip = Trip::where('id', $customer->letest_trip)->first();
+        foreach ($mData as $booking) {
+            $bookingCustomerIds = json_decode($booking->customer_id, true) ?: [];
+            if (empty($bookingCustomerIds)) continue;
+
+            $fullNames = [];
+            $primaryCustomer = null;
+            foreach ($bookingCustomerIds as $cid) {
+                if (!isset($customers[$cid])) continue;
+                $c = $customers[$cid];
+                $fullNames[] = trim(($c->first_name ?? '') . ' ' . ($c->last_name ?? ''));
+                if (!$primaryCustomer) $primaryCustomer = $c;
+            }
+            if (!$primaryCustomer) continue;
+
+            $bookedByName  = $bookedByUsers[$booking->admin_id] ?? '';
+            $bookingFor    = $booking->booking_for ?? '';
+            $leadSource    = $booking->lead_source ?? '';
+            $subLeadSource = $booking->sub_lead_source ?? '';
+            $expedition    = $booking->expedition ?? '';
+            $thisTripName  = $booking->trip->name ?? $TripName;
+
+            $vehicleType    = $booking->vehical_type ?? '';
+            $vehicleSeat    = $booking->vehical_seat ?? '';
+            $vehicleSeatAmt = $booking->vehical_seat_amt ?? '';
+            $vehicleSecAmt  = $booking->vehical_security_amt ?? '';
+            $vehicleAmtCmt  = $booking->vehical_security_amt_cmt ?? '';
+
+            $roomType = $roomTypeAmt = $roomCategory = '';
+            if (!empty($booking->room_info)) {
+                $roomInfo = json_decode($booking->room_info, true);
+                if (!empty($roomInfo[0])) {
+                    $roomType    = $roomInfo[0]['room_type']     ?? '';
+                    $roomTypeAmt = $roomInfo[0]['room_type_amt'] ?? '';
+                    $roomCategory= $roomInfo[0]['room_cat']      ?? '';
+                }
+            }
+            if ($roomType === '')     $roomType     = $booking->room_type     ?? '';
+            if ($roomTypeAmt === '')  $roomTypeAmt  = $booking->room_type_amt ?? '';
+            if ($roomCategory === '') $roomCategory = $booking->room_cat      ?? '';
+
+            $paymentFrom   = $booking->payment_from ?? '';
+            $company       = $booking->payment_from_cmpny ?? '';
+            $tcs           = $booking->payment_from_tax ?? '';
+            $completePayBy = '';
+            if (!empty($booking->payment_by_customer_id) && isset($customers[$booking->payment_by_customer_id])) {
+                $pc = $customers[$booking->payment_by_customer_id];
+                $completePayBy = trim(($pc->first_name ?? '') . ' ' . ($pc->last_name ?? ''));
+            }
+            $paymentType   = $booking->payment_type ?? '';
+            $paymentAmount = $booking->payment_amt ?? '';
+            $paymentDate   = $booking->payment_date ?? '';
+
+            $tripCost = '';
+            if (!empty($booking->trip_cost)) {
+                $tripCostData = json_decode($booking->trip_cost, true);
+                if (!empty($tripCostData[0]['cost'])) $tripCost = $tripCostData[0]['cost'];
+            }
+
+            $extraServices      = $booking->extra_services ?? '';
+            $taxRequired        = ($booking->tax_required == 1) ? 'No' : 'Yes';
+            $payableAmount      = $booking->payable_amt ?? '';
+            $tripStatus         = $booking->trip_status ?? '';
+            $invoiceFile        = $booking->invoice_file ? url('storage/app/' . $booking->invoice_file) : '';
+            $invoiceStatus      = $booking->invoice_status ?? '';
+            $invoiceSentDate    = $booking->invoice_sent_date ?? '';
+            $redeemPoints       = $booking->redeem_points ?? '';
+            $cancellationReason = $booking->cancelation_reason ?? '';
+            $cancellationAmount = $booking->cancelation_amount ?? '';
+            $cancellationDate   = $booking->cancelation_date ?? '';
+            $bookingId          = $booking->id;
+
+            $profile         = $primaryCustomer->profile         ? $baseUrl . $primaryCustomer->profile         : '';
+            $passport_front  = $primaryCustomer->passport_front  ? $baseUrl . $primaryCustomer->passport_front  : '';
+            $passport_back   = $primaryCustomer->passport_back   ? $baseUrl . $primaryCustomer->passport_back   : '';
+            $pan_gst         = $primaryCustomer->pan_gst         ? $baseUrl . $primaryCustomer->pan_gst         : '';
+            $gst_certificate = $primaryCustomer->gst_certificate ? $baseUrl . $primaryCustomer->gst_certificate : '';
+            $adhar_card      = $primaryCustomer->adhar_card      ? $baseUrl . $primaryCustomer->adhar_card      : '';
+            $driving         = $primaryCustomer->driving         ? $baseUrl . $primaryCustomer->driving         : '';
+
+            $latestTrip = $primaryCustomer->letest_trip ? Trip::find($primaryCustomer->letest_trip) : null;
             $latestTripName = $latestTrip ? $latestTrip->name : 'N/A';
 
-            $sheet->fromArray([
-                [
-                    $customer->id,$TripName, $customer->first_name, $customer->last_name, $customer->gender, $customer->email, $customer->telephone_code, $customer->phone, $customer->profile,$customer->email_verified_at,
-                    $customer->address,$customer->city,$customer->country,$customer->state,$customer->pincode,$customer->dob,$customer->meal_preference,$customer->blood_group,$customer->profession,$customer->emg_contact,
-                    $customer->t_size,$customer->medical_condition,$customer->vaccination,$customer->tier,$customer->points,$customer->credit_note_wallet,$customer->referred_by,$customer->parent,$customer->relation,
-                    $customer->emg_name,$customer->something,$customer->have_road_trip,$customer->thrilling_exp,$customer->three_travel,$customer->three_place,$customer->passport_front,$customer->passport_back,
-                    $customer->pan_gst,$customer->gst_certificate,$customer->adhar_card,$customer->driving,$latestTripName,date("d M, Y", strtotime($customer->created_at)),$customer->is_password_changed,date("d M, Y", strtotime($customer->updated_at)),
-                    date("d M, Y", strtotime($customer->deleted_at)),
-                ]
-            ], null, 'A' . $row);
-    
+            $createdAt = $primaryCustomer->created_at ? date("d M, Y", strtotime($primaryCustomer->created_at)) : '';
+            $updatedAt = $primaryCustomer->updated_at ? date("d M, Y", strtotime($primaryCustomer->updated_at)) : '';
+            $deletedAt = $primaryCustomer->deleted_at ? date("d M, Y", strtotime($primaryCustomer->deleted_at)) : '';
+
+            $sheet->fromArray([[
+                $bookedByName,
+                $bookingId,
+                $bookingFor,
+                implode(', ', $fullNames),
+                $leadSource,
+                $subLeadSource,
+                $expedition,
+                $thisTripName,
+                $vehicleType,
+                $vehicleSeat,
+                $vehicleSeatAmt,
+                $vehicleSecAmt,
+                $vehicleAmtCmt,
+                $roomType,
+                $roomTypeAmt,
+                $roomCategory,
+                $paymentFrom,
+                $company,
+                $tcs,
+                $completePayBy,
+                $paymentType,
+                $paymentAmount,
+                $paymentDate,
+                $tripCost,
+                $extraServices,
+                $taxRequired,
+                $payableAmount,
+                $tripStatus,
+                $invoiceFile,
+                $invoiceStatus,
+                $invoiceSentDate,
+                $redeemPoints,
+                $cancellationReason,
+                $cancellationAmount,
+                $cancellationDate,
+                $primaryCustomer->gender,
+                $primaryCustomer->email,
+                $primaryCustomer->telephone_code,
+                $primaryCustomer->phone,
+                $profile,
+                $primaryCustomer->email_verified_at,
+                $primaryCustomer->address,
+                $primaryCustomer->city,
+                $primaryCustomer->country,
+                $primaryCustomer->state,
+                $primaryCustomer->pincode,
+                $primaryCustomer->dob,
+                $primaryCustomer->meal_preference,
+                $primaryCustomer->blood_group,
+                $primaryCustomer->profession,
+                $primaryCustomer->emg_contact,
+                $primaryCustomer->t_size,
+                $primaryCustomer->medical_condition,
+                $primaryCustomer->vaccination,
+                $primaryCustomer->tier,
+                $primaryCustomer->points,
+                $primaryCustomer->credit_note_wallet,
+                $primaryCustomer->referred_by,
+                $primaryCustomer->parent,
+                $primaryCustomer->relation,
+                $primaryCustomer->emg_name,
+                $primaryCustomer->something,
+                $primaryCustomer->have_road_trip,
+                $primaryCustomer->thrilling_exp,
+                $primaryCustomer->three_travel,
+                $primaryCustomer->three_place,
+                $passport_front,
+                $passport_back,
+                $pan_gst,
+                $gst_certificate,
+                $adhar_card,
+                $driving,
+                $latestTripName,
+                $createdAt,
+                $primaryCustomer->is_password_changed,
+                $updatedAt,
+                $deletedAt,
+            ]], null, 'A' . $row);
+
             $row++;
         }
-    
+
         $columnCount = count($headers);
-        $lastColumn = Coordinate::stringFromColumnIndex($columnCount); 
-    
         for ($col = 1; $col <= $columnCount; $col++) {
             $columnLetter = Coordinate::stringFromColumnIndex($col);
             $sheet->getColumnDimension($columnLetter)->setAutoSize(true);
         }
-    
+
         $writer = new Xlsx($spreadsheet);
         header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
         header('Content-Disposition: attachment; filename="customers_registration_data.xlsx"');
         header('Cache-Control: max-age=0');
-    
         $writer->save('php://output');
         exit;
     }
-    
+
 
     // public function merchandiseExport(Request $request)
     // {

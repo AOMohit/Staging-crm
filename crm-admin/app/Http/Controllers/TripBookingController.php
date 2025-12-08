@@ -639,7 +639,9 @@ class TripBookingController extends Controller
 
     public function vehicleSecAmtCmt(Request $request){
         $token = $request->token;
-
+        
+        $booking = TripBooking::where('token', $token)->first();
+        $old_comment = $booking->vehical_security_amt_cmt;
         $bookingData = TripBooking::updateOrCreate(
             ['token' => $token],
             ['vehical_security_amt_cmt' => $request->vehical_security_amt_cmt ?? "NA"]
@@ -654,6 +656,81 @@ class TripBookingController extends Controller
             $activity->action = $action;
             $activity->save();
 
+        }
+
+        if($booking->form_submited == 1 && $request->vehical_security_amt_cmt != $old_comment){
+            $adminName = $bookingData->admin ? $bookingData->admin->name : null;
+            foreach(json_decode($bookingData->customer_id) as $traveler){
+                $adminName= Auth::user()->name;
+                $customer = getCustomerById($traveler);
+
+                // =========== email ==================
+                $accountEmail = setting('account_mail');
+                $opsEmail = setting('operation_mail');
+                $extraMail = config('app.ExtraMail');
+
+                if($extraMail){
+                    $data = [
+                        'email' => $customer->email,
+                        'name' => $customer->name,
+                        'paid_amt' => $booking->payment_amt ?? "N/A",
+                        'slot' => count(json_decode($booking->customer_id)),
+                        'spoc_person' => $adminName,
+                        'trip_name' => $booking->trip->name ?? "N/A",
+                        'old_comment'    => $old_comment ?? "N/A",
+                        'comment'    => $bookingData->vehical_security_amt_cmt ?? "N/A",
+                        'admin_email'=>$accountEmail,
+                    ];
+                    if ($extraMail && filter_var($extraMail, FILTER_VALIDATE_EMAIL)) {
+                        if (setting('mail_status') == 1) {
+                            event(new SendMailEvent($extraMail, 'Edit Booking Received from '.$customer->name.' for '. $booking->trip->name .' !', 'emails.admin-booking-confirm', $data));
+                        }
+                    }
+                }
+
+
+                //mail to account
+                if($accountEmail){
+                    $data = [
+                        'email' => $customer->email,
+                        'name' => $customer->name,
+                        'paid_amt' => $booking->payment_amt ?? "N/A",
+                        'slot' => count(json_decode($booking->customer_id)),
+                        'spoc_person' => $adminName,
+                        'trip_name' => $booking->trip->name ?? "N/A",
+                        'old_comment'    => $old_comment ?? "N/A",
+                        'comment'    => $bookingData->vehical_security_amt_cmt ?? "N/A",
+                        'admin_email'=>$accountEmail,
+                    ];
+                    if ($accountEmail && filter_var($accountEmail, FILTER_VALIDATE_EMAIL)) {
+                        if (setting('mail_status') == 1) {
+                            event(new SendMailEvent($accountEmail, 'Edit Booking Received from '.$customer->name.' for '. $booking->trip->name .' !', 'emails.admin-booking-confirm', $data));
+                        }
+                    }
+                }
+
+                //mail to operation
+                if($opsEmail){
+                    $data = [
+                        'email' => $customer->email,
+                        'phone' => $customer->phone,
+                        'name' => $customer->name,
+                        'spoc_person' => $adminName,
+                        'slot' => count(json_decode($booking->customer_id)),
+                        'paid_amt' => $booking->payment_amt ?? "N/A",
+                        'trip_name' => $booking->trip->name ?? "N/A",
+                        'old_comment'    => $old_comment ?? "N/A",
+                        'comment'    => $bookingData->vehical_security_amt_cmt ?? "N/A",
+                        'admin_email'=>$opsEmail,
+                    ];
+                    if ($opsEmail && filter_var($opsEmail, FILTER_VALIDATE_EMAIL)) {
+                        if (setting('mail_status') == 1) {
+                            event(new SendMailEvent($opsEmail, 'Edit Booking Received from '.$customer->name.' for '. $booking->trip->name .' !', 'emails.admin-booking-ops', $data));
+                        }
+                    }
+                }
+                
+            }
         }
 
         return true;
@@ -1188,7 +1265,6 @@ class TripBookingController extends Controller
 
     public function formSubmited(Request $request)
     { 
-        
         $token = $request->token;
         $booking = TripBooking::where('token', $token)->first();
         $formSubmitedOldValue = $booking->form_submited;
@@ -1197,6 +1273,9 @@ class TripBookingController extends Controller
             [
                 'form_submited' => $request->form_submited, 
                 'payable_amt'=>$request->payable_amount, 
+                'vehical_security_amt_cmt'=>$request->vehical_security_amt_cmt, 
+                'persona_of_guests'=>$request->persona_of_guests, 
+                'booking_remarks'=>$request->booking_remarks, 
                 'is_form_submitted'=> 0,
                 'invoice_status'=>'Pending',
                 'trip_status'=>'Confirmed',
@@ -1233,8 +1312,7 @@ class TripBookingController extends Controller
         }else{
             $action = "<b>".Auth::user()->name . "</b> has Created new Booking For <b>".$cList."<b>";
         }
-        // Activity Tracker
-
+        // Activity Tracker 
         $activity = new BookingLog();
         $activity->admin_id = Auth::user()->id;
         $activity->booking_id = $bookingData->id;
@@ -1242,7 +1320,7 @@ class TripBookingController extends Controller
         $activity->action = $action;
         $activity->save();
 
-         if($formSubmitedOldValue == 0){
+        if($formSubmitedOldValue == 0){
             $adminName = $booking->admin ? $booking->admin->name : null;
             foreach(json_decode($booking->customer_id) as $traveler){
                 $adminName= Auth::user()->name;
@@ -1253,11 +1331,13 @@ class TripBookingController extends Controller
                 $data = [
                     'name' => $customer->name,
                     'email' => $customer->email,
+                    'phone' => $customer->phone,
                     'paid_amt' => $booking->payment_amt ?? 0,
                     'slot' => count(json_decode($booking->customer_id)),
                     'trip'=> $booking->trip->name .' ('.$booking->trip->start_date .' - '.$booking->trip->end_date.')',
                     'link'=> $url,
                     'booking_id'=>$bookingData->id,
+                    'comment'=> $bookingData->vehical_security_amt_cmt ?? "N/A",
                     'for'=>'customer'
                 ];
 
@@ -1273,27 +1353,77 @@ class TripBookingController extends Controller
                 $data['attachments'] = $attachments;
                 
                 if(setting('mail_status') == 1){
-                    event(new SendMailEvent("$customer->email", 'Thanks for choosing Adventures Overland!', 'emails.trip-booking', $data));
+                    event(new SendMailEvent($customer->email, 'Thanks for choosing Adventures Overland!', 'emails.trip-booking', $data));
                 }
 
                 // =========== email ==================
                 $accountEmail = setting('account_mail');
                 $opsEmail = setting('operation_mail');
-
                 $extraMail = config('app.ExtraMail');
 
+                $vehicleSeat = $bookingData->vehical_seat ?? "";
+                $slots = count(json_decode($booking->customer_id));
+                
+                if($vehicleSeat && $vehicleSeat != ""){
+                    if($vehicleSeat == 0.25){
+                        $vehicleSeat = "1 Seat";
+                    } elseif($vehicleSeat == 0.5){
+                        $vehicleSeat = "2 Seat";
+                    } elseif($vehicleSeat == 0.75){
+                        $vehicleSeat = "3 Seat";
+                    } elseif($vehicleSeat == 1){
+                        $vehicleSeat = "4 Seat";
+                    } else{
+                        $vehicleSeat = $vehicleSeat." Seats";  
+                    }
+                }
+
+                $roomInfoRaw   = $bookingData->room_info ?? [];
+                $scheduleRaw   = $bookingData->sch_payment_list ?? [];
+
+                $roomInfo = [];
+                $paymentSchedule = [];
+
+                if (!empty($roomInfoRaw)) {
+                    $roomInfo = is_string($roomInfoRaw)
+                        ? json_decode($roomInfoRaw, true)
+                        : (array) $roomInfoRaw;
+                }
+
+                if (!empty($scheduleRaw)) {
+                    $paymentSchedule = is_string($scheduleRaw)
+                        ? json_decode($scheduleRaw, true)
+                        : (array) $scheduleRaw;
+                }
+
+                $roomCategoryTotal = 0;
+                foreach ($roomInfo as $room) {
+                    $roomCategoryTotal += (float) ($room['room_type_amt'] ?? 0);
+                }
+
+                $perPersonTotal = $slots * (float) ($bookingData->payment_amt ?? 0);
+                $exclusiveVehicleTotal = (float) ($bookingData->exclusive_vehicle_amount ?? 0);
+                $vehicleSecurityTotal  = (float) ($bookingData->vehical_security_amt ?? 0);
+                $totalA = $perPersonTotal + $exclusiveVehicleTotal + $vehicleSecurityTotal + $roomCategoryTotal;
+                
+                $taxData = totalTripTaxOfCustomerById($traveler, $bookingData->id);
+                $taxAmount = $taxData ?? 0;
+                $grandTotal = $totalA + $taxAmount;
+                
                 if($extraMail){
                     $data = [
                         'email' => $customer->email,
                         'name' => $customer->name,
+                        'phone' => $customer->phone,
                         'paid_amt' => $booking->payment_amt ?? "N/A",
                         'slot' => count(json_decode($booking->customer_id)),
                         'spoc_person' => $adminName,
                         'trip_name' => $booking->trip->name ?? "N/A",
+                        'comment'    => $bookingData->vehical_security_amt_cmt ?? "N/A",
                         'admin_email'=>$accountEmail,
                     ];
                     if(setting('mail_status') == 1){
-                        event(new SendMailEvent("$extraMail", 'New Booking Received from '.$customer->name.' for '. $booking->trip->name .' !', 'emails.admin-booking-confirm', $data));
+                        event(new SendMailEvent($extraMail, 'New Booking Received from '.$customer->name.' for '. $booking->trip->name .' !', 'emails.admin-booking-confirm', $data));
                     }
                 }
 
@@ -1303,31 +1433,62 @@ class TripBookingController extends Controller
                     $data = [
                         'email' => $customer->email,
                         'name' => $customer->name,
+                        'phone' => $customer->phone,
                         'paid_amt' => $booking->payment_amt ?? "N/A",
                         'slot' => count(json_decode($booking->customer_id)),
                         'spoc_person' => $adminName,
                         'trip_name' => $booking->trip->name ?? "N/A",
+                        'comment'    => $bookingData->vehical_security_amt_cmt ?? "N/A",
                         'admin_email'=>$accountEmail,
                     ];
                     if(setting('mail_status') == 1){
-                        event(new SendMailEvent("$accountEmail", 'New Booking Received from '.$customer->name.' for '. $booking->trip->name .' !', 'emails.admin-booking-confirm', $data));
+                        event(new SendMailEvent($accountEmail, 'New Booking Received from '.$customer->name.' for '. $booking->trip->name .' !', 'emails.admin-booking-confirm', $data));
                     }
                 }
 
                 //mail to operation
                 if($opsEmail){
                     $data = [
-                        'email' => $customer->email,
-                        'phone' => $customer->phone,
-                        'name' => $customer->name,
-                        'spoc_person' => $adminName,
-                        'slot' => count(json_decode($booking->customer_id)),
-                        'paid_amt' => $booking->payment_amt ?? "N/A",
-                        'trip_name' => $booking->trip->name ?? "N/A",
-                        'admin_email'=>$opsEmail,
+                        'email'                         => $customer->email,
+                        'phone'                         => $customer->phone,
+                        'name'                          => $customer->name,
+                        'spoc_person'                   => $adminName,
+                        'slot'                          => $slots,
+                        'paid_amt'                      => $booking->payment_amt ?? "",
+                        'trip_name'                     => $booking->trip->name ?? "",
+                        
+                        // New fields
+                        'persona_of_guests'             => $bookingData->persona_of_guests ?? "",
+
+                        // Billing Details
+                        'per_person_cost'               => $bookingData->payment_amt ?? 0,             // cost per person
+                        'travellers_text'               => 'x'.$slots.' travelers',
+                        'per_person_total'              => $perPersonTotal,
+
+                        'exclusive_vehicle_cost'        => $bookingData->exclusive_vehicle_amount ?? 0,
+                        'exclusive_vehicle_text'        => $vehicleSeat,                              // e.g. "4 Seat"
+                        'exclusive_vehicle_total'       => $exclusiveVehicleTotal,
+
+                        'room_info'                     => $roomInfo,
+                        
+                        'vehicle_security_label'        => 'Amount',
+                        'vehicle_security_text'         => '',
+                        'vehicle_security_total'        => $vehicleSecurityTotal,
+
+                        'total'                         => $totalA ?? 0,
+                        'tax'                           => $taxAmount ?? 0,
+                        'grand_total'                   => $grandTotal ?? 0,
+
+                        'booking_remarks'               => $bookingData->booking_remarks ?? "",
+                        'rooms'                         => $bookingData->no_of_rooms ?? "",
+                        'vehicle_info'                  => $vehicleSeat ?? "",
+                        'comment'                       => $bookingData->vehical_security_amt_cmt ?? "",
+                        'payment_schedule'              => $paymentSchedule,
+                    
+                        'admin_email'                   => $opsEmail,
                     ];
                     if(setting('mail_status') == 1){
-                        event(new SendMailEvent("$opsEmail", 'New Booking Received from '.$customer->name.' for '. $booking->trip->name .' !', 'emails.admin-booking-confirm', $data));
+                        event(new SendMailEvent($opsEmail, 'New Booking Received from '.$customer->name.' for '. $booking->trip->name .' !', 'emails.admin-booking-ops', $data));
                     }
                 }
                 // =========== email ==================
@@ -1540,9 +1701,16 @@ class TripBookingController extends Controller
             // trip cost
             if($data->trip_cost != null){
                 $tripCostData = json_decode($data->trip_cost);
-
+                $roomInfo = json_decode($data->room_info, true);    // add this line 01.12.2025
+                // add this section 01.12.2025
+                $roomAmount = 0;
+                if (is_array($roomInfo)) {
+                    foreach ($roomInfo as $room) {
+                        $roomAmount += (int) ($room['room_type_amt'] ?? 0);
+                    }
+                }
+                // end this section 01.12.2025 
                 $tripCost = [];
-
                 foreach ($tripCostData as $trip) {
                     $c_id = $trip->c_id;
                     if (isset($tripCost[$c_id])) {
@@ -1552,6 +1720,7 @@ class TripBookingController extends Controller
                        
                         $tripCost[$c_id]->cost = (int)$trip->cost; // Convert cost to integer for summing
                     }
+                    $tripCost[$c_id]->comment = $trip->comment ?? "NA"; // add this line 01.12.2025
                 }
 
                 foreach($tripCost as $key=>$tc){
@@ -1560,8 +1729,12 @@ class TripBookingController extends Controller
                     $tc->parent = getCustomerById($tc->c_id)->parent ?? '';
                     $tc->relation = getCustomerById($tc->c_id)->relation ?? '';
                     $tc->vehicle_amt = $data->vehical_seat_amt ?? 0;
-                    $tc->room_amt = $data->room_type_amt ?? 0;
-                    $tc->comment = $data->vehicle_type_other_cmt ?? "NA";
+                    // add modification done on 01.12.2025
+                    $tc->room_amt = $roomAmount;
+                    $tc->comment = $tc->comment ?? '';
+                    // $tc->room_amt = $data->room_type_amt ?? 0;
+                    // $tc->comment = $data->vehicle_type_other_cmt ?? "NA";
+                    // end modification 01.12.2025
                 }
             }else{
                 $tripCost = [];

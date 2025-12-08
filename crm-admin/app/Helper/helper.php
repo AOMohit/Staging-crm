@@ -722,3 +722,144 @@ if(!function_exists('getTripCostWithoutTaxByBookingId')){
         return $totalSpend;
     }
 }
+
+if(!function_exists('totalTripTaxOfCustomerById')){
+    function totalTripTaxOfCustomerById($cId, $bId=null){
+        $res = TripBooking::whereJsonContains('customer_id', "$cId");
+        if($bId){
+            $res->where('id', $bId);
+        }
+        $res = $res->whereNotIn('trip_status', ['Cancelled'])->get();
+
+        $tripCost = 0;
+        $carbonAmt = 0;
+        $extraCost = 0;
+        $taxAmt = 0;
+        $devAmt = 0;
+        $vehicleSecAmt = 0;
+        $supplimentry = 0;
+
+        foreach($res as $item){
+            $costs = json_decode($item->trip_cost);
+            if($costs){
+                foreach($costs as $cost){
+                    if($cost->c_id == $cId){
+                        $tripCost += $cost->cost ?? 0;
+                    }
+                }
+            }
+
+            $tripDev = json_decode($item->trip_deviation);
+            if($tripDev){
+                foreach($tripDev as $dev){
+                    if($dev->c_id == $cId){
+                        if($dev->deviation_type == "Add"){
+                            $devAmt += $dev->deviation_amt ?? 0;
+                        }else{
+                            $devAmt -= $dev->deviation_amt ?? 0;
+                        }
+                    }
+                }
+            }
+
+            $exc = json_decode($item->extra_services);
+            if($exc){
+                foreach($exc as $ex){
+                    if($ex->traveler == $cId){
+                        $totalEx = $ex->amount + $ex->markup + (($ex->markup*$ex->tax)/100);
+                        $extraCost += $totalEx;
+                    }
+                }
+            }
+
+            $packageBSum = 0;
+            $room_info = json_decode($item->room_info) ?? [""];
+            if(count($room_info)){
+                foreach($room_info as $packB){
+                    if($packB && $packB->room_type_amt){
+                        $packageBSum += $packB->room_type_amt;
+                    }
+                }
+            }
+            $packageBSum += $item->vehical_seat_amt;
+            $tripCostData = json_decode($item->trip_cost) ?? [];
+     
+           if (is_array($tripCostData) && count($tripCostData) > 0) {
+                $travellerCount = count($tripCostData);
+            } else {
+                $travellerCount = 1;
+            }
+            $perTravellerPackageB = $packageBSum/$travellerCount;
+            $supplimentry += $perTravellerPackageB;
+
+            // $vehicleSecAmt += ($item->vehical_security_amt ?? 0) / $travellerCount;
+
+            if($item->tax_required == 0 || $item->tax_required == null){
+                $gst = setting('gst') ?? 0;
+                $tcs = setting('tcs') ?? 0;
+
+                $tripTax = json_decode($item->trip_cost);
+                $gst_amt = 0;
+                if($tripTax){
+                    foreach($tripTax as $tt){
+                        if($tt->c_id == $cId){
+                            $netCost = $tt->cost + $perTravellerPackageB;
+                            $gst_amt += (($netCost*$gst)/100);
+                        }
+                    }
+                }
+
+                $tcs_amt = 0;
+                if($tripTax){
+                    
+                    foreach($tripTax as $tt){
+                        if($tt->c_id == $cId){
+                            $netCost = $tt->cost + $perTravellerPackageB;
+                            if($item->payment_from == "Individual" && $item->payment_from_tax){
+                                if($item->payment_from_tax == "Auto"){
+                                    if($netCost > 700000){
+                                        $netCost1 = 700000;
+                                        $netCost2 = $netCost - $netCost1;
+                                        $tcs_amt1 = (($netCost1*5)/100);
+                                        $tcs_amt2 = (($netCost2*20)/100);
+                                        $tcs_amt = $tcs_amt1 + $tcs_amt2;
+                                    }else{
+                                        $tcs_amt = (($netCost*5)/100);
+                                    }
+                                    $tcs_per = $item->payment_from_tax;
+                                }
+                                elseif($item->payment_from_tax == "Manual"){
+                                    $tcs1_amt = (($tt->amount_1*$tt->tcs_1)/100);
+                                    $tcs2_amt = 0;
+                                    if($tt->tcs_2 != null){
+                                        $tcs2_amt = (($tt->amount_2*$tt->tcs_2)/100);
+                                    }
+                                    $tcs_amt = $tcs1_amt + $tcs2_amt;
+                                    $tcs_per = $item->payment_from_tax;
+                                }
+                                else{
+                                    $tcs_amt = (($netCost*$item->payment_from_tax)/100);
+                                    $tcs_per = $item->payment_from_tax;
+                                }
+                            }elseif($item->payment_from == "Company"){
+                                if($item->is_tds == 0){
+                                    $tcs = 0;
+                                }
+                                $tcs_amt += (($netCost*$tcs)/100);
+                            }
+                        }
+                    }
+                }
+
+                $taxAmt += $gst_amt + $tcs_amt;
+            }
+
+            // $carbon = TripCarbonInfo::where('customer_id', $cId)->where('booking_id', $item->id)->first();
+            // $carbonAmt += $carbon->donation_amt ?? 0;
+        }
+
+        // $totalSpend = $tripCost + $extraCost + $taxAmt + $vehicleSecAmt + $supplimentry + $carbonAmt + $devAmt;
+
+        return $taxAmt;
+    }
+}

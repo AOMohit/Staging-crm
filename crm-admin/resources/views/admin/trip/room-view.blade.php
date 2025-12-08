@@ -46,6 +46,52 @@
             </div>
         </div>
     </div>
+
+    {{-- Edit Room Modal --}}
+    <div class="modal fade" id="editRoomModal" tabindex="-1">
+        <div class="modal-dialog">
+            <form method="POST" action="{{ route('trip.details.room-update') }}">
+                @csrf
+                <input type="hidden" name="room_id" id="edit_room_id">
+
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Edit Room</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+
+                    <div class="modal-body">
+
+                        <div class="mb-3">
+                            <label>Hotel Name</label>
+                            <input type="text" name="hotel_name" id="edit_hotel_name" class="form-control">
+                        </div>
+
+                        <div class="mb-3">
+                            <label>Hotel Room</label>
+                            <input type="text" name="hotel_room" id="edit_hotel_room" class="form-control">
+                        </div>
+
+                        <div class="mb-3">
+                            <label>Hotel Place</label>
+                            <input type="text" name="hotel_place" id="edit_hotel_place" class="form-control">
+                        </div>
+
+                        <div class="mb-3">
+                            <label>Comment</label>
+                            <input type="text" name="comment" id="edit_comment" class="form-control">
+                        </div>
+
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-success">Update</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
 @endsection
 
 @section('script')
@@ -122,8 +168,13 @@
                                 <i class="mdi mdi-dots-vertical"></i>
                                 </button>
                                 <div class="dropdown-menu" style="">
-                                <a class="dropdown-item waves-effect" data-bs-toggle="modal" onclick="deleteModal('${routeDlt}')"
-                                            data-bs-target="#deleteModal" href="javaScript:void(0)"><i class="mdi mdi-trash-can-outline me-1"></i> Delete</a>
+                                    <!-- ✅ EDIT -->
+                                    <a class="dropdown-item waves-effect" href="javascript:void(0)" onclick="openEditModal(${row.id}, '${row.hotel_name}', '${row.hotel_room}', '${row.hotel_place}', '${row.comment ?? ''}')">
+                                        <i class="mdi mdi-pencil-outline me-1"></i> Edit
+                                    </a>
+                                    <a class="dropdown-item waves-effect" data-bs-toggle="modal" onclick="deleteModal('${routeDlt}')" data-bs-target="#deleteModal" href="javaScript:void(0)">
+                                        <i class="mdi mdi-trash-can-outline me-1"></i> Delete
+                                    </a>
                                 </div>
                                 
                             </div>`;
@@ -150,5 +201,16 @@
         function deleteModal(route) {
             $('#deleteBtn').attr('href', route);
         }
+
+        function openEditModal(id, hotelName, hotelRoom, hotelPlace, comment) {
+            $('#edit_room_id').val(id);
+            $('#edit_hotel_name').val(hotelName);
+            $('#edit_hotel_room').val(hotelRoom);
+            $('#edit_hotel_place').val(hotelPlace);
+            $('#edit_comment').val(comment);
+
+            $('#editRoomModal').modal('show');
+        }
+
     </script>
 @endsection

@@ -549,6 +549,9 @@
                                     </div>
                                 </div>
                                 <div class="tab-pane fade" id="navs-top-extra" role="tabpanel">
+                                    <div class="text-end">
+                                        <a onclick="addExtraService({{ request()->id }})" href="javaScript:void(0)" class="btn btn-info btn-sm">+ Add </a>
+                                    </div>
                                     <div class="card-datatable table-responsive pt-0">
 
                                         <table id="myDatatableExtra" class="table table-bordered">
@@ -1151,10 +1154,10 @@
                         <h5 class="mb-0">Allot Room for Traveler</h5>
                     </div>
                     <div class="card-body">
-                        <form action="{{ route('trip.details.allotRoom') }}" method="post">
+                        <form action="{{ route('trip.details.allotRoom') }}" method="post" id="allotRoomForm">
                             @csrf
                             <input type="hidden" name="trip_id" id="room_trip_id" value="{{ request()->id }}">
-                            <input type="hidden" name="booking_id" id="room_booking_id" value="">
+                            <input type="hidden" name="customer_booking_map" id="customer_booking_map">
 
                             <div class="row mt-4">
                                 <div class="col-md-12 mb-2">
@@ -1168,6 +1171,8 @@
                                     </div>
                                 </div>
                             </div>
+                            <div id="customer-room-details" class="mt-3"></div>
+
                             <div class="row mt-4">
                                 <div class="col-12">
                                     <div class="form-floating form-floating-outline">
@@ -1245,37 +1250,180 @@
             </div>
         </div>
     </div>
+
+    <!-- Modal For Add Extra Service -->
+    <div class="modal fade" id="extraServiceModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-xl" role="document">
+            <div class="modal-content">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Add Extra Service</h5>
+                    </div>
+                    <div class="card-body">
+                        <form action="{{ route('trip.details.extra.store') }}" method="post" id="extraServiceForm">
+                            @csrf
+                            <input type="hidden" name="trip_id" id="extra_trip_id" value="{{ request()->id }}">
+
+                            <div id="extra-service-wrapper">
+                                <div class="row field">
+                                    <div class="form-group col-2 mt-4">
+                                        <label>Select Traveler</label>
+                                        <select name="extra_traveler[]" class="form-control extra-traveler" id="selected-travelers">
+                                            <option value="">Select</option>
+                                            @foreach($customerNames as $id => $name)
+                                                <option value="{{ $id }}">{{ $name }}</option>
+                                            @endforeach
+                                        </select>
+
+                                        {{-- hidden booking id that will be filled via JS --}}
+                                        <input type="hidden" name="trip_booking_id[]" class="trip-booking-id">
+                                    </div>
+
+                                    <div class="form-group col-2 mt-4">
+                                        <label>Extra Services</label>
+                                        <select name="extra_services[]" class="form-control">
+                                            <option value="">Services</option>
+                                            @foreach($vservices as $service)
+                                                <option value="{{ $service->id }}">{{ $service->title }}</option>
+                                                {{-- or value="{{ $service->title }}" if you want to store title instead of id --}}
+                                            @endforeach
+                                        </select>
+                                    </div>
+
+                                    <div class="form-group col-2 mt-4">
+                                        <label>Amount</label>
+                                        <input type="number" name="extra_amount[]" class="form-control" placeholder="amount">
+                                    </div>
+
+                                    <div class="form-group col-2 mt-4">
+                                        <label>Markup</label>
+                                        <input type="number" name="extra_markup[]" class="form-control" placeholder="amount">
+                                    </div>
+
+                                    <div class="form-group col-1 mt-4">
+                                        <label>Tax %</label>
+                                        <div class="form-control">18</div>
+                                    </div>
+
+                                    <div class="form-group col-2 mt-4">
+                                        <label>Comment</label>
+                                        <input type="text" name="extra_comment[]" class="form-control" placeholder="Comment">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row mt-4">
+                                <div class="text-center">
+                                    <button class="btn btn-warning" type="submit">Submit</button>
+                                </div>
+                            </div>
+                        </form>    
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
 @endsection
 
 @section('script')
+    <script>
+    var customerBookingMap = @json($customerBookingMap);
+    $(document).on('change', '.extra-traveler', function () {
+        var cid = $(this).val();
+        var bookingId = customerBookingMap[cid] || '';
+        $(this).closest('.field').find('.trip-booking-id').val(bookingId);
+    });
+</script>
+
     <script>
         function addExpense() {
             document.querySelector(".expense-form").reset();
             $("#addExpense").modal('show');
         }
 
-        function allotRoom(id) {
+        function allotRoom(tripId) {
             $.ajax({
                 url: "{{ route('trip.details.getCustomerByBookingId') }}",
                 type: "POST",
                 data: {
                     "_token": "{{ csrf_token() }}",
-                    id: id,
-                    trip_id: "{{ request()->id }}",
+                    trip_id: tripId,
                 },
                 success: function(res) {
                     var data = JSON.parse(res);
                     var text = '';
                     $.each(data, function(key, value) {
                         text +=
-                            `<option value="${value.id}">${value.name}</option>`;
+                            `<option data-bookingid="${value.booking_id}" value="${value.id}">${value.name}</option>`;
                     });
                     $("#booking_customers").html(text);
-                    $("#room_booking_id").val(id);
+                    // $("#room_booking_id").val(id);
                     $("#allotRoom").modal('show');
                 }
             });
         }
+
+        $(document).on('submit', '#allotRoomForm', function (e) 
+        {
+            var map = {};
+            $('#booking_customers option:selected').each(function () {
+                var customerId = $(this).val();
+                var bookingId  = $(this).data('bookingid');
+                map[customerId] = bookingId;
+            });
+            $('#customer_booking_map').val(JSON.stringify(map));
+            return true;
+        });
+
+        $('#booking_customers').on('change', function () {
+            var $container = $('#customer-room-details');
+            $container.empty(); // clear old fields
+
+            $('#booking_customers option:selected').each(function () {
+                var customerId   = $(this).val();
+                var customerName = $(this).text();
+
+                var block = `
+                <div class="row mb-3" data-customer-id="${customerId}">
+                    <div class="col-md-3">
+                        <div class="form-floating form-floating-outline">
+                            <input type="text" class="form-control" value="${customerName}" readonly>
+                            <label>Customer</label>
+                        </div>
+                    </div>
+
+                    <div class="col-md-3">
+                        <div class="form-floating form-floating-outline">
+                            <input type="text" class="form-control"
+                                name="hotel_name[${customerId}]"
+                                placeholder="Hotel Name">
+                            <label>Hotel Name</label>
+                        </div>
+                    </div>
+
+                    <div class="col-md-3">
+                        <div class="form-floating form-floating-outline">
+                            <input type="text" class="form-control"
+                                name="hotel_room[${customerId}]"
+                                placeholder="Hotel Room">
+                            <label>Hotel Room</label>
+                        </div>
+                    </div>
+
+                    <div class="col-md-3">
+                        <div class="form-floating form-floating-outline">
+                            <input type="text" class="form-control"
+                                name="hotel_place[${customerId}]"
+                                placeholder="Hotel Place">
+                            <label>Hotel Place</label>
+                        </div>
+                    </div>
+                </div>`;
+
+                $container.append(block);
+            });
+        });
 
         function allotVehicle(id) {
             $.ajax({
@@ -1291,13 +1439,44 @@
                     var text = '';
                     $.each(data, function(key, value) {
                         text +=
-                            `<option value="${value.id}">${value.name}</option>`;
+                            `<option data-bookingid="${value.booking_id}" value="${value.id}">${value.name}</option>`;
                     });
                     $("#booking_customers_vehicle").html(text);
                     $("#vehicle_booking_id").val(id);
                     $("#allotVehicle").modal('show');
                 }
             });
+        }
+
+        function addExtraService(id){
+            $('#extra_trip_id').val(id);
+
+            var $wrapper = $('#extra-service-wrapper');
+            $wrapper.find('.field:gt(0)').remove();
+            $wrapper.find('.field:first').find('input').val('');
+            $wrapper.find('.field:first').find('select').val('');
+            $("#extraServiceModal").modal('show');
+        }
+
+        // add new row
+        $(document).on('click', '#btnAddExtraRow', function(e) {
+            e.preventDefault();
+            var $wrapper = $('#extra-service-wrapper');
+            var $first   = $wrapper.find('.field:first');
+            var $clone   = $first.clone();
+
+            $clone.find('input').val('');
+            $clone.find('select').val('');
+
+            $wrapper.append($clone);
+        });
+
+        // remove single row
+        function removeSingleField(el) {
+            var $wrapper = $('#extra-service-wrapper');
+            if ($wrapper.find('.field').length > 1) {
+                $(el).closest('.field').remove();
+            }
         }
 
         function vendorByExp(id) {
@@ -1741,44 +1920,16 @@
                 },
                 "serverSide": true,
                 "deferRender": true,
-                "columns": [{
-                        name: 'customer',
-                        "render": function(data, type, row, meta) {
-                            if (row.extras.length > 0) {
-                                var text = "";
-                                $.each(row.extras, function(key, value) {
-                                    text +=
-                                        `<div>${value.name}</div>`;
-                                });
-                                return text;
-                            }
-                        }
-                    }, {
-                        name: 'service',
-                        "render": function(data, type, row, meta) {
-                            if (row.extras.length > 0) {
-                                var text = "";
-                                $.each(row.extras, function(key, value) {
-                                    text +=
-                                        `<div>${value.service}</div>`;
-                                });
-                                return text;
-                            }
-                        }
-                    },
+                columns: [
+                    { data: 'customer', name: 'customer' },
+                    { data: 'service',  name: 'service'  },
                     {
+                        data: 'amount',
                         name: 'amount',
-                        "render": function(data, type, row, meta) {
-                            if (row.extras.length > 0) {
-                                var text = "";
-                                $.each(row.extras, function(key, value) {
-                                    text +=
-                                        `<div>₹${value.amount}</div>`;
-                                });
-                                return text;
-                            }
+                        render: function(data, type, row, meta) {
+                            return '₹' + data;
                         }
-                    },
+                    }
                 ],
                 'rowCallback': function(row, data, index) {
                     $('td', row).css('white-space', 'nowrap');

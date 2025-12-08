@@ -63,12 +63,20 @@
             <td style="font-size: 15px; line-height: 24px; font-family: 'Helvetica', Arial, sans-serif; font-weight: 400; text-decoration: none; color: #383838; width: 596px; vertical-align: top; padding-left: 30px; padding-right: 30px; padding-top: 30px; padding-bottom: 40px;" width="596">
 
                 <p>Hello Admin,</p>
-                <p>New trip booking recieved from <strong>{{ $data['name'] }}</strong> for <strong>{{ $data['trip_name'] }}</strong> </p>
+                <p>@if(!empty($data['old_comment']))
+                      Edit
+                  @else
+                      New
+                  @endif trip booking recieved from <strong>{{ $data['name'] }}</strong> for <strong>{{ $data['trip_name'] }}</strong> </p>
                  <ul style="font-size: 15px; line-height: 24px; font-family: 'Helvetica', Arial, sans-serif; color: #383838; padding-left: 20px;">
                       <li><strong>Email:</strong> {{ $data['email'] ?? 'N/A' }}</li>
                       <li><strong>Phone:</strong> {{ $data['phone'] ?? 'N/A' }}</li>
                       <li><strong>Spoc_Person:</strong> {{ $data['spoc_person'] }}</li>
                       <li><strong>Slot:</strong> {{ $data['slot'] ?? 'N/A' }}</li>
+                      @if(!empty($data['old_comment']))
+                          <li><strong>Old Comment:</strong> {{ $data['old_comment'] }}</li>
+                      @endif
+                      <li><strong>Comment:</strong> {{ $data['comment'] ?? 'N/A' }}</li>
                       <li><strong>Received Amount:</strong> {{ $data['paid_amt'] ?? 'N/A' }}</li>
                 </ul>
 

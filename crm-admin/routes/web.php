@@ -344,6 +344,8 @@ Route::middleware('CheckLogin')->group(function () {
         Route::get('activity-get', [TripController::class, 'activity'])->name('activity-get');
         Route::post('change-status', [TripController::class, 'changeStatus'])->name('change-status');
         Route::post('cancel', [TripController::class, 'cancelTrip'])->name('cancel');
+        // Add new route 02.12.2025
+        Route::post('extra/store', [TripController::class, 'storeExtraService'])->name('details.extra.store');
 
         Route::post('import', [TripController::class, 'import'])->name('import');
         Route::get('export-sample', [TripController::class, 'exportSample'])->name('export-sample');
@@ -373,6 +375,7 @@ Route::middleware('CheckLogin')->group(function () {
             Route::get('room-view', [TripController::class, 'roomView'])->name('room-view');
             Route::get('room-get', [TripController::class, 'roomGet'])->name('room-get');
             Route::get('room-delete', [TripController::class, 'roomDelete'])->name('room-delete');
+            Route::post('room-update', [TripController::class, 'updateRoom'])->name('room-update');
             Route::post('getCustomerByBookingIdForVehicle', [TripController::class, 'getCustomerByBookingIdForVehicle'])->name('getCustomerByBookingIdForVehicle');
             Route::post('allotVehicle', [TripController::class, 'allotVehicle'])->name('allotVehicle');
             Route::get('vehicle-view', [TripController::class, 'vehicleView'])->name('vehicle-view');
